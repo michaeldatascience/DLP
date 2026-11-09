@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>The Three Architectures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: one diagram, three readings. The course's encoder-decoder
+   flowchart is drawn once; choosing a family greys out the parts that family
+   does not own, so the three architectures are literally the same picture. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --att:#0E7490; --ffn:#6D28D9; --norm:#55637A; --io:#A15C07;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --att:#2DD4E8; --ffn:#A78BFA; --norm:#93A1B5; --io:#F0B429;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --att:#2DD4E8; --ffn:#A78BFA; --norm:#93A1B5; --io:#F0B429;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+p{margin:0}
+
+.mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+.mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
+
+section{margin-block:46px}
+.sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:20px}
+.sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
+.lede{max-width:68ch;color:var(--ink-soft);margin-bottom:18px}
+h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:26px 11px}
+
+.modebar{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.mode{font-family:var(--f-display);font-size:.8rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:8px 14px;cursor:pointer}
+.mode[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mode:hover:not([aria-pressed="true"]){border-color:var(--accent);color:var(--accent)}
+
+.diagram{background:var(--surface);border:1px solid var(--rule);padding:14px}
+svg.flow{width:100%;height:auto;display:block;max-width:100%}
+.blk rect{transition:opacity .2s ease}
+.blk text{font-family:var(--f-display);font-size:11px;font-weight:600;pointer-events:none}
+.blk.off rect{opacity:.14}
+.blk.off text{opacity:.3}
+.blk{cursor:pointer}
+.blk:hover rect{stroke-width:2.5}
+.blk.sel rect{stroke-width:3}
+.edge{stroke:var(--ink-soft);stroke-width:1.6;fill:none;marker-end:url(#ah)}
+.edge.off{opacity:.14}
+.colhdr{font-family:var(--f-display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;fill:var(--ink-soft)}
+.colhdr.off{opacity:.25}
+.nx{font-family:var(--f-mono);font-size:11px;font-weight:600;fill:var(--accent)}
+.nx.off{opacity:.2}
+
+.detail{background:var(--surface-2);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:14px 16px;margin-top:14px;min-height:92px}
+.detail h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.detail .meta{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);margin-bottom:8px}
+.detail p{font-size:.94rem;color:var(--ink-soft)}
+.detail .absent{display:inline-block;font-family:var(--f-display);font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;background:var(--alert-soft);color:var(--alert);padding:3px 8px;border-radius:2px;margin-top:9px}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:460px;font-size:.91rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.69rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.m{font-family:var(--f-mono)}
+
+/* mask grid */
+.maskpanel{background:var(--surface);border:1px solid var(--rule);padding:16px}
+.maskctl{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:14px}
+.maskctl label{font-family:var(--f-display);font-size:.73rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;cursor:pointer}
+.maskctl select{font-family:var(--f-mono);font-size:.85rem;padding:6px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink)}
+.grid{display:grid;gap:3px;max-width:330px;margin-bottom:12px}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.78rem;font-weight:600;border-radius:2px;min-width:0}
+.cell.ok{background:var(--win-soft);color:var(--win)}
+.cell.no{background:var(--alert-soft);color:var(--alert)}
+.rowflag{font-family:var(--f-mono);font-size:.85rem;padding:9px 12px;border-radius:2px}
+.rowflag.bad{background:var(--alert-soft);color:var(--alert);font-weight:600}
+.rowflag.good{background:var(--win-soft);color:var(--win)}
+
+.trap,.note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.trap{border-left:3px solid var(--alert)}
+.note{border-left:3px solid var(--accent)}
+.trap b,.note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.trap b{color:var(--alert)} .note b{color:var(--accent)}
+
+.worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:13px}
+.worked .wq{padding:15px 16px;display:grid;gap:8px}
+.wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
+.wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
+.wbtn:hover{background:var(--accent-soft)}
+.wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
+.step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
+.step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
+.wans{font-family:var(--f-mono);font-size:.92rem;font-weight:600;background:var(--signal-soft);padding:9px 12px;border-radius:2px}
+pre{font-family:var(--f-mono);font-size:.82rem;background:var(--surface-2);border:1px solid var(--rule);padding:11px 13px;border-radius:2px;overflow-x:auto;margin:0}
+
+.quiz{display:grid;gap:13px}
+.q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
+.q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.opt:hover:not(.done){border-color:var(--accent)}
+.opt.right{background:var(--win-soft);border-color:var(--win);font-weight:500}
+.opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
+.opt.done{cursor:default}
+.expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
+.score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+
+footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Concept 03 · Weeks 1 &amp; 3</div>
+  <h1>The Three Architectures</h1>
+  <p class="sub">BERT, GPT and T5 are not three designs. They are one diagram with different parts switched off. Pick a family below and watch the course's own flowchart lose the pieces that family does not own — then check what that does to the attention mask.</p>
+</header>
+
+<!-- ===== 01 THE DIAGRAM ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>One diagram, three readings</h2></div>
+  <p class="lede">This is the flowchart from the week-1 and week-2 decks, with the deck's own labels. Choose a family, then click any block to find out what it does and whether this family keeps it.</p>
+
+  <div class="modebar" role="group" aria-label="Architecture family">
+    <button class="mode" data-mode="encdec" aria-pressed="true">Encoder–Decoder · T5, BART</button>
+    <button class="mode" data-mode="enc" aria-pressed="false">Encoder-only · BERT</button>
+    <button class="mode" data-mode="dec" aria-pressed="false">Decoder-only · GPT</button>
+  </div>
+
+  <div class="diagram">
+    <svg class="flow" id="flow" viewBox="0 0 600 470" role="img" aria-labelledby="flowTitle">
+      <title id="flowTitle">Transformer flowchart with encoder and decoder stacks</title>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g id="edges" color="var(--ink-soft)"></g>
+      <g id="blocks"></g>
+      <g id="labels"></g>
+    </svg>
+    <div class="detail" id="detail">
+      <h4>Click a block</h4>
+      <p>Each block's explanation, its parameter cost, and whether the family you have selected keeps it will appear here.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>The single most useful sentence about decoder-only models</b>
+    A decoder-only model is not "half a transformer". It is the decoder <em>with the cross-attention layer removed</em>, because cross-attention exists only to read an encoder's output and there is no encoder to read. That is why GPT's block has two sublayers — masked attention and feed-forward — while the full decoder has three. Select Decoder-only above and the cross-attention block is the one that greys out inside an otherwise intact column.
+  </div>
+</section>
+
+<!-- ===== 02 THE MASK ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>What actually changes: the mask</h2></div>
+  <p class="lede">The families share their machinery almost exactly. What really separates them is which cells of the attention matrix are allowed. A cell holds 0 where attention is permitted and −∞ where it is blocked, because −∞ becomes 0 after softmax and so contributes nothing.</p>
+
+  <div class="maskpanel">
+    <div class="maskctl">
+      <label>Mask
+        <select id="mkind">
+          <option value="bi">bidirectional · encoder-only</option>
+          <option value="causal" selected>causal · decoder-only</option>
+        </select>
+      </label>
+      <label>torch.triu diagonal =
+        <select id="mdiag">
+          <option value="1" selected>1 · correct</option>
+          <option value="0">0 · the bug</option>
+        </select>
+      </label>
+      <label>seq_len
+        <select id="mlen">
+          <option>4</option><option selected>5</option><option>6</option><option>7</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="rowflag" id="rowflag"></div>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin-top:11px">Rows are queries — the token doing the looking. Columns are keys — the token being looked at. Cell <code>(i,j)</code> asks: may token <em>i</em> attend to token <em>j</em>?</p>
+  </div>
+
+  <div class="trap">
+    <b>The off-by-one that 2026 T2 made a 3-mark question</b>
+    <pre>causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=<b>0</b>).bool()
+masked_scores = scores.masked_fill(causal_mask, float("-inf"))
+attn_weights  = F.softmax(masked_scores, dim=-1)</pre>
+    <p style="margin-top:9px"><code>diagonal=0</code> includes the main diagonal, so every token is forbidden from attending to <em>itself</em>. Row 0 then has nothing left to look at — it is entirely −∞ — and softmax over a row of all −∞ gives NaN. Set the selector above to 0 and watch the first row turn solid red. The fix is <code>diagonal=1</code>, which blocks only what is strictly above the diagonal.</p>
+  </div>
+
+  <div class="note">
+    <b>Why the course calls the mask "strictly upper triangular"</b>
+    The blocked cells — the −∞ entries — sit strictly above the main diagonal. The deck writes it out as a 4×4 matrix with zeros on and below the diagonal and −∞ above. A past paper marked "the attention mask is strictly upper triangular" as a correct statement, so the wording matters.
+  </div>
+</section>
+
+<!-- ===== 03 SIDE BY SIDE ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Side by side</h2></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>Encoder-only</th><th>Decoder-only</th><th>Encoder–Decoder</th></tr></thead>
+      <tbody>
+        <tr><td><b>Example</b></td><td>BERT</td><td>GPT</td><td>T5, BART</td></tr>
+        <tr><td><b>Trained with</b></td><td class="m">MLM</td><td class="m">CLM</td><td>sequence-to-sequence</td></tr>
+        <tr><td><b>Each token sees</b></td><td>both directions</td><td>the past only</td><td>both, then the past</td></tr>
+        <tr><td><b>Mask</b></td><td>none</td><td>strictly upper triangular</td><td>none in the encoder, causal in the decoder</td></tr>
+        <tr><td><b>Cross-attention</b></td><td>no</td><td><b>no</b> — nothing to read from</td><td>yes</td></tr>
+        <tr><td><b>Sublayers per block</b></td><td>2</td><td>2</td><td>2 encoder, 3 decoder</td></tr>
+        <tr><td><b>Good at</b></td><td>understanding a complete text: classification, NER</td><td>generating text one token at a time</td><td>turning one whole sequence into another: translation, summarisation</td></tr>
+        <tr><td><b>Head on top</b></td><td>MLM head, or a classification head after fine-tuning</td><td>LM head over the vocabulary</td><td>LM head over the target vocabulary</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>Memory hook</b>
+    <strong>Read · Write · Translate.</strong> The encoder <em>reads</em> — it sees everything at once, which is why it is good at judging a text but cannot produce one. The decoder <em>writes</em> — it only ever sees what it has already written, which is exactly the condition of writing. The pair together <em>translates</em> — read one thing completely, then write another.
+  </div>
+</section>
+
+<!-- ===== 04 WORKED ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Now solve the real questions</h2></div>
+  <p class="lede">Every architecture and masking question from both past Quiz-1 papers.</p>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T2 · Q9 · 3 marks</span>
+      <p>The following code is intended to implement causal masking for self-attention, where each token can attend only to itself and previous tokens. <code>seq_len = 4</code>, <code>causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=0).bool()</code>, then <code>masked_fill(causal_mask, float("-inf"))</code> and a softmax over the last dimension. What is the effect of running this code as written?</p>
+      <button class="wbtn" data-sol="a1">Show the steps</button>
+    </div>
+    <div class="wsol" id="a1" hidden>
+      <div class="step"><i>1</i><div><code>torch.triu(M, diagonal=k)</code> keeps the upper triangle starting <em>k</em> positions from the main diagonal. At <code>k=0</code> the main diagonal is included.</div></div>
+      <div class="step"><i>2</i><div>Those kept entries are what gets filled with −∞. So cell (i,i) — a token attending to itself — is blocked, which is not what causal masking means. Causal allows self-attention; it blocks only the future.</div></div>
+      <div class="step"><i>3</i><div>Row 0 has no past at all, and now loses itself too, so every cell in row 0 is −∞.</div></div>
+      <div class="step"><i>4</i><div>Softmax over a row of all −∞ divides zero by zero and produces NaN. Switch the panel above to <code>diagonal=0</code> to see the row turn solid red.</div></div>
+      <div class="step"><i>5</i><div>Reject the two tempting distractors: it raises no RuntimeError — <code>triu</code> and <code>masked_fill</code> compose perfectly legally — and the weights do not "sum to more than 1", because softmax always normalises to 1 wherever it is defined at all.</div></div>
+      <div class="wans">The current token is masked too; row 0 becomes entirely −∞, which can yield NaN weights</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q14 · 3 marks · multiple select</span>
+      <p>Which statements correctly distinguish different Transformer architectures and their typical training objectives? (a) Encoder-only models are commonly trained with Masked Language Modelling objectives. (b) Decoder-only models rely on causal masking and autoregressive inference. (c) Encoder-decoder models are well suited for sequence-to-sequence tasks. (d) All Transformer architectures use identical attention masks.</p>
+      <button class="wbtn" data-sol="a2">Show the steps</button>
+    </div>
+    <div class="wsol" id="a2" hidden>
+      <div class="step"><i>1</i><div>(a), (b) and (c) are each the textbook pairing of a family with its objective. All three correct.</div></div>
+      <div class="step"><i>2</i><div>(d) is the odd one out, and it is false for the exact reason this page exists: the mask is the one thing that genuinely differs. An encoder has none; a decoder has a strictly upper triangular one.</div></div>
+      <div class="step"><i>3</i><div>Pattern worth noting: in a four-option multiple-select on this paper, three options were correct and the fourth contained the word "identical". Absolutes stay a reliable tell.</div></div>
+      <div class="wans">(a), (b), (c) — not (d)</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q16 · 3 marks · multiple select</span>
+      <p>A model is trained using the Causal Language Modelling objective with a standard cross-entropy loss. Which statements correctly describe the training dynamics? (a) The loss at position t depends only on tokens before t. (b) The attention mask is strictly upper triangular. (c) Future tokens contribute gradients to earlier positions. (d) The joint probability of the sequence is factorised autoregressively.</p>
+      <button class="wbtn" data-sol="a3">Show the steps</button>
+    </div>
+    <div class="wsol" id="a3" hidden>
+      <div class="step"><i>1</i><div>(a) True. That is the definition of causal: the prediction at t is conditioned on x₁…x₍t₋₁₎ and nothing later.</div></div>
+      <div class="step"><i>2</i><div>(b) True, in the deck's own words — the −∞ entries lie strictly above the diagonal.</div></div>
+      <div class="step"><i>3</i><div>(c) False, and this is the one that catches people. Gradients flow backwards through the computation graph, but the mask severed the forward connection from future tokens to earlier positions. No forward path means no gradient path. A token that was never read cannot be blamed for the error.</div></div>
+      <div class="step"><i>4</i><div>(d) True: P(x₁…x_T) = ∏ P(x_t | x₁…x₍t₋₁₎), the chain rule written out, which is the whole content of the CLM objective.</div></div>
+      <div class="wans">(a), (b), (d) — not (c)</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q6 and Q7 · 2 marks each</span>
+      <p><strong>(a)</strong> A loop builds <code>AutoModelForMaskedLM.from_pretrained("bert-base-uncased")</code> and calls it with <code>labels=batch_ids</code> on a large domain corpus with no labelled task targets, then backpropagates. What is the most precise interpretation? <strong>(b)</strong> In the standard Transformer, which component scales quadratically, O(N²), with input sequence length N?</p>
+      <button class="wbtn" data-sol="a4">Show the steps</button>
+    </div>
+    <div class="wsol" id="a4" hidden>
+      <div class="step"><i>1</i><div>(a) Three signals decide it. The class is <code>ForMaskedLM</code>, so the objective is MLM. The corpus is unlabelled and domain-specific. The weights start from a pretrained checkpoint rather than random.</div></div>
+      <div class="step"><i>2</i><div>Pretrained start + original objective + new domain = <strong>continual pre-training</strong>. Passing <code>labels=input_ids</code> is not supervision; it is how the MLM collator scores the model on reconstructing its own masked input.</div></div>
+      <div class="step"><i>3</i><div>So it is not instruction tuning — there are no instructions — and no classifier head is being trained.</div></div>
+      <div class="step"><i>4</i><div>(b) The attention score matrix QKᵀ is N×N, one entry per pair of positions, so it grows with the square of the length. Embedding lookups are O(N), residual additions are O(N), and the feed-forward layers act position by position, also O(N).</div></div>
+      <div class="step"><i>5</i><div>Note this is the one place sequence length matters. It drives compute and activation memory — never the parameter count.</div></div>
+      <div class="wans">(a) continual pre-training with the MLM objective &nbsp;·&nbsp; (b) the attention score matrix QKᵀ</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 05 QUIZ ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Quiz yourself</h2></div>
+  <div class="quiz" id="quiz"></div>
+  <p class="score" id="score">0 of 7 answered</p>
+</section>
+
+<footer>
+  Concept 03 of the DLP series. Labels follow the course decks exactly — Add&amp;Norm, Multi-Head cross Attention, Multi-Head Masked Attention — so the diagram here and the one on the slides are the same object. Next: The Memory Ledger.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // col: enc|dec ; row counts from the bottom
+  var BLOCKS = [
+    {id:'src',  col:'enc', row:0, label:'Source Input Sequence', kind:'io'},
+    {id:'eatt', col:'enc', row:1, label:'Multi-Head Attention',  kind:'att'},
+    {id:'ean1', col:'enc', row:2, label:'Add&Norm',              kind:'norm'},
+    {id:'effn', col:'enc', row:3, label:'Feed forward NN',       kind:'ffn'},
+    {id:'ean2', col:'enc', row:4, label:'Add&Norm',              kind:'norm'},
+
+    {id:'tgt',  col:'dec', row:0, label:'Target Input Sequence',      kind:'io'},
+    {id:'datt', col:'dec', row:1, label:'Multi-Head Masked Attention',kind:'att'},
+    {id:'dan1', col:'dec', row:2, label:'Add&Norm',                   kind:'norm'},
+    {id:'xatt', col:'dec', row:3, label:'Multi-Head cross Attention', kind:'att'},
+    {id:'dan2', col:'dec', row:4, label:'Add&Norm',                   kind:'norm'},
+    {id:'dffn', col:'dec', row:5, label:'Feed forward NN',            kind:'ffn'},
+    {id:'dan3', col:'dec', row:6, label:'Add&Norm',                   kind:'norm'},
+    {id:'out',  col:'dec', row:7, label:'Predicted Output Sequence',  kind:'io'}
+  ];
+
+  var INFO = {
+    src:{t:'Source Input Sequence',m:'embedding lookup · V·d + ctx·d',
+      d:'The text being read, converted to token ids and then to vectors. In an encoder-only model this is the whole input, with some positions replaced by [MASK].'},
+    tgt:{t:'Target Input Sequence',m:'embedding lookup · V·d + ctx·d',
+      d:'What the model has produced so far, shifted one step right and started with a go token. During training the true previous tokens are fed in rather than the model’s own guesses.'},
+    eatt:{t:'Multi-Head Attention',m:'4d² parameters · no mask',
+      d:'Every token attends to every other token in both directions. Nothing is hidden, which is why an encoder understands a text deeply but cannot generate one — at generation time the right-hand side does not exist yet.'},
+    datt:{t:'Multi-Head Masked Attention',m:'4d² parameters · causal mask',
+      d:'The same four matrices as ordinary attention, plus a mask that sets every future position to minus infinity. The mask holds no parameters; it is a fixed triangle of zeros and minus infinities added to the scores.'},
+    xatt:{t:'Multi-Head cross Attention',m:'4d² parameters · reads the encoder',
+      d:'The only place the two stacks meet. Queries come from the decoder — what am I looking for? — while keys and values come from the encoder’s finished output — here is what the source said. Remove the encoder and this layer has nothing to read, which is exactly why decoder-only models drop it.'},
+    ean1:{t:'Add&Norm',m:'~2d parameters · negligible',
+      d:'Two operations in one label. Add is the residual connection: the sublayer’s input is added back to its output, so the sublayer only has to learn the change. Norm is layer normalisation, which rescales each vector to keep the numbers in a workable range. Its scale and shift are the only learnable parts, and they are too small to matter in a parameter count.'},
+    effn:{t:'Feed forward NN',m:'8d² parameters',
+      d:'Two linear layers applied to each position independently: widen from d to 4d, apply GELU, squeeze back to d. Attention moves information between positions; this layer does the thinking within a position. It holds twice as many parameters as the attention beside it.'},
+    out:{t:'Predicted Output Sequence',m:'softmax over V',
+      d:'Raw scores for every vocabulary entry at every position, turned into probabilities. In most implementations this layer reuses the token embedding matrix rather than learning its own, which is why it often costs nothing extra.'}
+  };
+  INFO.dan1 = INFO.ean1; INFO.dan2 = INFO.ean1; INFO.dan3 = INFO.ean1; INFO.ean2 = INFO.ean1;
+  INFO.dffn = INFO.effn;
+
+  var MODES = {
+    encdec:{ hide:[], srcLabel:'Source Input Sequence', tgtLabel:'Target Input Sequence', outLabel:'Predicted Output Sequence', encOn:true },
+    enc:   { hide:['tgt','datt','dan1','xatt','dan2','dffn','dan3','out'], srcLabel:'x₁, <mask>, …, x_T', encOn:true },
+    dec:   { hide:['src','eatt','ean1','effn','ean2','xatt'], tgtLabel:'x₁, x₂, …, xᵢ₋₁', outLabel:'P(xᵢ)', encOn:false }
+  };
+
+  var W = 600, BW = 212, BH = 36, GAP = 14, BOT = 424;
+  var COLX = { enc: 28, dec: 332 };
+  function y(row){ return BOT - row*(BH+GAP); }
+  function kindColor(k){ return { att:'var(--att)', ffn:'var(--ffn)', norm:'var(--norm)', io:'var(--io)' }[k]; }
+
+  var mode = 'encdec', selected = null;
+
+  function render(){
+    var cfg = MODES[mode];
+    var gB = $('blocks'), gE = $('edges'), gL = $('labels');
+    gB.innerHTML = ''; gE.innerHTML = ''; gL.innerHTML = '';
+
+    // column headers
+    [['enc','Encoder',cfg.encOn],['dec','Decoder',true]].forEach(function(c){
+      if (c[0]==='dec' && mode==='enc') return;
+      if (c[0]==='enc' && mode==='dec') return;
+      var t = document.createElementNS(NS,'text');
+      t.setAttribute('x', COLX[c[0]] + BW/2); t.setAttribute('y', 26);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('class','colhdr');
+      t.textContent = c[1]; gL.appendChild(t);
+    });
+
+    // N x marker on encoder
+    if (mode !== 'dec'){
+      var nx = document.createElementNS(NS,'text');
+      nx.setAttribute('x', COLX.enc - 6); nx.setAttribute('y', y(3));
+      nx.setAttribute('text-anchor','end'); nx.setAttribute('class','nx');
+      nx.textContent = 'N×'; gL.appendChild(nx);
+    }
+
+    // vertical edges within each column
+    BLOCKS.forEach(function(b){
+      var above = BLOCKS.filter(function(o){ return o.col===b.col && o.row===b.row+1; })[0];
+      if (!above) return;
+      var off = cfg.hide.indexOf(b.id) >= 0 || cfg.hide.indexOf(above.id) >= 0;
+      var p = document.createElementNS(NS,'line');
+      p.setAttribute('x1', COLX[b.col]+BW/2); p.setAttribute('y1', y(b.row));
+      p.setAttribute('x2', COLX[b.col]+BW/2); p.setAttribute('y2', y(above.row)+BH);
+      p.setAttribute('class','edge' + (off?' off':''));
+      gE.appendChild(p);
+    });
+
+    // encoder -> cross attention
+    if (mode === 'encdec'){
+      var path = document.createElementNS(NS,'path');
+      var sx = COLX.enc+BW, sy = y(4)+BH/2, ex = COLX.dec, ey = y(3)+BH/2;
+      path.setAttribute('d','M '+sx+' '+sy+' C '+(sx+46)+' '+sy+', '+(ex-46)+' '+ey+', '+ex+' '+ey);
+      path.setAttribute('class','edge');
+      gE.appendChild(path);
+    }
+
+    BLOCKS.forEach(function(b){
+      var off = cfg.hide.indexOf(b.id) >= 0;
+      var g = document.createElementNS(NS,'g');
+      g.setAttribute('class','blk' + (off?' off':'') + (selected===b.id?' sel':''));
+      g.setAttribute('tabindex','0'); g.setAttribute('role','button');
+
+      var r = document.createElementNS(NS,'rect');
+      r.setAttribute('x', COLX[b.col]); r.setAttribute('y', y(b.row));
+      r.setAttribute('width', BW); r.setAttribute('height', BH);
+      r.setAttribute('rx','3');
+      r.setAttribute('fill', b.kind==='norm' ? 'var(--surface-2)' : 'var(--accent-soft)');
+      r.setAttribute('stroke', kindColor(b.kind)); r.setAttribute('stroke-width','1.6');
+      g.appendChild(r);
+
+      var label = b.label;
+      if (b.id==='src' && cfg.srcLabel) label = cfg.srcLabel;
+      if (b.id==='tgt' && cfg.tgtLabel) label = cfg.tgtLabel;
+      if (b.id==='out' && cfg.outLabel) label = cfg.outLabel;
+
+      var t = document.createElementNS(NS,'text');
+      t.setAttribute('x', COLX[b.col]+BW/2); t.setAttribute('y', y(b.row)+BH/2+4);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--ink)');
+      t.textContent = label;
+      g.appendChild(t);
+
+      var pick = function(){ selected = b.id; render(); showDetail(b, off); };
+      g.addEventListener('click', pick);
+      g.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
+      gB.appendChild(g);
+    });
+  }
+
+  function showDetail(b, off){
+    var i = INFO[b.id];
+    if (!i) return;
+    $('detail').innerHTML =
+      '<h4>' + i.t + '</h4><div class="meta">' + i.m + '</div><p>' + i.d + '</p>' +
+      (off ? '<span class="absent">not present in this family</span>' : '');
+  }
+
+  document.querySelectorAll('.mode').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.mode').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+      btn.setAttribute('aria-pressed','true');
+      mode = btn.dataset.mode; selected = null;
+      render();
+      $('detail').innerHTML = '<h4>Click a block</h4><p>Each block’s explanation, its parameter cost, and whether the family you have selected keeps it will appear here.</p>';
+    });
+  });
+
+  // ---------- mask grid ----------
+  function renderMask(){
+    var n = +$('mlen').value, kind = $('mkind').value, diag = +$('mdiag').value;
+    var g = $('grid');
+    g.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+    var html = '', deadRows = [];
+    for (var i=0; i<n; i++){
+      var alive = 0;
+      for (var j=0; j<n; j++){
+        var blocked = (kind === 'causal') && (diag === 1 ? j > i : j >= i);
+        if (!blocked) alive++;
+        html += '<div class="cell ' + (blocked?'no':'ok') + '" title="query ' + i + ' → key ' + j + '">' +
+                (blocked ? '−∞' : '0') + '</div>';
+      }
+      if (alive === 0) deadRows.push(i);
+    }
+    g.innerHTML = html;
+    var f = $('rowflag');
+    if (deadRows.length){
+      f.className = 'rowflag bad';
+      f.textContent = 'Row ' + deadRows.join(', ') + ' is entirely −∞ → softmax produces NaN';
+    } else {
+      f.className = 'rowflag good';
+      f.textContent = kind === 'causal'
+        ? 'Every row keeps at least one visible key. Token i sees tokens 0…i.'
+        : 'No cell is blocked. Every token sees every other token, in both directions.';
+    }
+    $('mdiag').disabled = (kind !== 'causal');
+  }
+  ['mlen','mkind','mdiag'].forEach(function(id){ $(id).addEventListener('change', renderMask); });
+
+  // ---------- worked ----------
+  document.querySelectorAll('.wbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var s = $(b.dataset.sol); if (!s) return;
+      s.hidden = !s.hidden;
+      b.textContent = s.hidden ? 'Show the steps' : 'Hide the steps';
+    });
+  });
+
+  // ---------- quiz ----------
+  var QS = [
+    { p:'Why does a decoder-only model such as GPT have no cross-attention layer?',
+      o:['Cross-attention is too expensive at scale','There is no encoder output for it to read keys and values from','Causal masking already performs cross-attention','It is present but always initialised to zero'], c:1,
+      e:'Cross-attention takes its queries from the decoder and its keys and values from the encoder’s output. With no encoder, those keys and values do not exist, so the layer is simply removed. A decoder-only block therefore has two sublayers, not three.' },
+
+    { p:'In causal language modelling, do future tokens contribute gradients to earlier positions?',
+      o:['Yes, through backpropagation','No — the mask removes the forward path, so there is no gradient path','Only during the first epoch','Only if the mask uses diagonal=1'], c:1,
+      e:'Gradients can only travel back along connections that carried information forward. The causal mask severed those connections, so a future token never influenced an earlier position and cannot receive blame for its error. This was a distractor in 2026 T1 Q16.' },
+
+    { p:'Which component of a standard Transformer scales as O(N²) with sequence length N?',
+      o:['The token and positional embedding lookup','The residual connections','The attention score matrix QKᵀ','The feed-forward network'], c:2,
+      e:'QKᵀ holds one score per pair of positions, so it is N×N. Embeddings, residual additions and the feed-forward layers all act position by position and are O(N). Note this is about compute and activation memory, never parameters.' },
+
+    { p:'A model is built with AutoModelForMaskedLM from a pretrained checkpoint and trained on a large unlabelled domain corpus with labels=input_ids. What is this?',
+      o:['Supervised fine-tuning with noisy labels','Instruction tuning, because labels are present','Continual pre-training with the MLM objective','Training a classifier head implicitly'], c:2,
+      e:'Pretrained start, original objective, new domain. Passing labels=input_ids is how MLM scores reconstruction of the model’s own masked input — it is not supervision, and there are no instructions anywhere.' },
+
+    { p:'What does torch.triu(torch.ones(n,n), diagonal=0) mask out, and why is that wrong for causal attention?',
+      o:['Only the future; nothing is wrong','The future plus the current token, so row 0 becomes all −∞','Only the past, inverting the mask','The diagonal only, leaving the future visible'], c:1,
+      e:'diagonal=0 includes the main diagonal, so each token is blocked from attending to itself. Row 0 has no past and now loses itself, leaving every cell −∞ and producing NaN after softmax. diagonal=1 is the fix.' },
+
+    { p:'Which architecture would you reach for to classify the sentiment of a complete review?',
+      o:['Decoder-only, because it generates','Encoder-only, because every token sees the whole text in both directions','Encoder–decoder, because classification is sequence-to-sequence','Any of them perform identically'], c:1,
+      e:'Classification judges a finished text, so there is no reason to hide the right-hand side. Bidirectional attention gives every token the full context. This is what BERT and MLM pretraining are built for.' },
+
+    { p:'In a full encoder–decoder block, where do cross-attention’s queries, keys and values come from?',
+      o:['All three from the encoder','All three from the decoder','Queries from the decoder; keys and values from the encoder','Queries from the encoder; keys and values from the decoder'], c:2,
+      e:'The decoder asks the question — what am I looking for next — so the query is its own. The encoder supplies what is available to be found, as keys and values. Reversing it would mean the source text asking questions of the half-finished translation.' }
+  ];
+
+  var quiz = $('quiz'); var answered = 0, right = 0;
+  QS.forEach(function(q,i){
+    var card = document.createElement('div'); card.className='q';
+    var n = document.createElement('span'); n.className='qn'; n.textContent='Question '+(i+1); card.appendChild(n);
+    var p = document.createElement('p'); p.textContent=q.p; card.appendChild(p);
+    var opts = document.createElement('div'); opts.className='opts';
+    var expl = document.createElement('div'); expl.className='expl'; expl.textContent=q.e; expl.hidden=true;
+    q.o.forEach(function(text,j){
+      var b = document.createElement('button'); b.className='opt'; b.type='button'; b.textContent=text;
+      b.addEventListener('click', function(){
+        if (card.dataset.done) return;
+        card.dataset.done='1'; answered++; if (j===q.c) right++;
+        opts.querySelectorAll('.opt').forEach(function(o,k){
+          o.classList.add('done');
+          if (k===q.c) o.classList.add('right'); else if (k===j) o.classList.add('wrong');
+        });
+        expl.hidden=false;
+        $('score').textContent = answered+' of '+QS.length+' answered · '+right+' correct';
+      });
+      opts.appendChild(b);
+    });
+    card.appendChild(opts); card.appendChild(expl); quiz.appendChild(card);
+  });
+
+  render();
+  renderMask();
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

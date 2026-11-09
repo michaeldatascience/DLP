@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Tokenizer Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: a bench with three instruments sharing one specimen. The corpus
+   sits at the top and never changes; each tab runs a different merge rule over it,
+   so the only variable on the page is the rule itself. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+p{margin:0}
+
+.mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+.mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
+
+section{margin-block:46px}
+.sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:20px}
+.sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
+.lede{max-width:68ch;color:var(--ink-soft);margin-bottom:18px}
+h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:26px 11px}
+
+.panel{background:var(--surface);border:1px solid var(--rule);padding:16px}
+textarea{width:100%;font-family:var(--f-mono);font-size:.85rem;line-height:1.6;padding:11px 12px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);resize:vertical;min-height:76px}
+textarea:focus,input:focus{outline:2px solid var(--accent);outline-offset:1px}
+input[type=text]{font-family:var(--f-mono);font-size:.9rem;padding:9px 11px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%;max-width:280px}
+label.fl{font-family:var(--f-display);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+
+.btn{font-family:var(--f-display);font-size:.76rem;font-weight:600;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:2px;padding:7px 14px;cursor:pointer}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft);filter:none}
+.btn:disabled{opacity:.42;cursor:not-allowed;filter:none}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.stat{font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);margin-left:auto}
+.stat b{color:var(--accent);font-weight:600}
+
+/* tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:2px solid var(--ink);margin-bottom:0}
+.tab{font-family:var(--f-display);font-size:.84rem;font-weight:600;background:transparent;color:var(--ink-soft);border:1px solid transparent;border-bottom:none;padding:10px 16px;cursor:pointer;margin-bottom:-2px}
+.tab[aria-selected="true"]{color:var(--ink);background:var(--surface);border-color:var(--ink);border-bottom:2px solid var(--surface)}
+.tabpanel{background:var(--surface);border:1px solid var(--ink);border-top:none;padding:18px 16px}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:400px;font-size:.9rem}
+th,td{text-align:left;padding:7px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2);position:sticky;top:0}
+tr:last-child td{border-bottom:none}
+td.m,th.m{font-family:var(--f-mono)}
+td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+tr.winner td{background:var(--win-soft);font-weight:600}
+tr.winner td:first-child{box-shadow:inset 3px 0 0 var(--win)}
+.scroll240{max-height:252px;overflow-y:auto}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.chip{font-family:var(--f-mono);font-size:.78rem;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:3px 8px;color:var(--ink)}
+.chip.new{background:var(--win-soft);border-color:var(--win);color:var(--ink);font-weight:600}
+.chip.tokout{background:var(--accent-soft);border-color:var(--accent)}
+
+.trap,.note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.trap{border-left:3px solid var(--alert)}
+.note{border-left:3px solid var(--accent)}
+.trap b,.note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.trap b{color:var(--alert)} .note b{color:var(--accent)}
+
+.worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:13px}
+.worked .wq{padding:15px 16px;display:grid;gap:8px}
+.wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
+.wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
+.wbtn:hover{background:var(--accent-soft)}
+.wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
+.step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
+.step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
+.wans{font-family:var(--f-mono);font-size:.92rem;font-weight:600;background:var(--signal-soft);padding:9px 12px;border-radius:2px}
+
+.quiz{display:grid;gap:13px}
+.q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
+.q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.opt:hover:not(.done){border-color:var(--accent)}
+.opt.right{background:var(--win-soft);border-color:var(--win);font-weight:500}
+.opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
+.opt.done{cursor:default}
+.expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
+.score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+
+footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Concept 02 · Week 2</div>
+  <h1>Tokenizer Lab</h1>
+  <p class="sub">Three algorithms, one corpus, one difference. BPE, WordPiece and Unigram all start from characters and all build subwords — they disagree only about <em>which pair wins</em>. Run them on the lecture's own corpus and watch them diverge on the very first merge.</p>
+</header>
+
+<!-- ===== 01 THE ONE DIFFERENCE ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>The only thing that actually differs</h2></div>
+  <p class="lede">Everything else — normalise, split on whitespace, build up from characters, stop at a target vocabulary size — is shared. If you hold on to one table from week 2, hold on to this one.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Algorithm</th><th>Direction</th><th class="m">Picks the pair that maximises</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td><b>BPE</b></td><td>grows ↑</td><td class="m">count(a, b)</td><td>GPT-1, GPT-2</td></tr>
+        <tr><td><b>WordPiece</b></td><td>grows ↑</td><td class="m">count(a, b) ÷ (count(a) × count(b))</td><td>BERT</td></tr>
+        <tr><td><b>Unigram</b><br><span style="color:var(--ink-soft);font-size:.86rem">(SentencePiece)</span></td><td>shrinks ↓</td><td class="m">likelihood — deletes the subwords whose removal costs least</td><td>T5, ALBERT, XLNet</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>Why dividing changes the answer</b>
+    BPE asks "which pair do I see most often?" WordPiece asks "which pair do I see more often <em>than its two halves would predict</em>?" Dividing by the halves penalises pairs built from already-common characters. An analogy: BPE picks the most-played song; WordPiece picks the song that over-performs relative to how famous its two artists already are. A duet by two unknowns with modest streams beats a duet by two superstars with the same streams.
+  </div>
+</section>
+
+<!-- ===== 02 THE CORPUS ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>The specimen</h2></div>
+  <p class="lede">This is the exact corpus the week-2 lecture works through by hand, so every number the lab produces can be checked against the slides. Edit it and all three instruments re-run on whatever you type.</p>
+  <div class="panel">
+    <label class="fl" for="corpus">Training corpus · whitespace is the only pre-tokenizer</label>
+    <textarea id="corpus" spellcheck="false">knowing the name of something is different from knowing something. knowing something about everything isn't bad</textarea>
+    <div class="row">
+      <button class="btn" id="reload">Re-run all three</button>
+      <button class="btn ghost" id="restore">Restore lecture corpus</button>
+      <span class="stat" id="corpusStat"></span>
+    </div>
+  </div>
+  <div class="note">
+    <b>Read the word table before you run anything</b>
+    13 distinct words, 16 total occurrences, 22 distinct starting symbols. Those three numbers appear on the slides and the lab reproduces them. Note <code>something</code> and <code>something.</code> are two different words — the full stop is glued on, because whitespace splitting has no idea punctuation exists.
+  </div>
+  <h3 class="block">Word frequencies</h3>
+  <div class="tablewrap scroll240"><table id="wfTable"><thead><tr><th class="m">Word</th><th class="m">As symbols</th><th class="num">Freq</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<!-- ===== 03 THE THREE INSTRUMENTS ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Run the merge rules</h2></div>
+  <p class="lede">Step one merge at a time and watch the winning row. The lesson lands the moment BPE and WordPiece pick different first merges on identical data.</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="bpe">BPE</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="wp">WordPiece</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="uni">Unigram · Viterbi</button>
+  </div>
+
+  <!-- BPE -->
+  <div class="tabpanel" id="p-bpe">
+    <p style="color:var(--ink-soft);font-size:.95rem;margin-bottom:14px">Each word ends with <code>&lt;/w&gt;</code>, a symbol marking the word boundary so the tokenizer can tell <code>ing</code> at the end of a word from <code>ing</code> in the middle. Merge the most frequent adjacent pair, replace it everywhere, repeat.</p>
+    <div class="row" style="margin-top:0">
+      <button class="btn" id="bpeStep">Merge next pair</button>
+      <button class="btn ghost" id="bpeRun10">Run 10 merges</button>
+      <button class="btn ghost" id="bpeReset">Reset</button>
+      <span class="stat">merges <b id="bpeN">0</b> · vocab <b id="bpeV">22</b></span>
+    </div>
+    <h3 class="block">Adjacent pair counts · highest wins</h3>
+    <div class="tablewrap scroll240"><table id="bpePairs"><thead><tr><th class="m">Pair</th><th class="num">Count</th></tr></thead><tbody></tbody></table></div>
+    <h3 class="block">Merges learned, in order</h3>
+    <div class="chips" id="bpeMerges"><span style="color:var(--ink-soft);font-size:.9rem">none yet</span></div>
+    <h3 class="block">How the words look now</h3>
+    <div class="tablewrap scroll240"><table id="bpeWords"><thead><tr><th class="m">Word</th><th class="m">Current symbols</th></tr></thead><tbody></tbody></table></div>
+    <h3 class="block">Tokenize with what has been learned</h3>
+    <div style="max-width:300px"><input type="text" id="bpeTest" value="knowing" spellcheck="false" aria-label="Word to tokenize"></div>
+    <div class="chips" id="bpeOut" style="margin-top:10px"></div>
+    <div class="note" style="margin-top:16px">
+      <b>Watch for the tie</b>
+      On the lecture corpus <code>(i,n)</code> and <code>(n,g)</code> are both at 7. The lab breaks ties by whichever was encountered first while scanning the words, which is what Python's <code>max()</code> does and what gives the slides their answer: <code>in</code> merges first, then <code>ing</code>. Ties are common early and the tie-break rule is a legitimate thing to be asked about.
+    </div>
+  </div>
+
+  <!-- WordPiece -->
+  <div class="tabpanel" id="p-wp" hidden>
+    <p style="color:var(--ink-soft);font-size:.95rem;margin-bottom:14px">Same corpus, same character start, one change: rank by <code>count(a,b) ÷ (count(a) × count(b))</code> instead of raw count. WordPiece also drops <code>&lt;/w&gt;</code> and instead marks continuation pieces with <code>##</code>, so <code>knowing</code> starts life as <code>k ##n ##o ##w ##i ##n ##g</code>.</p>
+    <div class="row" style="margin-top:0">
+      <button class="btn" id="wpStep">Merge next pair</button>
+      <button class="btn ghost" id="wpRun10">Run 10 merges</button>
+      <button class="btn ghost" id="wpReset">Reset</button>
+      <span class="stat">merges <b id="wpN">0</b> · vocab <b id="wpV">0</b></span>
+    </div>
+    <h3 class="block">Pairs ranked by score · highest wins</h3>
+    <div class="tablewrap scroll240"><table id="wpPairs"><thead><tr><th class="m">Pair</th><th class="num">count(a,b)</th><th class="num">count(a)</th><th class="num">count(b)</th><th class="num">Score</th></tr></thead><tbody></tbody></table></div>
+    <h3 class="block">Merges learned, in order</h3>
+    <div class="chips" id="wpMerges"><span style="color:var(--ink-soft);font-size:.9rem">none yet</span></div>
+    <div class="trap" style="margin-top:18px">
+      <b>The slides show a subset — and it matters</b>
+      The lecture's score table lists only the pairs it had already shown for BPE, and among those <code>(a,d)</code> at 0.167 is the winner. Over <em>every</em> pair in the corpus the real winner is <code>(r,y)</code> at 0.333, because <code>y</code> occurs just once and <code>r</code> three times, so the denominator is tiny. Both facts teach the same lesson and the lab shows you the full ranking. What you must carry into the exam is the shape of the rule: <strong>rare halves beat common halves at equal pair count.</strong> Compare the top row here with the top row on the BPE tab — same corpus, different winner, and that is the entire difference between the two algorithms.
+    </div>
+  </div>
+
+  <!-- Unigram -->
+  <div class="tabpanel" id="p-uni" hidden>
+    <p style="color:var(--ink-soft);font-size:.95rem;margin-bottom:14px">Unigram runs backwards. It starts from a deliberately oversized vocabulary and deletes the subwords it can most afford to lose. Once trained, splitting a word is a <em>search</em>, not a replay of merges: find the segmentation whose probabilities multiply to the largest value. Because multiplying many small numbers underflows, everything is done in logarithms, where multiply becomes add and "largest" means closest to zero.</p>
+    <h3 class="block">The vocabulary, as log-probabilities</h3>
+    <p style="color:var(--ink-soft);font-size:.92rem;margin-bottom:10px">Straight from the lecture's <code>whereby</code> example. Less negative means more probable, so <code>e</code> at −2.7 is the most common piece here.</p>
+    <div class="tablewrap scroll240"><table id="uniVocab"><thead><tr><th class="m">Token</th><th class="num">log p</th></tr></thead><tbody></tbody></table></div>
+    <h3 class="block">Segment a word</h3>
+    <div style="max-width:300px"><input type="text" id="uniTest" value="whereby" spellcheck="false" aria-label="Word to segment"></div>
+    <div class="chips" id="uniOut" style="margin-top:10px"></div>
+    <h3 class="block">The forward pass, position by position</h3>
+    <p style="color:var(--ink-soft);font-size:.92rem;margin-bottom:10px">At each position, the best score for the prefix ending there, and the token that got it there. These are the numbers written along the lattice on the slide.</p>
+    <div class="tablewrap"><table id="uniLattice"><thead><tr><th class="num">Pos</th><th class="m">Prefix</th><th class="m">Best token in</th><th class="num">Best score</th></tr></thead><tbody></tbody></table></div>
+    <div class="note" style="margin-top:16px">
+      <b>Why the whole word usually wins</b>
+      Every extra piece multiplies in another probability below 1, so each additional split makes the product smaller. Unigram therefore prefers the segmentation with the <em>fewest</em> pieces that the vocabulary allows. The lecture shows this with <code>knowing</code>: <code>k·now·ing</code> scores 63/4096, <code>know·ing</code> scores 336/4096, and <code>knowing</code> whole scores 768/4096. Fewest pieces, highest probability.
+    </div>
+  </div>
+</section>
+
+<!-- ===== 04 SIDE BY SIDE ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Side by side</h2></div>
+  <p class="lede">The comparison worth having in your head on Sunday.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>BPE</th><th>WordPiece</th><th>Unigram</th></tr></thead>
+      <tbody>
+        <tr><td><b>Starts from</b></td><td>characters</td><td>characters</td><td>a large seed vocabulary</td></tr>
+        <tr><td><b>Moves by</b></td><td>merging</td><td>merging</td><td>deleting</td></tr>
+        <tr><td><b>Chooses by</b></td><td class="m">highest count</td><td class="m">highest count ÷ (parts)</td><td class="m">smallest likelihood loss</td></tr>
+        <tr><td><b>Splits a new word by</b></td><td>replaying merges in order</td><td>replaying merges in order</td><td>Viterbi search over segmentations</td></tr>
+        <tr><td><b>Boundary marker</b></td><td class="m">&lt;/w&gt; at word end</td><td class="m">## on continuations</td><td class="m">▁ before a word</td></tr>
+        <tr><td><b>Deterministic?</b></td><td>yes, greedy</td><td>yes, greedy</td><td>probabilistic — can sample alternatives</td></tr>
+        <tr><td><b>Needs whitespace?</b></td><td>yes, pre-tokenized</td><td>yes, pre-tokenized</td><td><b>no</b> — treats spaces as ordinary characters, so it works on Japanese and Chinese</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>Memory hook</b>
+    Two sculptors and a statistician. <strong>BPE and WordPiece add clay</strong> — they build up from nothing, greedily, and differ only in what they reach for next. <strong>Unigram carves marble</strong> — it starts with too much and removes what it will not miss. And only the statistician can read a language with no spaces, because it never needed the spaces to begin with.
+  </div>
+</section>
+
+<!-- ===== 05 WORKED ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Now solve the real questions</h2></div>
+  <p class="lede">Every tokenization question from both past Quiz-1 papers, plus the one from GA2 that the lab reproduces directly.</p>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q2 · 2 marks</span>
+      <p>Consider subword tokenization methods such as BPE and WordPiece as employed in transformer-based language modelling pipelines. Which statement correctly describes their fundamental properties?<br><br>(a) They always split words at true morpheme boundaries, e.g. "un-" + "break" + "able".<br>(b) They learn merge rules from corpus statistics — frequency or likelihood — not token semantics.<br>(c) They eliminate OOV by ensuring every word is a single token.<br>(d) They generalise perfectly to out-of-domain text without increasing sequence length.</p>
+      <button class="wbtn" data-sol="t1">Show the steps</button>
+    </div>
+    <div class="wsol" id="t1" hidden>
+      <div class="step"><i>1</i><div>Kill the absolutes first. "always" in (a), "perfectly" in (d). In this paper those words are almost always planted on wrong options.</div></div>
+      <div class="step"><i>2</i><div>(a) is false on the evidence in front of you: run the BPE tab and the first merges are <code>in</code> then <code>ing</code> — which happen to be morphemes — but the next ones are fragments like <code>th</code> and <code>om</code> that mean nothing. The algorithm counts; it has never heard of morphology.</div></div>
+      <div class="step"><i>3</i><div>(c) inverts the truth. Subword tokenizers <em>avoid</em> OOV precisely by <em>not</em> keeping every word whole — they fall back to smaller pieces.</div></div>
+      <div class="step"><i>4</i><div>(d) is false twice over: out-of-domain text fragments into more pieces, so sequence length goes <em>up</em>.</div></div>
+      <div class="wans">(b) — merge rules come from corpus statistics, never from meaning</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q3 and 2026 T2 · Q7 · 2 marks each</span>
+      <p>Two subword tokenizers are trained on the same corpus. Tokenizer A uses a vocabulary of 8,000; Tokenizer B uses 64,000. Which statement most accurately characterises the implications for training efficiency? <em>And its twin:</em> a tokenizer vocabulary is increased from 16K to 128K with the corpus unchanged — what trade-off is most likely?</p>
+      <button class="wbtn" data-sol="t2">Show the steps</button>
+    </div>
+    <div class="wsol" id="t2" hidden>
+      <div class="step"><i>1</i><div>A bigger vocabulary means more merges were performed, so longer chunks exist as single tokens, so any given text needs <strong>fewer tokens</strong>. Sequences get shorter.</div></div>
+      <div class="step"><i>2</i><div>But the embedding table is V × d. More rows means <strong>more parameters</strong>. The table grows.</div></div>
+      <div class="step"><i>3</i><div>So it is a trade, not a free win — which kills every option claiming both go down, or that total compute simply falls.</div></div>
+      <div class="step"><i>4</i><div>Both papers wanted the same sentence in different words.</div></div>
+      <div class="wans">Shorter sequences, larger embedding layer. Length traded against parameters.</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q4 and 2026 T2 · Q2 · 2 marks each</span>
+      <p>A subword tokenizer decomposes rare chemical entity names into a large number of fragments, and the model then performs poorly on chemical NER. What is the most principled corrective action? <em>And:</em> a startup builds an LLM for a low-resource agglutinative language; after training a word-level tokenizer with a 30,000 vocabulary, nearly 18% of tokens come out as [UNK]. What most likely improves things while keeping vocabulary growth manageable?</p>
+      <button class="wbtn" data-sol="t3">Show the steps</button>
+    </div>
+    <div class="wsol" id="t3" hidden>
+      <div class="step"><i>1</i><div>Both describe the same failure: the tokenizer's vocabulary was learned on the wrong text, so the input it now faces shatters.</div></div>
+      <div class="step"><i>2</i><div>Fix the cause, not the symptom. Dropout, batch size, label smoothing and context length are all downstream of a vocabulary that never saw this vocabulary of words — none of them can fuse fragments back together.</div></div>
+      <div class="step"><i>3</i><div>Case one: retrain the tokenizer on an in-domain chemical corpus, so chemical morphemes become single tokens.</div></div>
+      <div class="step"><i>4</i><div>Case two: an agglutinative language builds unlimited words by gluing pieces, so a fixed word list can never cover it. Move to subwords — SentencePiece or BPE. Note that raising the minimum frequency threshold would make [UNK] <em>worse</em>, and that disabling normalisation explodes the vocabulary, which is what the question told you to avoid.</div></div>
+      <div class="wans">Retrain the tokenizer on in-domain text · move from word-level to SentencePiece or BPE</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">GA2 · Week 2</span>
+      <p>A BPE tokenizer is trained on 10 million BookCorpus samples at vocabulary sizes 5K, 10K, 15K and 32K, then used to tokenize one fixed sentence. Which statements are correct? Going 5K→10K decreases the token count; 10K→15K leaves it unchanged; 15K→32K decreases it further.</p>
+      <button class="wbtn" data-sol="t4">Show the steps</button>
+    </div>
+    <div class="wsol" id="t4" hidden>
+      <div class="step"><i>1</i><div>All three statements were correct, and the middle one is the interesting one.</div></div>
+      <div class="step"><i>2</i><div>Token count can only fall or stay flat as vocabulary grows — a larger vocabulary is a strict superset of merges, so no word can ever split into <em>more</em> pieces than before. Any option claiming an increase is wrong by construction.</div></div>
+      <div class="step"><i>3</i><div>It stays flat over 10K→15K because the merges added in that band are for words the test sentence does not contain. Extra vocabulary only helps if it matches your text.</div></div>
+      <div class="step"><i>4</i><div>You can watch this on the BPE tab. Run merges past the point where your test word is already whole and its output stops changing while the vocabulary keeps growing.</div></div>
+      <div class="wans">Monotonically non-increasing — never up, and flat whenever the new merges miss your text</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 06 QUIZ ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Quiz yourself</h2></div>
+  <p class="lede">Seven questions. Three of them are hand-traces of the kind that has not appeared in a Quiz 1 paper yet but is heavily worked in the lecture.</p>
+  <div class="quiz" id="quiz"></div>
+  <p class="score" id="score">0 of 7 answered</p>
+</section>
+
+<footer>
+  Concept 02 of the DLP series, after The DLP Spine and Transformer Anatomy. Every figure here was checked against the week-2 slides before publishing. Next in Track A: The Three Architectures — the course's own encoder–decoder flowchart, with the encoder-only and decoder-only paths selectable on it.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+
+  // ---------- shared corpus ----------
+  var LECTURE = "knowing the name of something is different from knowing something. knowing something about everything isn't bad";
+
+  function wordFreq(text){
+    var d = {}, order = [];
+    text.trim().split(/\s+/).filter(Boolean).forEach(function(w){
+      if (!(w in d)) { d[w] = 0; order.push(w); }
+      d[w]++;
+    });
+    return { map: d, order: order };
+  }
+  function initWords(wf, eow){
+    return wf.order.map(function(w){
+      var syms = Array.from(w);
+      if (eow) syms.push('</w>');
+      return { word: w, syms: syms, freq: wf.map[w] };
+    });
+  }
+  function symCounts(words){
+    var c = {};
+    words.forEach(function(e){ e.syms.forEach(function(s){ c[s] = (c[s]||0) + e.freq; }); });
+    return c;
+  }
+  function pairCounts(words){
+    var c = {}, order = [];
+    words.forEach(function(e){
+      for (var i=0; i<e.syms.length-1; i++){
+        var k = e.syms[i] + '\u0000' + e.syms[i+1];
+        if (!(k in c)) { c[k] = 0; order.push(k); }
+        c[k] += e.freq;
+      }
+    });
+    return { map: c, order: order };
+  }
+  function applyMerge(words, key){
+    var p = key.split('\u0000'), a = p[0], b = p[1], joined = a + b;
+    words.forEach(function(e){
+      var out = [], i = 0;
+      while (i < e.syms.length){
+        if (i < e.syms.length-1 && e.syms[i]===a && e.syms[i+1]===b){ out.push(joined); i += 2; }
+        else { out.push(e.syms[i]); i++; }
+      }
+      e.syms = out;
+    });
+    return joined;
+  }
+  function pairLabel(key){ var p = key.split('\u0000'); return '(' + p[0] + ', ' + p[1] + ')'; }
+
+  // ---------- state ----------
+  var wf, bpe, wp;
+
+  function buildAll(){
+    var text = $('corpus').value || LECTURE;
+    wf = wordFreq(text);
+    var totalOcc = wf.order.reduce(function(s,w){ return s + wf.map[w]; }, 0);
+
+    bpe = { words: initWords(wf, true),  merges: [], mergePairs: [], base: null };
+    wp  = { words: initWords(wf, false), merges: [], base: null };
+    bpe.base = Object.keys(symCounts(bpe.words)).length;
+    wp.base  = Object.keys(symCounts(wp.words)).length;
+
+    $('corpusStat').innerHTML = '<b>' + wf.order.length + '</b> distinct words · <b>' +
+      totalOcc + '</b> occurrences · <b>' + bpe.base + '</b> starting symbols';
+
+    // word table
+    var tb = $('wfTable').querySelector('tbody');
+    tb.innerHTML = wf.order.map(function(w){
+      return '<tr><td class="m">' + esc(w) + '</td><td class="m">' +
+        esc(Array.from(w).join(' ') + ' </w>') + '</td><td class="num">' + wf.map[w] + '</td></tr>';
+    }).join('');
+
+    renderBPE(); renderWP();
+  }
+
+  // ---------- BPE ----------
+  function bpeNext(){
+    var pc = pairCounts(bpe.words);
+    if (!pc.order.length) return null;
+    var best = pc.order[0];
+    pc.order.forEach(function(k){ if (pc.map[k] > pc.map[best]) best = k; });
+    return { key: best, count: pc.map[best], pc: pc };
+  }
+  function renderBPE(){
+    var nxt = bpeNext();
+    var pc = nxt ? nxt.pc : { map:{}, order:[] };
+    var rows = pc.order.slice().sort(function(a,b){ return pc.map[b]-pc.map[a]; }).slice(0,12);
+    $('bpePairs').querySelector('tbody').innerHTML = rows.map(function(k){
+      var win = nxt && k === nxt.key;
+      return '<tr class="' + (win?'winner':'') + '"><td class="m">' + esc(pairLabel(k)) +
+        '</td><td class="num">' + pc.map[k] + '</td></tr>';
+    }).join('') || '<tr><td colspan="2">nothing left to merge</td></tr>';
+
+    $('bpeN').textContent = bpe.merges.length;
+    $('bpeV').textContent = bpe.base + bpe.merges.length;
+    $('bpeMerges').innerHTML = bpe.merges.length
+      ? bpe.merges.map(function(m,i){ return '<span class="chip' + (i===bpe.merges.length-1?' new':'') + '">' + (i+1) + '. ' + esc(m) + '</span>'; }).join('')
+      : '<span style="color:var(--ink-soft);font-size:.9rem">none yet</span>';
+
+    $('bpeWords').querySelector('tbody').innerHTML = bpe.words.map(function(e){
+      return '<tr><td class="m">' + esc(e.word) + '</td><td class="m">' + esc(e.syms.join(' ')) + '</td></tr>';
+    }).join('');
+
+    $('bpeStep').disabled = !nxt;
+    tokenizeBPE();
+  }
+  function tokenizeBPE(){
+    var w = ($('bpeTest').value || '').trim();
+    if (!w){ $('bpeOut').innerHTML = ''; return; }
+    var syms = Array.from(w); syms.push('</w>');
+    // replay the learned merges in the order they were discovered
+    (bpe.mergePairs || []).forEach(function(key){
+      var p = key.split('\u0000'), a=p[0], b=p[1], j=a+b, out=[], i=0;
+      while (i < syms.length){
+        if (i < syms.length-1 && syms[i]===a && syms[i+1]===b){ out.push(j); i+=2; }
+        else { out.push(syms[i]); i++; }
+      }
+      syms = out;
+    });
+    $('bpeOut').innerHTML = syms.map(function(s){
+      return '<span class="chip tokout">' + esc(s) + '</span>';
+    }).join('') + '<span class="chip">' + syms.length + ' tokens</span>';
+  }
+
+  // ---------- WordPiece ----------
+  function wpNext(){
+    var pc = pairCounts(wp.words), sc = symCounts(wp.words);
+    if (!pc.order.length) return null;
+    var score = function(k){ var p=k.split('\u0000'); return pc.map[k] / (sc[p[0]] * sc[p[1]]); };
+    var best = pc.order[0];
+    pc.order.forEach(function(k){ if (score(k) > score(best)) best = k; });
+    return { key: best, pc: pc, sc: sc, score: score };
+  }
+  function renderWP(){
+    var nxt = wpNext();
+    if (!nxt){
+      $('wpPairs').querySelector('tbody').innerHTML = '<tr><td colspan="5">nothing left to merge</td></tr>';
+      $('wpStep').disabled = true;
+    } else {
+      var rows = nxt.pc.order.slice().sort(function(a,b){ return nxt.score(b)-nxt.score(a); }).slice(0,12);
+      $('wpPairs').querySelector('tbody').innerHTML = rows.map(function(k){
+        var p = k.split('\u0000'), win = k === nxt.key;
+        return '<tr class="' + (win?'winner':'') + '"><td class="m">' + esc(pairLabel(k)) +
+          '</td><td class="num">' + nxt.pc.map[k] + '</td><td class="num">' + nxt.sc[p[0]] +
+          '</td><td class="num">' + nxt.sc[p[1]] + '</td><td class="num">' + nxt.score(k).toFixed(4) + '</td></tr>';
+      }).join('');
+      $('wpStep').disabled = false;
+    }
+    $('wpN').textContent = wp.merges.length;
+    $('wpV').textContent = wp.base + wp.merges.length;
+    $('wpMerges').innerHTML = wp.merges.length
+      ? wp.merges.map(function(m,i){ return '<span class="chip' + (i===wp.merges.length-1?' new':'') + '">' + (i+1) + '. ' + esc(m) + '</span>'; }).join('')
+      : '<span style="color:var(--ink-soft);font-size:.9rem">none yet</span>';
+  }
+
+  // ---------- Unigram ----------
+  var LOGP = { b:-4.7, e:-2.7, h:-3.34, r:-3.36, w:-4.29, wh:-5.99, er:-5.34,
+               where:-8.21, by:-7.34, he:-6.02, ere:-6.83, here:-7.84, her:-7.38, re:-6.13 };
+
+  function viterbi(word, lp){
+    var n = word.length, best = [], back = [], i, j;
+    for (i=0; i<=n; i++){ best.push(-Infinity); back.push(null); }
+    best[0] = 0;
+    for (i=1; i<=n; i++){
+      for (j=0; j<i; j++){
+        var tok = word.slice(j,i);
+        if (Object.prototype.hasOwnProperty.call(lp,tok) && best[j] > -Infinity){
+          var s = best[j] + lp[tok];
+          if (s > best[i]){ best[i] = s; back[i] = { j:j, tok:tok }; }
+        }
+      }
+    }
+    var seg = [], k = n;
+    while (k > 0 && back[k]){ seg.unshift(back[k].tok); k = back[k].j; }
+    return { seg: seg, score: best[n], best: best, back: back, ok: best[n] > -Infinity };
+  }
+
+  function renderUni(){
+    var keys = Object.keys(LOGP).sort(function(a,b){ return LOGP[b]-LOGP[a]; });
+    $('uniVocab').querySelector('tbody').innerHTML = keys.map(function(k){
+      return '<tr><td class="m">' + esc(k) + '</td><td class="num">' + LOGP[k].toFixed(2) + '</td></tr>';
+    }).join('');
+    segmentUni();
+  }
+  function segmentUni(){
+    var w = ($('uniTest').value || '').trim().toLowerCase();
+    var r = viterbi(w, LOGP);
+    if (!w){ $('uniOut').innerHTML = ''; $('uniLattice').querySelector('tbody').innerHTML = ''; return; }
+    $('uniOut').innerHTML = r.ok
+      ? r.seg.map(function(t){ return '<span class="chip tokout">' + esc(t) + '</span>'; }).join('') +
+        '<span class="chip">' + r.seg.length + ' pieces · total log p ' + r.score.toFixed(2) + '</span>'
+      : '<span class="chip" style="border-color:var(--alert);color:var(--alert)">no segmentation exists — some character is missing from this vocabulary</span>';
+
+    var rows = '';
+    for (var i=1; i<=w.length; i++){
+      var b = r.back[i];
+      rows += '<tr><td class="num">' + i + '</td><td class="m">' + esc(w.slice(0,i)) +
+        '</td><td class="m">' + (b ? esc(b.tok) : '—') + '</td><td class="num">' +
+        (r.best[i] > -Infinity ? r.best[i].toFixed(2) : '−∞') + '</td></tr>';
+    }
+    $('uniLattice').querySelector('tbody').innerHTML = rows;
+  }
+
+  // ---------- wiring ----------
+  function resetBPE(){ bpe.words = initWords(wf,true); bpe.merges=[]; bpe.mergePairs=[]; renderBPE(); }
+  function resetWP(){ wp.words = initWords(wf,false); wp.merges=[]; renderWP(); }
+
+  function rebuild(){ buildAll(); }
+
+  $('corpus').addEventListener('input', function(){ rebuild(); });
+  $('reload').addEventListener('click', function(){ rebuild(); });
+  $('restore').addEventListener('click', function(){ $('corpus').value = LECTURE; rebuild(); });
+
+  $('bpeStep').addEventListener('click', function(){
+    var n = bpeNext(); if (!n) return;
+    bpe.mergePairs.push(n.key);
+    bpe.merges.push(applyMerge(bpe.words, n.key));
+    renderBPE();
+  });
+  $('bpeRun10').addEventListener('click', function(){
+    for (var i=0;i<10;i++){ var n = bpeNext(); if (!n) break;
+      bpe.mergePairs.push(n.key); bpe.merges.push(applyMerge(bpe.words, n.key)); }
+    renderBPE();
+  });
+  $('bpeReset').addEventListener('click', resetBPE);
+  $('bpeTest').addEventListener('input', tokenizeBPE);
+
+  $('wpStep').addEventListener('click', function(){
+    var n = wpNext(); if (!n) return;
+    wp.merges.push(applyMerge(wp.words, n.key)); renderWP();
+  });
+  $('wpRun10').addEventListener('click', function(){
+    for (var i=0;i<10;i++){ var n = wpNext(); if (!n) break; wp.merges.push(applyMerge(wp.words, n.key)); }
+    renderWP();
+  });
+  $('wpReset').addEventListener('click', resetWP);
+  $('uniTest').addEventListener('input', segmentUni);
+
+  // tabs
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(x){ x.setAttribute('aria-selected','false'); });
+      t.setAttribute('aria-selected','true');
+      ['bpe','wp','uni'].forEach(function(k){ $('p-'+k).hidden = (k !== t.dataset.tab); });
+    });
+  });
+
+  // worked toggles
+  document.querySelectorAll('.wbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var s = $(b.dataset.sol); if (!s) return;
+      s.hidden = !s.hidden;
+      b.textContent = s.hidden ? 'Show the steps' : 'Hide the steps';
+    });
+  });
+
+  // ---------- quiz ----------
+  var QS = [
+    { p:'On the lecture corpus, BPE finds (i,n) and (n,g) both occurring 7 times. Which merge happens first, and why?',
+      o:['(n,g), because g is rarer than i','(i,n), because ties are broken by whichever pair is encountered first while scanning','Neither — BPE refuses to merge on a tie','Both at once, as a single three-symbol merge'], c:1,
+      e:'Both are at 7. Python’s max() keeps the first maximum it meets, and scanning the word list reaches (i,n) inside "knowing" before (n,g). The slides show in merging first, then ing on the following step.' },
+
+    { p:'Two pairs have identical count(a,b) = 5. Pair one is built from two very common characters; pair two from two rare ones. Which does WordPiece merge first?',
+      o:['Pair one — common characters are more useful','Pair two — the denominator is smaller, so the score is higher','Whichever appears first in the corpus','They tie, since count(a,b) is equal'], c:1,
+      e:'Score is count(a,b) ÷ (count(a) × count(b)). Equal numerators, so the smaller denominator wins, and rare halves give a small denominator. This is exactly how WordPiece diverges from BPE on identical data.' },
+
+    { p:'A BPE vocabulary is grown from 10K to 15K and one fixed test sentence is re-tokenized. The token count is unchanged. What does that tell you?',
+      o:['The tokenizer is broken','The merges added in that range are for words this sentence does not contain','Vocabulary size never affects token count','The sentence is already at the character level'], c:1,
+      e:'Token count is monotonically non-increasing in vocabulary size, never increasing. Flat means the extra merges simply missed your text. GA2 asked exactly this and the correct statement was that 10K→15K leaves the count unchanged.' },
+
+    { p:'Why can SentencePiece handle Japanese while plain BPE needs a helper such as Juman++ first?',
+      o:['SentencePiece supports a larger vocabulary','SentencePiece treats whitespace as an ordinary character, so it never needs words to be pre-split','Japanese has fewer characters than English','BPE cannot represent non-Latin scripts'], c:1,
+      e:'BPE expects whitespace-separated words from a pre-tokenizer. Japanese has no word delimiters, so it needs a morphological segmenter first. SentencePiece reads raw character streams including spaces, so the problem never arises.' },
+
+    { p:'Using the lecture’s log-probabilities, "whereby" segments as where|by at −15.55. Why does this beat wh|ere|by at −20.16?',
+      o:['Because "where" is a real English word','Because fewer pieces means fewer log-probabilities added, and each one is negative','Because Viterbi always prefers longer tokens','Because wh|ere|by contains an out-of-vocabulary piece'], c:1,
+      e:'Every piece contributes a negative number, so each extra split drags the total further from zero. Unigram prefers the fewest pieces the vocabulary permits. Being a real word is irrelevant — the model only knows probabilities.' },
+
+    { p:'A word-level tokenizer with a 30,000 vocabulary produces 18% [UNK] on an agglutinative language. Which action makes the problem worse?',
+      o:['Switching to SentencePiece','Switching to BPE','Raising the minimum token frequency threshold during training','Training on more in-domain text'], c:2,
+      e:'Raising the frequency threshold admits fewer words to the vocabulary, so more input falls through to [UNK]. This was a distractor in 2026 T2 Q2 and it is attractive because it sounds like a tightening, disciplined action.' },
+
+    { p:'After training, how does each algorithm split a word it has never seen?',
+      o:['All three run Viterbi search','All three replay merge rules in order','BPE and WordPiece replay merges; Unigram searches for the most probable segmentation','BPE searches; WordPiece and Unigram replay merges'], c:2,
+      e:'This is the clean split. The two that grew by merging also tokenize by replaying those merges in learned order, greedily and deterministically. Unigram never learned an ordered merge list, so it must search — with Viterbi — over possible segmentations.' }
+  ];
+
+  var quiz = $('quiz'); var answered = 0, right = 0;
+  QS.forEach(function(q,i){
+    var card = document.createElement('div'); card.className = 'q';
+    var n = document.createElement('span'); n.className='qn'; n.textContent='Question '+(i+1); card.appendChild(n);
+    var p = document.createElement('p'); p.textContent=q.p; card.appendChild(p);
+    var opts = document.createElement('div'); opts.className='opts';
+    var expl = document.createElement('div'); expl.className='expl'; expl.textContent=q.e; expl.hidden=true;
+    q.o.forEach(function(text,j){
+      var b = document.createElement('button'); b.className='opt'; b.type='button'; b.textContent=text;
+      b.addEventListener('click', function(){
+        if (card.dataset.done) return;
+        card.dataset.done='1'; answered++; if (j===q.c) right++;
+        opts.querySelectorAll('.opt').forEach(function(o,k){
+          o.classList.add('done');
+          if (k===q.c) o.classList.add('right'); else if (k===j) o.classList.add('wrong');
+        });
+        expl.hidden=false;
+        $('score').textContent = answered+' of '+QS.length+' answered · '+right+' correct';
+      });
+      opts.appendChild(b);
+    });
+    card.appendChild(opts); card.appendChild(expl); quiz.appendChild(card);
+  });
+
+  // boot
+  buildAll();
+  renderUni();
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

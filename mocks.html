@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Quiz 1 Mock Papers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: an answer sheet. Plain, dense, unornamented, because the point is
+   to feel like the real console and not like a study aid. Marks sit in the margin. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 80px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+p{margin:0}
+pre{font-family:var(--f-mono);font-size:.82rem;background:var(--surface-2);border:1px solid var(--rule);padding:11px 13px;border-radius:2px;overflow-x:auto;margin:9px 0}
+
+.mast{padding-block:36px 22px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.mast h1{font-size:clamp(1.8rem,5.5vw,2.7rem);font-weight:700;letter-spacing:-.02em}
+.mast .sub{margin-top:12px;max-width:62ch;color:var(--ink-soft);font-size:1rem}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--surface);border-bottom:1px solid var(--rule);
+     padding-block:11px;margin-block:0 22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:11;background:var(--surface)}
+.pbtn{font-family:var(--f-display);font-size:.8rem;font-weight:600;background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:7px 13px;cursor:pointer}
+.pbtn[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.timer{font-family:var(--f-mono);font-size:.92rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);margin-left:auto}
+.timer.low{color:var(--alert)}
+.btn{font-family:var(--f-display);font-size:.78rem;font-weight:600;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:2px;padding:7px 14px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft)}
+
+.rules{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:13px 15px;margin-bottom:22px;font-size:.93rem}
+.rules b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:5px}
+.rules ul{margin:0;padding-left:19px;color:var(--ink-soft)}
+
+.qcard{background:var(--surface);border:1px solid var(--rule);padding:16px 17px;margin-bottom:13px}
+.qhead{display:flex;gap:10px;align-items:baseline;margin-bottom:9px;flex-wrap:wrap}
+.qnum{font-family:var(--f-mono);font-size:.8rem;font-weight:600;color:var(--ink)}
+.qtype{font-family:var(--f-display);font-size:.63rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2);padding:2px 7px;border-radius:2px}
+.qmarks{font-family:var(--f-mono);font-size:.78rem;color:var(--signal);margin-left:auto;font-weight:600}
+.qtext{font-size:.97rem;margin-bottom:11px}
+.opts{display:grid;gap:5px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 11px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink);width:100%}
+.opt:hover:not(.locked){border-color:var(--accent)}
+.opt .mark{font-family:var(--f-mono);font-size:.8rem;font-weight:600;color:var(--ink-soft);flex:0 0 auto;width:15px}
+.opt[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.opt[aria-pressed="true"] .mark{color:var(--accent)}
+.opt.locked{cursor:default}
+.opt.ansr{background:var(--win-soft);border-color:var(--win)}
+.opt.answ{background:var(--alert-soft);border-color:var(--alert)}
+.sa{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.sa input{font-family:var(--f-mono);font-size:.95rem;padding:9px 11px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:170px}
+.sa input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.sa .unit{font-family:var(--f-mono);font-size:.85rem;color:var(--ink-soft)}
+
+.sol{margin-top:12px;border-top:1px dashed var(--rule);padding-top:11px;font-size:.92rem;display:grid;gap:7px}
+.sol .verd{font-family:var(--f-mono);font-size:.82rem;font-weight:600;padding:5px 9px;border-radius:2px;justify-self:start}
+.sol .verd.ok{background:var(--win-soft);color:var(--win)}
+.sol .verd.bad{background:var(--alert-soft);color:var(--alert)}
+.sol .why{color:var(--ink-soft)}
+.sol .why b{color:var(--ink)}
+
+.result{background:var(--surface);border:2px solid var(--ink);padding:19px;margin-bottom:22px}
+.result h3{font-size:1.15rem;margin-bottom:11px}
+.scoreline{font-family:var(--f-mono);font-size:clamp(1.6rem,5vw,2.2rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.scoreline small{font-size:.85rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+.bdown{margin-top:13px;display:grid;gap:5px;font-size:.9rem}
+.bdown div{display:flex;gap:12px;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:4px}
+.bdown span:last-child{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:64ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Deep Learning Practice · Mock Quiz 1</div>
+  <h1>Quiz 1 Mock Papers</h1>
+  <p class="sub">Two full papers in the real format: 50 marks, MCQ at 2, multiple-select at 3, short answer at 4, and no negative marking. Topic weighting follows the combined distribution of the two past papers and the four graded assignments. Every question is new; none is copied.</p>
+</header>
+
+<div class="bar">
+  <button class="pbtn" data-paper="A" aria-pressed="true">Paper A</button>
+  <button class="pbtn" data-paper="B" aria-pressed="false">Paper B</button>
+  <button class="btn ghost" id="startT">Start 2h timer</button>
+  <button class="btn" id="submit">Submit</button>
+  <span class="timer" id="timer">—</span>
+</div>
+
+<div class="rules">
+  <b>Before you start</b>
+  <ul>
+    <li><strong>No negative marking.</strong> Answer every question — a blank and a wrong answer cost the same.</li>
+    <li>Multiple-select is scored all-or-nothing here. The real paper may award partial credit, so this is the harsher assumption.</li>
+    <li>Short answers accept a range, as the real paper does. Enter a number only, in the unit named.</li>
+    <li>Use 1 GB = 10⁹ bytes throughout. A scientific calculator is permitted in the real exam.</li>
+  </ul>
+</div>
+
+<div id="result" hidden></div>
+<div id="paper"></div>
+
+<footer>
+  Built from the two 2026 past papers with answer keys and graded assignments 1–4. Every numeric answer was computed and checked before publishing. Marks: Paper A is 10 MCQ + 6 MSQ + 3 SA; Paper B is 8 MCQ + 5 MSQ + 5 SA, matching the two real papers' structures respectively.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  var PAPERS = { A: [], B: [] };
+
+  // ---------------- PAPER A ----------------
+  PAPERS.A = [
+  {t:'mcq', m:2, q:'Two subword tokenizers are trained on the same corpus. The pair (q, u) occurs 40 times, with "q" occurring 42 times and "u" 900 times. The pair (z, x) occurs 3 times, with "z" occurring 4 times and "x" 5 times. Which pair does a WordPiece tokenizer merge first?',
+   o:['(q, u), because 40 occurrences beats 3','(z, x), because its score of 3/(4×5) = 0.150 beats 40/(42×900) = 0.001','Neither — WordPiece requires a minimum count of 10','Both, in the same step'],
+   c:[1], e:'WordPiece ranks by count(a,b) ÷ (count(a) × count(b)). The (q,u) pair is frequent but both halves are too, especially "u", so the denominator of 37,800 crushes it. The rare pair wins. <b>BPE would have chosen the opposite</b> — that disagreement is the entire difference between the two algorithms.'},
+
+  {t:'mcq', m:2, q:'A team raises the tokenizer vocabulary from 32,000 to 96,000 on an unchanged corpus, with model dimension d = 1024. Which statement is most accurate?',
+   o:['Sequences get shorter; the embedding table grows by about 65.5M parameters','Sequences get longer; the embedding table shrinks','Neither sequence length nor parameter count changes','Sequences get shorter and the total parameter count falls'],
+   c:[0], e:'More merges means longer chunks are single tokens, so any text needs fewer of them. But the embedding table is V × d, so 64,000 extra rows × 1024 = 65,536,000 extra parameters. <b>Length is traded against parameters</b> — never both in the same direction.'},
+
+  {t:'mcq', m:2, q:'A BERT tokenizer is called as <code>tokenizer(text, max_length=16, truncation=True, padding="max_length")</code> on a text that would otherwise produce 40 tokens. Which must be true of the result?',
+   o:['The output has exactly 16 positions, and special tokens are counted inside that budget','The output has 40 positions, because tokenization finishes before truncation','The output has 16 non-padding content tokens guaranteed','No padding is applied, because truncation is enabled'],
+   c:[0], e:'<code>padding="max_length"</code> pads to exactly max_length and truncation cuts to exactly max_length, so the length is 16 either way. [CLS] and [SEP] consume two of those 16. Option 3 is the trap: the text is longer than the limit so no padding is needed here, but nothing <em>guarantees</em> 16 content tokens in general.'},
+
+  {t:'mcq', m:2, q:'You call <code>ds.map()</code> three times on a 180 MB dataset, each call adding one column. What happens to disk usage?',
+   o:['Nothing — map edits the Arrow file in place','Disk grows, because each transform writes a new cache file','Disk shrinks, because Arrow re-compresses after each map','Only RAM grows; disk is untouched'],
+   c:[1], e:'Arrow files are immutable once written, which is exactly what makes memory-mapping safe. Every transform therefore writes a fresh cache file rather than editing the old one. GA1 asked this twice, once about cache files and once about a single added column roughly doubling the footprint.'},
+
+  {t:'mcq', m:2, q:'You must build a system that reads a complete support ticket and assigns it one of 12 categories. Nothing is generated. Which architecture family fits best?',
+   o:['Decoder-only, because it is the modern default','Encoder-only, because every token can see the whole ticket in both directions','Encoder–decoder, because classification is a sequence-to-sequence task','Any of the three; they perform identically on classification'],
+   c:[1], e:'The ticket is complete before you judge it, so there is no reason to hide its right-hand side. Bidirectional attention gives every token the full context. This is what BERT and masked language modelling exist for. Classification is not sequence-to-sequence — the output is one label, not a sequence.'},
+
+  {t:'mcq', m:2, q:'A causal mask for <code>seq_len = 6</code> is built with <code>torch.triu(torch.ones(6,6), diagonal=1)</code>. How many of the 36 cells are blocked?',
+   o:['6','15','21','36'],
+   c:[1], e:'Strictly above the diagonal is n(n−1)/2 = 6×5/2 = <b>15</b>. If it had been <code>diagonal=0</code> the diagonal itself would be included, giving 21 — and row 0 would then be entirely −∞, producing NaN after softmax.'},
+
+  {t:'mcq', m:2, q:'A 2 billion parameter model is loaded in fp32 for inference. Ignoring activations, how much memory do the weights need?',
+   o:['2 GB','4 GB','8 GB','16 GB'],
+   c:[2], e:'2×10⁹ × 4 bytes = 8×10⁹ bytes = <b>8 GB</b>. Inference charges only the first of the four copies. Training the same model with AdamW would cost 2×10⁹ × 16 = 32 GB.'},
+
+  {t:'mcq', m:2, q:'A training run sets <code>warmup_steps = 1000</code>. What does this do?',
+   o:['Linearly raises the learning rate from near zero to its target over the first 1000 steps, so early large gradients cannot wreck the pretrained weights','Reduces the VRAM needed to store optimizer states','Freezes the first 1000 parameters of the model','Discards the first 1000 batches as a burn-in'],
+   c:[0], e:'Newly added layers start random, so the first gradients are large and erratic. A full-size step then would destroy pretrained weights. After warmup the rate typically decays on a linear or cosine schedule. <b>It saves no memory whatsoever</b> — that was a planted wrong option in 2026 T1 Q17.'},
+
+  {t:'mcq', m:2, q:'A legal-tech team holds 5 million unlabelled court documents and 800 instruction-and-response pairs written by lawyers. Which statement about the two training stages is correct?',
+   o:['Both stages optimise the same objective, so they can be merged into a single run','Continued pre-training predicts every token of the raw documents with no labels; instruction tuning trains on the pairs with the loss concentrated on the response — the objectives differ','Instruction tuning must come first, because it is supervised','Neither stage changes the model weights'],
+   c:[1], e:'This distinction is graded as a difference, not a similarity. Continued pre-training teaches the model a <b>subject</b> — the vocabulary and style of a field — from unlabelled text. Instruction tuning teaches it a <b>manner</b> — how to obey a request. Order matters too: domain knowledge first, then behaviour.'},
+
+  {t:'mcq', m:2, q:'LoRA is applied to a single 4096 × 4096 weight matrix with rank r = 8. Roughly how many parameters become trainable for that one matrix?',
+   o:['65,536','32,768','16,777,216','8'],
+   c:[0], e:'LoRA learns two thin matrices, 4096×8 and 8×4096, whose product has the shape of the original. That is 2 × 4096 × 8 = <b>65,536</b>, against 16.8M for the full matrix — about 0.4%. Trainable count is linear in r, which is why raising the rank raises the parameter count.'},
+
+  {t:'msq', m:3, q:'Which of the following can a Hugging Face fast tokenizer return? (Select all that apply)',
+   o:['input_ids','attention_mask','token_type_ids','offset_mapping','hidden_states'],
+   c:[0,1,2,3], e:'The first four are all tokenizer outputs. <b>hidden_states are produced by the model, not the tokenizer</b> — the tokenizer has no neural network inside it and has never seen a weight. token_type_ids mark which of two joined sentences a token came from; offset_mapping gives each token its character span in the original string.'},
+
+  {t:'msq', m:3, q:'Given <code>TrainingArguments(per_device_train_batch_size=4, gradient_accumulation_steps=16, bf16=True, max_grad_norm=0.5)</code>, which statements are correct? (Select all that apply)',
+   o:['The effective batch size is 64','The optimizer updates once every 16 forward passes','Gradient norms are capped at 0.5 before each update','bf16 halves the size of the AdamW optimizer states','Gradient accumulation removes the need to store optimizer states'],
+   c:[0,1,2], e:'Effective batch = 4 × 16 = 64, and the update happens once per effective batch. <code>max_grad_norm</code> is gradient clipping. The last two are the standard traps: <b>mixed precision keeps a full fp32 master copy of weights and moments</b>, and accumulation changes <em>when</em> you step, never <em>what you store</em>.'},
+
+  {t:'msq', m:3, q:'A model is trained with the Causal Language Modelling objective. Which statements describe the training dynamics correctly? (Select all that apply)',
+   o:['The loss at position t depends only on tokens strictly before t','The blocked cells of the attention mask lie strictly above the main diagonal','Gradients flow from future positions back to earlier ones','The sequence probability factorises as a product of conditionals'],
+   c:[0,1,3], e:'Three are the definition of causal modelling. The third is false and it is the one that catches people: <b>gradients can only travel back along paths that carried information forward</b>, and the mask severed those paths. A token that was never read cannot be blamed for the error.'},
+
+  {t:'msq', m:3, q:'A team hits CUDA out-of-memory while fine-tuning. Which actions may help? (Select all that apply)',
+   o:['Gradient checkpointing','4-bit quantization of the base model','LoRA','Raising the per-device batch size','Increasing d_model'],
+   c:[0,1,2], e:'The first three attack real lines in the ledger — activations, weights, and gradients-plus-optimizer-states. Raising the batch size <em>increases</em> activation memory, and increasing d_model makes the model itself bigger by roughly 12d² per block. Both move memory the wrong way.'},
+
+  {t:'msq', m:3, q:'Which statements correctly describe the Transformer architecture families? (Select all that apply)',
+   o:['Encoder-only models are typically trained with Masked Language Modelling','Decoder-only models use causal masking and generate autoregressively','A decoder-only model has no cross-attention layer','All three families use the same attention mask'],
+   c:[0,1,2], e:'Cross-attention reads keys and values from an encoder\'s output; with no encoder it has nothing to read, so decoder-only blocks have two sublayers rather than three. The fourth is false precisely because <b>the mask is the one thing that genuinely differs</b> between the families.'},
+
+  {t:'msq', m:3, q:'Which statements about preparing data for causal language-model training are correct? (Select all that apply)',
+   o:['Packing concatenates tokenized samples and re-cuts the stream into fixed-length blocks','The label value −100 marks positions that cross-entropy must ignore','GPT-2 defines no padding token by default, so one must be assigned','DataCollatorForLanguageModeling(mlm=False) performs random token masking'],
+   c:[0,1,2], e:'Packing wastes no space on padding, at the cost of samples running into each other. −100 is hard-coded into PyTorch\'s cross-entropy. GPT-2\'s missing pad token is normally solved by reusing its EOS token. The fourth is false: <b>mlm=False selects the causal objective</b>, which does no masking at all — mlm=True is the one that masks.'},
+
+  {t:'sa', m:4, q:'A decoder-only language model has a vocabulary of 48,000, embedding dimension 1280 and a maximum context length of 3072, using learned positional embeddings. Calculate the total number of parameters in the embedding layer (token + positional). Report in millions, to one decimal place.',
+   lo:65.0, hi:65.8, unit:'millions',
+   e:'Token table 48,000 × 1280 = 61,440,000. Position table 3072 × 1280 = 3,932,160. Sum 65,372,160 → <b>65.4M</b>. "Learned positional embeddings" is the licence to count the second table; sinusoidal ones would be free.'},
+
+  {t:'sa', m:4, q:'A model with 2.5 billion parameters is fine-tuned with AdamW. Parameters, gradients and both optimizer moments are all stored in 32-bit precision at 4 bytes each. Ignoring activations and buffers, calculate the total GPU memory required, in GB. Use 1 GB = 10⁹ bytes.',
+   lo:39.5, hi:40.5, unit:'GB',
+   e:'Four copies at four bytes each is 16 bytes per parameter. 2.5×10⁹ × 16 = 40×10⁹ bytes = <b>40 GB</b>. No conversion and no powers of two — multiply by 16 and move the decimal point.'},
+
+  {t:'sa', m:4, q:'A transformer block has d_model = 2048 and uses 16 attention heads, processing a batch of sequences 512 tokens long. Compute the total number of weight parameters (ignore biases) in the self-attention module — the Query, Key, Value and Output projection matrices. Report in millions, to one decimal place.',
+   lo:16.5, hi:17.1, unit:'millions',
+   e:'4d² = 4 × 2048² = 4 × 4,194,304 = 16,777,216 → <b>16.8M</b>. Both the head count and the sequence length are decoys: <b>heads slice the same matrices into narrower pieces</b> rather than adding any, and parameters exist before any input arrives.'}
+  ];
+
+  // ---------------- PAPER B ----------------
+  PAPERS.B = [
+  {t:'mcq', m:2, q:'A BPE tokenizer is trained on the corpus with word counts <code>{low: 5, lower: 2, newest: 6, widest: 3}</code>, with <code>&lt;/w&gt;</code> appended to every word. What is the count of the most frequent adjacent symbol pair before any merge?',
+   o:['5','7','8','9'],
+   c:[3], e:'Work through the pairs: (l,o) = 5+2 = 7, (o,w) = 7, (w,e) = 2+6 = 8, and (e,s) = 6+3 = <b>9</b>, tied with (s,t) = 9 and (t,&lt;/w&gt;) = 9. The maximum is 9. Note the three-way tie — the implementation\'s tie-break rule, normally first-encountered, decides which actually merges.'},
+
+  {t:'mcq', m:2, q:'What does <code>tokenizer.encode("some text")</code> return?',
+   o:['A plain Python list of integers','A BatchEncoding dictionary containing input_ids and attention_mask','A list of string tokens','A PyTorch tensor'],
+   c:[0], e:'Four methods, four return types, and the exam tests them against each other. <code>encode</code> gives ids only, as a list. <code>__call__</code> — the tokenizer used like a function — gives the BatchEncoding dict. <code>tokenize</code> gives the string pieces. <code>encode_plus</code> gives a dict for a single input.'},
+
+  {t:'mcq', m:2, q:'A 13 billion parameter model is quantized to int8 and loaded for inference. Approximately how much memory do the weights occupy?',
+   o:['6.5 GB','13 GB','26 GB','52 GB'],
+   c:[1], e:'int8 is one byte per parameter, so 13×10⁹ bytes = <b>13 GB</b>. The same model is 26 GB in fp16 and 52 GB in fp32. Quantization is the only lever in the course that attacks the weights themselves.'},
+
+  {t:'mcq', m:2, q:'A dataset holds 1,920,000 samples. Training uses a per-device batch size of 8 and gradient accumulation of 16 on a single GPU. How many optimizer update steps complete one epoch?',
+   o:['15,000','240,000','120,000','1,920,000'],
+   c:[0], e:'One update consumes an effective batch of 8 × 16 = 128 samples. 1,920,000 ÷ 128 = <b>15,000</b>. Answering 240,000 means you divided by the per-device batch alone and forgot accumulation.'},
+
+  {t:'mcq', m:2, q:'A Unigram tokenizer holds these log-probabilities: <code>play −3.1</code>, <code>ing −2.4</code>, <code>playing −6.0</code>, and every single character at about −4. Which segmentation of "playing" does Viterbi choose?',
+   o:['playing, as a single piece, because fewest pieces always wins','play | ing, because −3.1 + −2.4 = −5.5 beats −6.0','p | l | a | y | i | n | g, because characters are always available','All three score identically'],
+   c:[1], e:'A useful correction to a rule of thumb. Fewest pieces is a <b>tendency</b>, not a law — it holds because each extra piece multiplies in another probability below one. But if two common pieces are each individually probable enough, they can beat the single rare whole word, as here. The probabilities decide, not the piece count.'},
+
+  {t:'mcq', m:2, q:'What does <code>interleave_datasets([a, b], probabilities=[0.7, 0.3], seed=42)</code> do?',
+   o:['Concatenates the two datasets end to end','Draws samples from each according to those probabilities, reproducibly because of the seed','Takes 70% of the columns from a and 30% from b','Shuffles both datasets and truncates to the shorter one'],
+   c:[1], e:'Interleaving <em>mixes</em> by sampling; concatenating <em>stacks</em> and gives a total equal to the sum of the parts. The seed is what makes the mix reproducible, which is why GA1 specified seed = 42 and the answer depended on it.'},
+
+  {t:'mcq', m:2, q:'A 3 billion parameter model is adapted by freezing the body and training only a small classification head, about 0.001% of parameters. What best explains the memory saving?',
+   o:['A smaller model is loaded','The base weights still load in full, but gradients and optimizer states are charged only on the head','Head-only tuning automatically switches the optimizer to SGD','The frozen body is moved to CPU RAM'],
+   c:[1], e:'Three of the four copies are charged only on <em>trainable</em> parameters. Freezing removes the head\'s body — gradients, momentum and variance — while the weights themselves stay resident on the GPU. That is 12 GB instead of 48 GB, and the base model is still entirely there.'},
+
+  {t:'mcq', m:3, q:'A student intends to build a causal mask but writes <code>tril</code> instead of <code>triu</code>:<pre>mask = torch.tril(torch.ones(n, n), diagonal=0).bool()\nscores = scores.masked_fill(mask, float("-inf"))\nattn   = F.softmax(scores, dim=-1)</pre>What is the effect of running this?',
+   o:['It correctly implements causal masking','The mask is inverted: each token can attend only to future tokens, and the last row becomes entirely −∞, which can yield NaN','It raises a RuntimeError because tril returns the wrong dtype','No effect, because softmax renormalises whatever it is given'],
+   c:[1], e:'<code>tril</code> keeps the <em>lower</em> triangle including the diagonal, and those are the cells filled with −∞. So the past and the present are blocked and only the future survives — the exact reverse of causal. The last token has no future and loses itself, so its row is all −∞ and softmax produces NaN. Note softmax <em>cannot</em> rescue an all −∞ row: it divides zero by zero.'},
+
+  {t:'msq', m:3, q:'Which of these reduce the memory charged to AdamW optimizer states? (Select all that apply)',
+   o:['LoRA','Head-only fine-tuning','Switching the optimizer from AdamW to plain SGD','Mixed-precision training','Gradient accumulation'],
+   c:[0,1,2], e:'Optimizer state is charged per <em>trainable</em> parameter, per <em>state</em>. LoRA and head-only tuning shrink the first factor; moving to plain SGD removes both moments and shrinks the second to zero. <b>Mixed precision keeps the fp32 master moments on purpose, and accumulation changes only the timing of the update.</b>'},
+
+  {t:'msq', m:3, q:'Which statements about the three subword algorithms are correct? (Select all that apply)',
+   o:['BPE merges the adjacent pair with the highest raw count','WordPiece divides the pair count by the counts of its two halves','Unigram begins from a large seed vocabulary and prunes it','All three tokenize new text by replaying an ordered list of merges','Unigram requires whitespace pre-tokenization to work'],
+   c:[0,1,2], e:'The first three are the one-line summary of the week. The fourth is false: <b>Unigram never learned an ordered merge list</b>, so it must search for the best segmentation with Viterbi. The fifth is false and is Unigram\'s headline advantage — it treats whitespace as an ordinary character, which is why it handles Japanese and Chinese.'},
+
+  {t:'msq', m:3, q:'Which statements about adapting a pretrained model are correct? (Select all that apply)',
+   o:['Continued pre-training uses unlabelled domain text with the original pre-training objective','Instruction tuning trains on explicit instruction-and-response pairs','Preference tuning learns from human comparisons between two candidate responses','All three optimise an identical objective and differ only in dataset size'],
+   c:[0,1,2], e:'Three different objectives on three different kinds of data. The fourth is the claim graded as false: continued pre-training predicts every token of plain text, instruction tuning concentrates loss on responses, and preference tuning optimises against a human preference signal entirely. Dataset size is not the distinction.'},
+
+  {t:'msq', m:3, q:'Which statements about mixed-precision training are correct? (Select all that apply)',
+   o:['It reduces activation memory','It keeps a full fp32 master copy of the weights','It halves the size of AdamW optimizer states','It speeds up matrix multiplication on supported hardware'],
+   c:[0,1,3], e:'The master copy exists because repeatedly adding tiny updates to a 16-bit number loses them to rounding — so the thing people assume it shrinks is precisely the thing it preserves. What it does shrink is activations and gradient storage, and it runs faster on tensor cores.'},
+
+  {t:'msq', m:2, q:'Which special tokens does the <code>bert-base-uncased</code> tokenizer use? (Select all that apply)',
+   o:['[CLS]','[SEP]','[PAD]','&lt;|endoftext|&gt;','[GO]'],
+   c:[0,1,2], e:'BERT uses [CLS], [SEP], [PAD], [MASK] and [UNK]. <code>&lt;|endoftext|&gt;</code> is GPT-2\'s single special token, and [GO] appears only in hand-built tokenizers such as the one trained in GA2. <b>Special tokens and their ids are model-specific</b>, never standard — which was itself a True/False question in GA2.'},
+
+  {t:'sa', m:4, q:'A pretrained encoder with d_model = 1536 is fine-tuned for a classification task with 12 labels by training only a new linear classification head. Enter the number of parameters in that head, excluding the bias.',
+   lo:18431, hi:18433, unit:'parameters',
+   e:'d × num_labels = 1536 × 12 = <b>18,432</b>. One weight from every dimension of the output vector to every possible label. Including the bias would add 12 more, so read whether the question excludes it — GA4\'s version did.'},
+
+  {t:'sa', m:4, q:'A decoder-only model has vocabulary 32,000, embedding dimension 1024, 16 transformer blocks and context length 2048, with learned positional embeddings. Counting the embedding layer plus all blocks, and ignoring biases and layer-norm parameters, calculate the total number of parameters. Report in millions, to one decimal place.',
+   lo:235.0, hi:237.5, unit:'millions',
+   e:'Embeddings: 32,000 × 1024 + 2048 × 1024 = 34,865,152. One block is 12d² = 12 × 1,048,576 = 12,582,912, and 16 of them is 201,326,592. Total 236,191,744 → <b>236.2M</b>. Answering 201M means you forgot the lookup tables.'},
+
+  {t:'sa', m:4, q:'A 13 billion parameter model is loaded in fp16 for LoRA fine-tuning, with 0.2% of parameters trainable. Gradients and both AdamW moments are kept in fp32 at 4 bytes each, and are charged only on the trainable parameters. Ignoring activations, calculate the total memory required in GB. Use 1 GB = 10⁹ bytes.',
+   lo:26.0, hi:26.6, unit:'GB',
+   e:'Weights: 13×10⁹ × 2 = 26 GB — charged on <em>all</em> parameters, because the frozen base is still resident. Trainable: 13×10⁹ × 0.002 = 26×10⁶. Gradients 26×10⁶ × 4 = 0.104 GB; moments 26×10⁶ × 8 = 0.208 GB. Total <b>26.3 GB</b>. The lesson: with LoRA the other three copies nearly vanish, and you are left paying almost exactly the cost of the weights.'},
+
+  {t:'sa', m:4, q:'A training run uses a per-device batch size of 4, gradient accumulation of 8, a context length of 2048, and runs for 25,000 optimizer updates. Calculate the total number of tokens processed. Express the answer in millions, to one decimal place.',
+   lo:1638.0, hi:1639.0, unit:'millions',
+   e:'Effective batch 4 × 8 = 32 sequences. Each is 2048 tokens, so 65,536 tokens per update. Over 25,000 updates: 1,638,400,000 → <b>1638.4M</b>. The formula is batch × accumulation × context × steps, and forgetting accumulation is the usual slip.'},
+
+  {t:'sa', m:3, q:'A model with embedding dimension 1280 has its context length increased from 1024 to 4096 in the configuration, with learned positional embeddings. Enter the change in the number of parameters, in millions, to two decimal places.',
+   lo:3.80, hi:4.10, unit:'millions',
+   e:'Only the positional table changes — the vocabulary table, the attention matrices and the feed-forward layers never learn that the context got longer. Δ = Δctx × d = (4096 − 1024) × 1280 = 3,932,160 → <b>3.93M</b>. On a model of any real size that is a rounding error, which is why GA4 could ask for the memory after a context change and expect the same answer as before.'}
+  ];
+
+  // ---------------- render ----------------
+  var current = 'A', answers = { A:{}, B:{} }, graded = { A:false, B:false };
+
+  function render(){
+    var qs = PAPERS[current], host = $('paper');
+    host.innerHTML = '';
+    qs.forEach(function(q, i){
+      var card = document.createElement('div');
+      card.className = 'qcard';
+
+      var head = document.createElement('div'); head.className = 'qhead';
+      head.innerHTML = '<span class="qnum">' + current + (i+1) + '</span>' +
+        '<span class="qtype">' + (q.t==='mcq'?'Multiple choice':q.t==='msq'?'Multiple select':'Short answer') + '</span>' +
+        '<span class="qmarks">' + q.m + ' mark' + (q.m>1?'s':'') + '</span>';
+      card.appendChild(head);
+
+      var txt = document.createElement('div'); txt.className = 'qtext'; txt.innerHTML = q.q;
+      card.appendChild(txt);
+
+      var key = current + i;
+      if (q.t === 'sa'){
+        var wrap = document.createElement('div'); wrap.className = 'sa';
+        var inp = document.createElement('input');
+        inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'in_' + key;
+        inp.placeholder = 'number only';
+        inp.value = answers[current][i] != null ? answers[current][i] : '';
+        inp.disabled = graded[current];
+        inp.addEventListener('input', function(){ answers[current][i] = inp.value; });
+        wrap.appendChild(inp);
+        var u = document.createElement('span'); u.className = 'unit'; u.textContent = q.unit;
+        wrap.appendChild(u);
+        card.appendChild(wrap);
+      } else {
+        var opts = document.createElement('div'); opts.className = 'opts';
+        q.o.forEach(function(text, j){
+          var b = document.createElement('button');
+          b.className = 'opt'; b.type = 'button';
+          var sel = (answers[current][i] || []).indexOf(j) >= 0;
+          b.setAttribute('aria-pressed', sel ? 'true' : 'false');
+          b.innerHTML = '<span class="mark">' + String.fromCharCode(97+j) + '.</span><span>' + text + '</span>';
+          if (graded[current]) b.classList.add('locked');
+          else b.addEventListener('click', function(){
+            var cur = answers[current][i] || [];
+            if (q.t === 'mcq') cur = (cur[0] === j) ? [] : [j];
+            else { var k = cur.indexOf(j); if (k >= 0) cur.splice(k,1); else cur.push(j); }
+            answers[current][i] = cur;
+            render();
+          });
+          opts.appendChild(b);
+        });
+        card.appendChild(opts);
+      }
+
+      if (graded[current]){
+        var res = grade(q, answers[current][i]);
+        var sol = document.createElement('div'); sol.className = 'sol';
+        var v = document.createElement('span');
+        v.className = 'verd ' + (res.ok ? 'ok' : 'bad');
+        v.textContent = (res.ok ? 'Correct · ' : 'Not correct · ') + res.got + ' / ' + q.m;
+        sol.appendChild(v);
+        if (q.t === 'sa'){
+          var a = document.createElement('div'); a.className = 'why';
+          a.innerHTML = '<b>Accepted range: ' + q.lo + ' to ' + q.hi + ' ' + q.unit + '</b>';
+          sol.appendChild(a);
+        } else {
+          card.querySelectorAll('.opt').forEach(function(o, j){
+            if (q.c.indexOf(j) >= 0) o.classList.add('ansr');
+            else if ((answers[current][i]||[]).indexOf(j) >= 0) o.classList.add('answ');
+          });
+        }
+        var w = document.createElement('div'); w.className = 'why'; w.innerHTML = q.e;
+        sol.appendChild(w);
+        card.appendChild(sol);
+      }
+      host.appendChild(card);
+    });
+  }
+
+  function grade(q, ans){
+    if (q.t === 'sa'){
+      var v = parseFloat(String(ans||'').replace(/[, ]/g,''));
+      var ok = !isNaN(v) && v >= q.lo && v <= q.hi;
+      return { ok: ok, got: ok ? q.m : 0 };
+    }
+    var a = (ans || []).slice().sort(function(x,y){return x-y;});
+    var c = q.c.slice().sort(function(x,y){return x-y;});
+    var ok = a.length === c.length && a.every(function(v,i){ return v === c[i]; });
+    return { ok: ok, got: ok ? q.m : 0 };
+  }
+
+  $('submit').addEventListener('click', function(){
+    graded[current] = true;
+    var qs = PAPERS[current], total = 0, max = 0;
+    var byType = { 'Multiple choice':[0,0], 'Multiple select':[0,0], 'Short answer':[0,0] };
+    qs.forEach(function(q,i){
+      var r = grade(q, answers[current][i]);
+      total += r.got; max += q.m;
+      var k = q.t==='mcq'?'Multiple choice':q.t==='msq'?'Multiple select':'Short answer';
+      byType[k][0] += r.got; byType[k][1] += q.m;
+    });
+    var pct = Math.round(100*total/max);
+    var r = $('result'); r.hidden = false;
+    var rows = Object.keys(byType).map(function(k){
+      if (!byType[k][1]) return '';
+      return '<div><span>' + k + '</span><span>' + byType[k][0] + ' / ' + byType[k][1] + '</span></div>';
+    }).join('');
+    r.innerHTML = '<div class="result"><h3>Paper ' + current + ' — submitted</h3>' +
+      '<div class="scoreline">' + total + ' / ' + max + ' <small>(' + pct + '%)</small></div>' +
+      '<div class="bdown">' + rows + '</div>' +
+      '<p style="margin-top:13px;color:var(--ink-soft);font-size:.9rem">Solutions are now open under every question. ' +
+      'Work through the ones you missed before starting the other paper — and read the explanation even where you were right, ' +
+      'since guessing correctly on a multiple-select is common with four options.</p></div>';
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.querySelectorAll('.pbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.pbtn').forEach(function(x){ x.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      current = b.dataset.paper;
+      $('result').hidden = !graded[current];
+      if (graded[current]) $('submit').click(); else render();
+    });
+  });
+
+  // timer
+  var left = 120*60, tick = null;
+  function fmt(s){ var m = Math.floor(s/60), r = s%60; return (m<10?'0':'')+m+':'+(r<10?'0':'')+r; }
+  $('startT').addEventListener('click', function(){
+    if (tick){ clearInterval(tick); tick = null; $('startT').textContent = 'Resume timer'; return; }
+    $('startT').textContent = 'Pause timer';
+    tick = setInterval(function(){
+      left--; $('timer').textContent = fmt(left);
+      $('timer').className = 'timer' + (left < 600 ? ' low' : '');
+      if (left <= 0){ clearInterval(tick); tick = null; $('timer').textContent = 'time up'; }
+    }, 1000);
+    $('timer').textContent = fmt(left);
+  });
+
+  render();
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

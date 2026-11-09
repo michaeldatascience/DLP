@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>The Memory Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: a ledger. Four columns of memory are owed, each one charged
+   per parameter; every technique in week 4 is a line item that strikes one of
+   them out. The running total sits against the capacity of a real GPU. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --cw:#0E7490; --cg:#A15C07; --cm:#6D28D9; --cv:#BE185D;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --cw:#2DD4E8; --cg:#F0B429; --cm:#A78BFA; --cv:#F472B6;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --cw:#2DD4E8; --cg:#F0B429; --cm:#A78BFA; --cv:#F472B6;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+p{margin:0}
+
+.mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+.mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
+
+section{margin-block:46px}
+.sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:20px}
+.sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
+.lede{max-width:68ch;color:var(--ink-soft);margin-bottom:18px}
+h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:26px 11px}
+
+/* four copies */
+.copies{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.copy{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c);padding:14px 15px;display:grid;gap:6px;min-width:0}
+.copy .cn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--c)}
+.copy h4{font-size:.98rem;font-weight:600}
+.copy .cb{font-family:var(--f-mono);font-size:.85rem;font-weight:600;background:var(--surface-2);padding:6px 9px;border-radius:2px}
+.copy p{font-size:.91rem;color:var(--ink-soft)}
+
+.panel{background:var(--surface);border:1px solid var(--rule);padding:17px}
+.ctrls{display:grid;gap:15px;grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.ctrl{display:grid;gap:5px;min-width:0}
+.ctrl label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.ctrl select,.ctrl input[type=number]{font-family:var(--f-mono);font-size:.86rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
+.ctrl select:focus,.ctrl input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.levers{display:grid;gap:8px;margin-top:16px;padding-top:15px;border-top:1px solid var(--rule)}
+.lever{display:flex;align-items:flex-start;gap:10px;font-size:.93rem;cursor:pointer;color:var(--ink)}
+.lever input{accent-color:var(--accent);width:16px;height:16px;margin-top:4px;flex:0 0 auto}
+.lever span small{display:block;color:var(--ink-soft);font-size:.84rem}
+
+.readout{margin-top:20px;display:grid;gap:13px}
+.total{font-family:var(--f-mono);font-size:clamp(1.7rem,5.5vw,2.5rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.total small{font-size:.86rem;color:var(--ink-soft);font-weight:400;letter-spacing:0;font-family:var(--f-body)}
+.bar{display:flex;height:38px;border:1px solid var(--rule);overflow:hidden;background:var(--surface-2)}
+.seg{min-width:0;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.72rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;transition:flex-basis .25s ease}
+.seg.w{background:var(--cw)} .seg.g{background:var(--cg)} .seg.m{background:var(--cm)} .seg.v{background:var(--cv)}
+.legend{display:flex;flex-wrap:wrap;gap:13px;font-size:.82rem;color:var(--ink-soft)}
+.legend span{display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:2px;flex:0 0 auto}
+.verdict{font-family:var(--f-mono);font-size:.9rem;padding:10px 13px;border-radius:2px;font-weight:600}
+.verdict.fits{background:var(--win-soft);color:var(--win)}
+.verdict.no{background:var(--alert-soft);color:var(--alert)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.91rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.69rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.m{font-family:var(--f-mono)}
+td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.yes{color:var(--win);font-weight:600} .no2{color:var(--alert);font-weight:600}
+
+.trap,.note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.trap{border-left:3px solid var(--alert)}
+.note{border-left:3px solid var(--accent)}
+.trap b,.note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.trap b{color:var(--alert)} .note b{color:var(--accent)}
+
+.worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:13px}
+.worked .wq{padding:15px 16px;display:grid;gap:8px}
+.wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
+.wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
+.wbtn:hover{background:var(--accent-soft)}
+.wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
+.step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
+.step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
+.wans{font-family:var(--f-mono);font-size:.92rem;font-weight:600;background:var(--signal-soft);padding:9px 12px;border-radius:2px}
+
+.quiz{display:grid;gap:13px}
+.q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
+.q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.opt:hover:not(.done){border-color:var(--accent)}
+.opt.right{background:var(--win-soft);border-color:var(--win);font-weight:500}
+.opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
+.opt.done{cursor:default}
+.expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
+.score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+
+footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Concept 04 · Week 4</div>
+  <h1>The Memory Ledger</h1>
+  <p class="sub">Training holds four copies of your model, not one. Once you can name the four, every memory question in week 4 becomes arithmetic, and every technique in the syllabus becomes a line item that strikes one of them out. This is the single largest block of marks on the paper.</p>
+</header>
+
+<!-- ===== 01 FOUR COPIES ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Four copies, four bytes each</h2></div>
+  <p class="lede">A parameter is one learnable number. To <em>run</em> a model you need the number itself. To <em>train</em> it you also need somewhere to accumulate its error, and AdamW keeps two running averages besides. Four numbers per parameter, four bytes each in fp32.</p>
+
+  <div class="copies">
+    <div class="copy" style="--c:var(--cw)"><span class="cn">Copy 1 · always</span><h4>The weights</h4><div class="cb">4 bytes × N</div><p>The model itself. This is the only copy inference needs, which is why running a model costs a quarter of training it.</p></div>
+    <div class="copy" style="--c:var(--cg)"><span class="cn">Copy 2 · training only</span><h4>The gradients</h4><div class="cb">4 bytes × N</div><p>One number per parameter saying which way to move it. Created by the backward pass, discarded after the step.</p></div>
+    <div class="copy" style="--c:var(--cm)"><span class="cn">Copy 3 · AdamW</span><h4>Momentum</h4><div class="cb">4 bytes × N</div><p>A running average of recent gradients, so the update keeps rolling in a consistent direction instead of lurching with each batch.</p></div>
+    <div class="copy" style="--c:var(--cv)"><span class="cn">Copy 4 · AdamW</span><h4>Variance</h4><div class="cb">4 bytes × N</div><p>A running average of squared gradients, letting each parameter get its own step size. Together with momentum these are the "optimizer states".</p></div>
+  </div>
+
+  <div class="note">
+    <b>The sentence that answers every memory question</b>
+    <strong>Four copies, four bytes each, so sixteen bytes a parameter.</strong> A billion parameters costs 16 GB to train and 4 GB to load. The course defines 1 GB as 10⁹ bytes, so you never convert anything — just multiply and move the decimal point.
+  </div>
+
+  <div class="trap">
+    <b>An analogy worth keeping</b>
+    Think of moving house. The <em>weights</em> are your furniture. The <em>gradients</em> are the note on each item saying which room it goes to. Momentum is your memory of which way you have been carrying things, and variance is your sense of which items are fragile and need small, careful moves. Only the furniture has to exist for you to live in the house — the other three are the apparatus of moving it, and you can put them down once you have arrived.
+  </div>
+</section>
+
+<!-- ===== 02 THE LEDGER ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Run the ledger</h2></div>
+  <p class="lede">Set a model and a card, then switch levers on. Every past-paper configuration is in the presets. Activations and buffers are excluded, exactly as every exam question says to.</p>
+
+  <div class="panel">
+    <div class="ctrls">
+      <div class="ctrl">
+        <label for="mN">Model size</label>
+        <select id="mN">
+          <option value="0.124">GPT-2 small · 124M</option>
+          <option value="1.2">1.2B · T1 Q18</option>
+          <option value="4">4B · T1 Q8</option>
+          <option value="5">5B · T2 Q17</option>
+          <option value="7" selected>7B · T2 Q6 and GA4</option>
+          <option value="13">13B · T2 Q4</option>
+          <option value="70">70B</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label for="mPrec">Weight precision</label>
+        <select id="mPrec">
+          <option value="4" selected>fp32 · 4 bytes</option>
+          <option value="2">fp16 / bf16 · 2 bytes</option>
+          <option value="1">int8 · 1 byte</option>
+          <option value="0.5">int4 · 0.5 bytes</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label for="mOpt">Optimizer</label>
+        <select id="mOpt">
+          <option value="2" selected>AdamW · 2 states</option>
+          <option value="1">SGD + momentum · 1 state</option>
+          <option value="0">SGD · no state</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label for="mGpu">Card</label>
+        <select id="mGpu">
+          <option value="16">T4 · 16 GB</option>
+          <option value="32" selected>V100 · 32 GB</option>
+          <option value="80">A100 · 80 GB</option>
+          <option value="0">no limit</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="levers">
+      <label class="lever"><input type="checkbox" id="lInf"><span><b>Inference only</b><small>No backward pass, so no gradients and no optimizer states. Drops three of the four copies.</small></span></label>
+      <label class="lever"><input type="checkbox" id="lLora"><span><b>LoRA — train adapters only</b><small>Base weights frozen. Gradients and optimizer states exist only for the small adapter matrices, here taken as 0.15% of parameters, the figure from 2026 T2 Q4.</small></span></label>
+      <label class="lever"><input type="checkbox" id="lHead"><span><b>Head-only fine-tuning</b><small>The body is frozen and used as a feature extractor. Only a final linear layer trains — well under 0.1% of parameters.</small></span></label>
+    </div>
+
+    <div class="readout">
+      <div class="total"><span id="tot">0</span> GB <small id="totSub"></small></div>
+      <div class="bar" id="bar" role="img" aria-label="Memory breakdown by copy">
+        <div class="seg w" id="sW"></div><div class="seg g" id="sG"></div><div class="seg m" id="sM"></div><div class="seg v" id="sV"></div>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--cw)"></i> weights</span>
+        <span><i class="dot" style="background:var(--cg)"></i> gradients</span>
+        <span><i class="dot" style="background:var(--cm)"></i> momentum</span>
+        <span><i class="dot" style="background:var(--cv)"></i> variance</span>
+      </div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+
+    <h3 class="block">The arithmetic</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Copy</th><th class="num">Parameters charged</th><th class="num">Bytes each</th><th class="num">GB</th></tr></thead>
+        <tbody>
+          <tr><td>Weights</td><td class="num" id="pW">—</td><td class="num" id="bW">—</td><td class="num" id="gW">—</td></tr>
+          <tr><td>Gradients</td><td class="num" id="pG">—</td><td class="num" id="bG">—</td><td class="num" id="gG">—</td></tr>
+          <tr><td>Momentum</td><td class="num" id="pM">—</td><td class="num" id="bM">—</td><td class="num" id="gM">—</td></tr>
+          <tr><td>Variance</td><td class="num" id="pV">—</td><td class="num" id="bV">—</td><td class="num" id="gV">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 03 THE LEVERS ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Which lever removes which copy</h2></div>
+  <p class="lede">This grid is worth more marks than anything else in week 4. Both past papers tested it as multiple-select, where every wrong option was a technique credited with saving something it does not touch.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Technique</th><th>What it actually attacks</th><th>Weights</th><th>Grads</th><th>Optimizer</th><th>Activations</th></tr></thead>
+      <tbody>
+        <tr><td><b>Mixed precision</b><br><span style="color:var(--ink-soft);font-size:.86rem">fp16 / bf16</span></td><td>Activations and compute speed. Keeps an fp32 master copy of weights and optimizer state.</td><td class="no2">no</td><td class="yes">halved</td><td class="no2">no</td><td class="yes">halved</td></tr>
+        <tr><td><b>Gradient accumulation</b></td><td>Activations only, by processing a smaller batch per pass. Simulates a big batch by summing before the update.</td><td class="no2">no</td><td class="no2">no</td><td class="no2">no</td><td class="yes">yes</td></tr>
+        <tr><td><b>Gradient checkpointing</b></td><td>Activations, by discarding them in the forward pass and recomputing in the backward. Costs extra compute.</td><td class="no2">no</td><td class="no2">no</td><td class="no2">no</td><td class="yes">large</td></tr>
+        <tr><td><b>Quantization</b><br><span style="color:var(--ink-soft);font-size:.86rem">int8 / int4</span></td><td>The weights themselves, by storing fewer bits per number.</td><td class="yes">yes</td><td class="no2">no</td><td class="no2">no</td><td class="no2">no</td></tr>
+        <tr><td><b>LoRA</b></td><td>Gradients and optimizer states, by freezing the base and training only small adapters.</td><td class="no2">no</td><td class="yes">yes</td><td class="yes">yes</td><td class="no2">no</td></tr>
+        <tr><td><b>QLoRA</b></td><td>Both at once — quantized frozen base plus LoRA adapters.</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td><td class="no2">no</td></tr>
+        <tr><td><b>Head-only FT</b></td><td>Gradients and optimizer states, for everything except the final layer.</td><td class="no2">no</td><td class="yes">yes</td><td class="yes">yes</td><td class="no2">no</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="trap">
+    <b>The three statements that are always wrong</b>
+    <p style="margin-bottom:7px"><strong>"FP16 automatically reduces optimizer state size by half."</strong> It does not. Mixed precision keeps a full fp32 master copy of the weights and the optimizer moments, because repeatedly adding tiny updates to a 16-bit number loses them to rounding. That master copy is the entire point. What fp16 halves is activations and gradient storage, not optimizer state.</p>
+    <p style="margin-bottom:7px"><strong>"Gradient accumulation reduces the number of optimizer states."</strong> It does not. The optimizer still keeps two numbers per parameter no matter how many forward passes you sum before stepping. Accumulation changes <em>when</em> you step, never <em>what you store</em>.</p>
+    <p><strong>"Optimizer updates occur after every batch."</strong> With <code>gradient_accumulation_steps = 8</code> they occur after every eight. That is the definition.</p>
+  </div>
+
+  <div class="note">
+    <b>Memory hook for the levers</b>
+    <strong>Shrink, Skip, Forget, Freeze.</strong> Quantization <em>shrinks</em> each number. Accumulation <em>skips</em> the update until later. Checkpointing <em>forgets</em> activations and recomputes them. LoRA <em>freezes</em> the base so no gradients are owed on it. Four verbs, four different victims — and mixed precision is the odd one out, which is exactly why it is the one the exam lies about.
+  </div>
+</section>
+
+<!-- ===== 04 WORKED ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Now solve the real questions</h2></div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q8 · 2 marks</span>
+      <p>A model with 4B parameters (fp32) is being trained using the AdamW optimizer on a single 32 GB GPU. Why is full fine-tuning impossible in this configuration?</p>
+      <button class="wbtn" data-sol="m1">Show the steps</button>
+    </div>
+    <div class="wsol" id="m1" hidden>
+      <div class="step"><i>1</i><div>Weights: 4e9 × 4 bytes = 16 GB.</div></div>
+      <div class="step"><i>2</i><div>Gradients: another 16 GB.</div></div>
+      <div class="step"><i>3</i><div>Optimizer: momentum 16 + variance 16 = 32 GB.</div></div>
+      <div class="step"><i>4</i><div>Total 64 GB against a 32 GB card. Set the panel to 4B, fp32, AdamW, V100 and the verdict bar turns red at exactly this figure.</div></div>
+      <div class="step"><i>5</i><div>The distractor to reject says fp32 means 8 bytes per parameter. It means 4. The other says the 4B parameters alone fill the card — they take 16 GB, which fits comfortably; it is the other three copies that break it.</div></div>
+      <div class="wans">optimizer 32 + weights 16 + gradients 16 = 64 GB &gt; 32 GB</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q18 · 4 marks · and 2026 T2 · Q17 · 4 marks</span>
+      <p><strong>(a)</strong> A transformer has 1.2 billion parameters, fine-tuned with AdamW. Parameters, gradients and optimizer states (first and second moments) are all stored in 32-bit precision, 4 bytes each. Ignoring activations and buffers, calculate the total GPU memory in GB. <strong>(b)</strong> A model contains 5 billion parameters, trained with AdamW in fp32, same assumptions. Total memory in GB?</p>
+      <button class="wbtn" data-sol="m2">Show the steps</button>
+    </div>
+    <div class="wsol" id="m2" hidden>
+      <div class="step"><i>1</i><div>The question lists the four copies for you: parameters, gradients, first moment, second moment. Four copies at 4 bytes = 16 bytes per parameter.</div></div>
+      <div class="step"><i>2</i><div>(a) 1.2e9 × 16 = 19.2e9 bytes. With 1 GB = 10⁹, that is <strong>19.2 GB</strong>. Accepted band 19.1 to 19.3.</div></div>
+      <div class="step"><i>3</i><div>(b) 5e9 × 16 = 80e9 → <strong>80 GB</strong>. Accepted band 79.5 to 80.5.</div></div>
+      <div class="step"><i>4</i><div>No conversion, no powers of two. Multiply by 16 and shift the decimal point.</div></div>
+      <div class="wans">N × 16 bytes · 1.2B → 19.2 GB · 5B → 80 GB</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T2 · Q6 · 2 marks · and GA4</span>
+      <p>A 7 billion parameter model is loaded in FP32 precision. Ignoring activations and optimizer states, approximately how much GPU memory is required for storing model weights? <em>And GA4's follow-up:</em> if the context length rises from 2048 to 8000, how much is required then?</p>
+      <button class="wbtn" data-sol="m3">Show the steps</button>
+    </div>
+    <div class="wsol" id="m3" hidden>
+      <div class="step"><i>1</i><div>"Ignoring optimizer states" means only copy one is charged. 7e9 × 4 = 28e9 → <strong>28 GB</strong>.</div></div>
+      <div class="step"><i>2</i><div>Tick <em>Inference only</em> on the panel with 7B and fp32 selected to see the other three copies vanish.</div></div>
+      <div class="step"><i>3</i><div>For the context change: longer context only adds rows to the positional embedding table, Δ = (8000 − 2048) × 2048 ≈ 12.2M parameters.</div></div>
+      <div class="step"><i>4</i><div>12.2M × 4 bytes ≈ 0.05 GB, on a model already weighing 28 GB. The answer stays <strong>28 GB</strong>, and GA4's accepted band of 26 to 30 was deliberately wide enough that the increase cannot move you out of it.</div></div>
+      <div class="wans">28 GB, and still 28 GB after the context change</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q13 and 2026 T2 · Q10 · 3 marks each · multiple select</span>
+      <p>Given <code>TrainingArguments(per_device_train_batch_size=1, gradient_accumulation_steps=8, fp16=True, max_grad_norm=1.0)</code>, which effects are expected? And in T2's variant with <code>fp16=True, gradient_accumulation_steps=8, per_device_train_batch_size=2</code>, which statements are correct?</p>
+      <button class="wbtn" data-sol="m4">Show the steps</button>
+    </div>
+    <div class="wsol" id="m4" hidden>
+      <div class="step"><i>1</i><div>Effective batch size = per-device batch × accumulation steps. 1×8 = 8, and 2×8 = 16. Both papers asked you to confirm it exceeds the per-device figure. <span class="yes">Correct.</span></div></div>
+      <div class="step"><i>2</i><div>fp16 reduces memory against fp32 training, via activations and gradient storage. <span class="yes">Correct.</span></div></div>
+      <div class="step"><i>3</i><div><code>max_grad_norm=1.0</code> is gradient clipping: it caps the update size so one freak batch cannot wreck the weights. <span class="yes">Correct.</span></div></div>
+      <div class="step"><i>4</i><div>"Gradient accumulation reduces the number of optimizer states." <span class="no2">False.</span> Two states per parameter regardless.</div></div>
+      <div class="step"><i>5</i><div>"Optimizer updates occur after every batch." <span class="no2">False.</span> After every eight.</div></div>
+      <div class="step"><i>6</i><div>"FP16 automatically reduces optimizer state size by half." <span class="no2">False.</span> The fp32 master copy is retained on purpose.</div></div>
+      <div class="wans">Effective batch grows · memory falls · clipping limits updates · accumulation can simulate larger batches. Everything about optimizer-state size is false.</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T2 · Q12 · 3 marks · and 2026 T1 · Q11 · 2 marks</span>
+      <p><strong>(a)</strong> A team hits GPU out-of-memory errors while fine-tuning a language model. Which actions may help: mixed precision, quantization, gradient checkpointing, LoRA, increasing vocabulary size? <strong>(b)</strong> Which single technique is most effective at reducing GPU memory during training <em>without modifying the model architecture</em>: gradient clipping, mixed-precision training, increasing learning-rate warmup, or saving checkpoints less often?</p>
+      <button class="wbtn" data-sol="m5">Show the steps</button>
+    </div>
+    <div class="wsol" id="m5" hidden>
+      <div class="step"><i>1</i><div>(a) The first four each attack a real line in the ledger — activations, weights, activations again, and gradients-plus-optimizer. All four help.</div></div>
+      <div class="step"><i>2</i><div>Increasing vocabulary size makes the embedding table <em>larger</em>. It is the only option that moves memory the wrong way, and it is attractive because the other four are all "advanced technique" words.</div></div>
+      <div class="step"><i>3</i><div>(b) Gradient clipping bounds the gradient's magnitude, not its storage — the tensor is the same size either way. Warmup is a learning-rate schedule and saves nothing. Checkpoint frequency is disk, not VRAM.</div></div>
+      <div class="step"><i>4</i><div>Only mixed precision touches GPU memory at all, and it does so without changing a single layer.</div></div>
+      <div class="wans">(a) all but increasing vocabulary size &nbsp;·&nbsp; (b) mixed-precision training</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">GA4 · Week 4 · the three you should re-derive</span>
+      <p>A 7B model, context 2048, embedding dimension 2048, dataset of 1,000,000 samples each exactly one context long, per-device batch 16, gradient accumulation 4. <strong>(a)</strong> How many optimizer update steps complete one epoch on a single GPU? <strong>(b)</strong> Fine-tuning for NER with 8 labels, tuning only the classification head — how many parameters in that head, excluding bias? <strong>(c)</strong> Does raising LoRA's rank r increase the number of tunable parameters?</p>
+      <button class="wbtn" data-sol="m6">Show the steps</button>
+    </div>
+    <div class="wsol" id="m6" hidden>
+      <div class="step"><i>1</i><div>(a) One update consumes an effective batch of 16 × 4 = 64 samples. 1,000,000 ÷ 64 = <strong>15,625</strong> steps.</div></div>
+      <div class="step"><i>2</i><div>The companion True/False — "the weight update happens only at the end of one epoch" — is <strong>false</strong>, and these 15,625 steps are the proof.</div></div>
+      <div class="step"><i>3</i><div>(b) The head maps the d-dimensional output vector to one score per label: 2048 × 8 = <strong>16,384</strong>. The question says to exclude the bias, which would have added 8.</div></div>
+      <div class="step"><i>4</i><div>(c) <strong>True.</strong> LoRA replaces a d×d update with two matrices of shape d×r and r×d, so the trainable count is about 2dr per adapted matrix — linear in r. Rank is the dial that trades capacity against memory.</div></div>
+      <div class="wans">15,625 steps · 16,384 head parameters · rank up means parameters up</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 05 QUIZ ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Quiz yourself</h2></div>
+  <p class="lede">Eight questions. Half are the trap statements in disguise.</p>
+  <div class="quiz" id="quiz"></div>
+  <p class="score" id="score">0 of 8 answered</p>
+</section>
+
+<footer>
+  Concept 04 of the DLP series, completing Track A alongside The DLP Spine, Transformer Anatomy, Tokenizer Lab and The Three Architectures. Every figure checked against the past papers' accepted answer bands before publishing.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var LORA_FRAC = 0.0015, HEAD_FRAC = 0.0004;
+
+  function calc(){
+    var N = parseFloat($('mN').value) * 1e9;
+    var wb = parseFloat($('mPrec').value);
+    var nOpt = parseInt($('mOpt').value, 10);
+    var gpu = parseFloat($('mGpu').value);
+    var inf = $('lInf').checked, lora = $('lLora').checked, head = $('lHead').checked;
+
+    // trainable fraction
+    var frac = 1;
+    if (inf) frac = 0;
+    else if (lora && head) frac = Math.max(LORA_FRAC, HEAD_FRAC);
+    else if (lora) frac = LORA_FRAC;
+    else if (head) frac = HEAD_FRAC;
+    var Nt = N * frac;
+
+    // gradients follow the compute precision: fp32 weights -> 4, otherwise 2
+    var gb = wb >= 4 ? 4 : 2;
+    var ob = 4; // optimizer moments are kept in fp32 even under mixed precision
+
+    var W = N * wb, G = Nt * gb, M = Nt * ob * (nOpt >= 1 ? 1 : 0), V = Nt * ob * (nOpt >= 2 ? 1 : 0);
+    var total = W + G + M + V;
+
+    var gb3 = function(x){ return x / 1e9; };
+    var fmtG = function(x){ var v = gb3(x); return v >= 10 ? v.toFixed(1) : v.toFixed(2); };
+    var fmtP = function(x){
+      if (x === 0) return '0';
+      if (x >= 1e9) return (x/1e9).toFixed(2) + 'B';
+      if (x >= 1e6) return (x/1e6).toFixed(1) + 'M';
+      return Math.round(x).toLocaleString('en-US');
+    };
+
+    $('tot').textContent = fmtG(total);
+    var bpp = total / N;
+    $('totSub').textContent = '· ' + bpp.toFixed(2) + ' bytes per parameter' +
+      (inf ? ' · inference, one copy only' : '');
+
+    [['W',W,N,wb],['G',G,Nt,gb],['M',M,(nOpt>=1?Nt:0),ob],['V',V,(nOpt>=2?Nt:0),ob]].forEach(function(r){
+      $('p'+r[0]).textContent = fmtP(r[2]);
+      $('b'+r[0]).textContent = r[2] ? r[3] : '—';
+      $('g'+r[0]).textContent = r[1] ? fmtG(r[1]) : '0';
+    });
+
+    [['sW',W],['sG',G],['sM',M],['sV',V]].forEach(function(s){
+      var node = $(s[0]);
+      var share = total ? 100*s[1]/total : 0;
+      node.style.flexBasis = share + '%';
+      node.style.flexGrow = '0';
+      node.textContent = share > 13 ? fmtG(s[1]) + ' GB' : '';
+    });
+
+    var v = $('verdict');
+    if (!gpu){ v.className = 'verdict fits'; v.textContent = 'No capacity limit selected.'; }
+    else if (gb3(total) <= gpu){
+      v.className = 'verdict fits';
+      v.textContent = 'Fits — ' + fmtG(total) + ' GB of ' + gpu + ' GB, leaving ' + (gpu - gb3(total)).toFixed(1) + ' GB for activations.';
+    } else {
+      v.className = 'verdict no';
+      v.textContent = 'Does not fit — needs ' + fmtG(total) + ' GB on a ' + gpu + ' GB card, over by ' + (gb3(total) - gpu).toFixed(1) + ' GB.';
+    }
+  }
+
+  ['mN','mPrec','mOpt','mGpu'].forEach(function(id){ $(id).addEventListener('change', calc); });
+  ['lInf','lLora','lHead'].forEach(function(id){
+    $(id).addEventListener('change', function(){
+      if (id === 'lInf' && $('lInf').checked){ $('lLora').checked = false; $('lHead').checked = false; }
+      if ((id === 'lLora' || id === 'lHead') && $(id).checked){ $('lInf').checked = false; }
+      calc();
+    });
+  });
+
+  document.querySelectorAll('.wbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var s = $(b.dataset.sol); if (!s) return;
+      s.hidden = !s.hidden;
+      b.textContent = s.hidden ? 'Show the steps' : 'Hide the steps';
+    });
+  });
+
+  var QS = [
+    { p:'A 3B parameter model is trained with AdamW in fp32. Ignoring activations, how much memory do the four copies need?',
+      o:['12 GB','24 GB','48 GB','96 GB'], c:2,
+      e:'3e9 × 16 bytes = 48e9 = 48 GB. Four copies at four bytes each. Answering 12 GB means you counted only the weights.' },
+
+    { p:'Does enabling fp16 mixed precision halve the memory used by AdamW’s optimizer states?',
+      o:['Yes, everything is stored at half width','No — an fp32 master copy of weights and moments is deliberately kept','Only when gradient accumulation is also enabled','Only for models above 1B parameters'], c:1,
+      e:'Repeatedly adding tiny updates to a 16-bit number loses them to rounding, so mixed precision keeps full-precision master weights and moments. What it halves is activations and gradient storage. This exact false statement appeared in 2026 T2 Q10.' },
+
+    { p:'With per_device_train_batch_size=2 and gradient_accumulation_steps=8, how often does the optimizer update the weights?',
+      o:['After every forward pass','After every 2 samples','After every 8 forward passes, that is every 16 samples','Once per epoch'], c:2,
+      e:'Accumulation sums gradients across 8 passes and then steps once. Effective batch is 2 × 8 = 16. "Optimizer updates occur after every batch" was a planted wrong option.' },
+
+    { p:'Which of these does gradient checkpointing trade away in order to save memory?',
+      o:['Model accuracy','Extra computation — activations are recomputed in the backward pass','Optimizer state precision','The ability to use AdamW'], c:1,
+      e:'It discards activations during the forward pass and recomputes them when needed. Pure time-for-space: accuracy is untouched, and it has no bearing on the optimizer.' },
+
+    { p:'A team hits OOM while fine-tuning. Which of these would make it worse?',
+      o:['Gradient checkpointing','LoRA','Increasing the tokenizer vocabulary size','8-bit quantization'], c:2,
+      e:'A bigger vocabulary means a bigger V × d embedding table, so more parameters and more memory. It was the single wrong option among five in 2026 T2 Q12, surrounded by four genuine techniques.' },
+
+    { p:'A 7B model is loaded in int8 for inference. Roughly how much memory do the weights need?',
+      o:['3.5 GB','7 GB','14 GB','28 GB'], c:1,
+      e:'int8 is one byte per parameter, so 7e9 bytes = 7 GB. The same model is 28 GB in fp32 and 14 GB in fp16. Quantization is the only lever that attacks the weights themselves.' },
+
+    { p:'Why does LoRA reduce memory even though the full base model is still loaded on the GPU?',
+      o:['It compresses the base weights','The frozen base needs no gradients or optimizer states — only the small adapters do','It reduces the number of layers','It moves the base model to CPU RAM'], c:1,
+      e:'Three of the four copies are charged only on trainable parameters. Freezing the base removes its gradients, momentum and variance while the weights themselves stay resident. QLoRA adds quantization to attack that last copy too.' },
+
+    { p:'Fine-tuning a model for NER with 8 entity labels, training only the classification head on a model with d = 2048. How many parameters train, excluding bias?',
+      o:['2,048','16,384','8','2,056'], c:1,
+      e:'d × num_labels = 2048 × 8 = 16,384. One weight from every output dimension to every label. GA4 asked precisely this, and the companion True/False confirmed that head-only tuning takes far less memory than full fine-tuning.' }
+  ];
+
+  var quiz = $('quiz'); var answered = 0, right = 0;
+  QS.forEach(function(q,i){
+    var card = document.createElement('div'); card.className='q';
+    var n = document.createElement('span'); n.className='qn'; n.textContent='Question '+(i+1); card.appendChild(n);
+    var p = document.createElement('p'); p.textContent=q.p; card.appendChild(p);
+    var opts = document.createElement('div'); opts.className='opts';
+    var expl = document.createElement('div'); expl.className='expl'; expl.textContent=q.e; expl.hidden=true;
+    q.o.forEach(function(text,j){
+      var b = document.createElement('button'); b.className='opt'; b.type='button'; b.textContent=text;
+      b.addEventListener('click', function(){
+        if (card.dataset.done) return;
+        card.dataset.done='1'; answered++; if (j===q.c) right++;
+        opts.querySelectorAll('.opt').forEach(function(o,k){
+          o.classList.add('done');
+          if (k===q.c) o.classList.add('right'); else if (k===j) o.classList.add('wrong');
+        });
+        expl.hidden=false;
+        $('score').textContent = answered+' of '+QS.length+' answered · '+right+' correct';
+      });
+      opts.appendChild(b);
+    });
+    card.appendChild(opts); card.appendChild(expl); quiz.appendChild(card);
+  });
+
+  calc();
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

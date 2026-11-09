@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>The DLP Spine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: a single vertical spine. Data enters at the top as raw text and
+   leaves at the bottom as a task-adapted model. Every term in weeks 1-4 hangs off
+   the point on that spine where it actually does its work. */
+:root{
+  --paper:#F6F7F9;
+  --surface:#FFFFFF;
+  --surface-2:#EFF2F6;
+  --ink:#16202E;
+  --ink-soft:#55637A;
+  --rule:#DCE2EA;
+  --accent:#0E7490;
+  --accent-soft:#CFF0F5;
+  --signal:#A15C07;
+  --signal-soft:#FBEBD2;
+  --alert:#9F1239;
+  --alert-soft:#FBE0E6;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C;
+    --surface:#141C27;
+    --surface-2:#1B2531;
+    --ink:#E7ECF3;
+    --ink-soft:#93A1B5;
+    --rule:#26313F;
+    --accent:#2DD4E8;
+    --accent-soft:#113640;
+    --signal:#F0B429;
+    --signal-soft:#3A2C0D;
+    --alert:#FB7185;
+    --alert-soft:#3D1420;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C;
+  --surface:#141C27;
+  --surface-2:#1B2531;
+  --ink:#E7ECF3;
+  --ink-soft:#93A1B5;
+  --rule:#26313F;
+  --accent:#2DD4E8;
+  --accent-soft:#113640;
+  --signal:#F0B429;
+  --signal-soft:#3A2C0D;
+  --alert:#FB7185;
+  --alert-soft:#3D1420;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:16px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 72px;
+}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+p{margin:0}
+
+/* ---------- masthead ---------- */
+.mast{padding-block:40px 28px;border-bottom:2px solid var(--ink)}
+.kicker{
+  font-family:var(--f-display);font-size:.7rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  margin-bottom:12px;
+}
+.mast h1{font-size:clamp(2.1rem,6vw,3.2rem);font-weight:700;letter-spacing:-.02em}
+.mast .sub{
+  margin-top:14px;max-width:62ch;color:var(--ink-soft);font-size:1.02rem;
+}
+.howto{
+  margin-top:22px;display:flex;flex-wrap:wrap;gap:8px;
+}
+.howto span{
+  font-family:var(--f-display);font-size:.74rem;font-weight:500;
+  background:var(--surface-2);border:1px solid var(--rule);
+  padding:5px 11px;border-radius:2px;color:var(--ink-soft);
+}
+
+/* ---------- pipeline chain ---------- */
+.chain{
+  display:flex;flex-wrap:wrap;align-items:stretch;gap:0;
+  margin-block:34px;
+}
+.node{
+  flex:1 1 150px;min-width:0;
+  background:var(--surface);border:1px solid var(--rule);
+  border-left-width:3px;border-left-color:var(--accent);
+  padding:13px 14px;text-align:left;cursor:pointer;
+  font-family:var(--f-display);color:var(--ink);
+  display:flex;flex-direction:column;gap:3px;
+  transition:background .14s ease;
+}
+.node:hover,.node:focus-visible{background:var(--accent-soft)}
+.node .n{font-size:.68rem;font-weight:600;letter-spacing:.12em;color:var(--accent)}
+.node .t{font-size:.98rem;font-weight:600;letter-spacing:-.01em}
+.node .w{font-size:.72rem;color:var(--ink-soft);font-weight:500}
+.arrow{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink-soft);font-family:var(--f-mono);font-size:.9rem;
+  padding:0 7px;flex:0 0 auto;
+}
+@media (max-width:560px){
+  .chain{flex-direction:column}
+  .arrow{padding:5px 0;transform:rotate(90deg)}
+}
+
+/* ---------- generic section ---------- */
+section{margin-block:52px}
+.sec-head{
+  display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;
+  padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:22px;
+}
+.sec-num{
+  font-family:var(--f-mono);font-size:.78rem;font-weight:600;
+  color:var(--paper);background:var(--ink);
+  padding:3px 8px;border-radius:2px;
+}
+.sec-head h2{font-size:clamp(1.35rem,3.4vw,1.75rem);font-weight:700;letter-spacing:-.015em}
+.sec-head .mod{
+  font-family:var(--f-mono);font-size:.78rem;color:var(--accent);
+  margin-left:auto;
+}
+.job{
+  background:var(--surface);border:1px solid var(--rule);
+  border-left:3px solid var(--signal);
+  padding:14px 16px;margin-bottom:24px;max-width:70ch;
+}
+.job b{font-family:var(--f-display);font-size:.72rem;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--signal);display:block;margin-bottom:5px}
+
+h3.block{
+  font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-soft);margin-block:30px 13px;
+}
+
+/* ---------- term cards (recall surface) ---------- */
+.termbar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-block:30px 13px;
+}
+.termbar h3{
+  font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-soft);margin:0;
+}
+.toggle{
+  font-family:var(--f-display);font-size:.72rem;font-weight:600;
+  background:var(--surface);color:var(--accent);
+  border:1px solid var(--accent);border-radius:2px;
+  padding:4px 10px;cursor:pointer;letter-spacing:.03em;
+}
+.toggle:hover{background:var(--accent-soft)}
+.terms{display:grid;gap:7px}
+.term{
+  width:100%;text-align:left;background:var(--surface);
+  border:1px solid var(--rule);border-radius:2px;
+  padding:11px 14px;cursor:pointer;color:var(--ink);
+  font-family:var(--f-body);font-size:1rem;line-height:1.55;
+  display:grid;gap:6px;
+}
+.term:hover{border-color:var(--accent)}
+.term .word{
+  font-family:var(--f-display);font-weight:600;font-size:.97rem;
+  display:flex;align-items:baseline;gap:9px;
+}
+.term .word::after{
+  content:"reveal";margin-left:auto;font-size:.66rem;font-weight:500;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);
+  flex:0 0 auto;
+}
+.term[aria-expanded="true"] .word::after{content:"";}
+.term .def{color:var(--ink-soft);font-size:.95rem}
+.term .def em{color:var(--ink);font-style:normal;font-weight:500}
+.term .alias{
+  font-family:var(--f-mono);font-size:.76rem;color:var(--accent);font-weight:500;
+}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:.92rem}
+th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{
+  font-family:var(--f-display);font-size:.7rem;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
+  background:var(--surface-2);
+}
+tr:last-child td{border-bottom:none}
+td.sym{font-family:var(--f-mono);font-weight:500;color:var(--accent);white-space:nowrap}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* ---------- formula cards ---------- */
+.formulas{display:grid;gap:13px}
+.formula{
+  background:var(--surface);border:1px solid var(--rule);
+  border-top:3px solid var(--signal);padding:15px 16px;
+  display:grid;gap:9px;
+}
+.formula .fname{font-family:var(--f-display);font-weight:600;font-size:.97rem}
+.formula .feq{
+  font-family:var(--f-mono);font-size:.92rem;font-weight:500;
+  background:var(--signal-soft);color:var(--ink);
+  padding:9px 12px;border-radius:2px;overflow-x:auto;white-space:nowrap;
+}
+.formula .fstory{color:var(--ink-soft);font-size:.94rem}
+.formula .fex{
+  font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);
+  border-top:1px dashed var(--rule);padding-top:8px;
+}
+.formula .fex b{color:var(--ink);font-weight:500}
+
+/* ---------- callouts ---------- */
+.trap,.note{
+  border:1px solid var(--rule);padding:13px 15px;margin-block:16px;
+  font-size:.95rem;background:var(--surface);
+}
+.trap{border-left:3px solid var(--alert)}
+.note{border-left:3px solid var(--accent)}
+.trap b,.note b{
+  font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;
+  text-transform:uppercase;display:block;margin-bottom:5px;
+}
+.trap b{color:var(--alert)}
+.note b{color:var(--accent)}
+
+/* ---------- glossary search ---------- */
+.search{
+  width:100%;max-width:420px;font-family:var(--f-mono);font-size:.9rem;
+  padding:10px 13px;border:1px solid var(--rule);border-radius:2px;
+  background:var(--surface);color:var(--ink);margin-bottom:16px;
+}
+.search:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.gloss{display:grid;gap:0;border:1px solid var(--rule);background:var(--surface)}
+.gitem{
+  display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:16px;
+  padding:10px 14px;border-bottom:1px solid var(--rule);font-size:.93rem;
+}
+.gitem:last-child{border-bottom:none}
+.gitem dt{font-family:var(--f-mono);font-weight:500;color:var(--accent);min-width:0;word-break:break-word}
+.gitem dd{margin:0;color:var(--ink-soft);min-width:0}
+.empty{padding:16px 14px;color:var(--ink-soft);font-size:.92rem}
+@media (max-width:520px){
+  .gitem{grid-template-columns:1fr;gap:3px}
+}
+
+footer{
+  margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);
+  color:var(--ink-soft);font-size:.88rem;max-width:66ch;
+}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Deep Learning Practice · Weeks 1–4</div>
+  <h1>The DLP Spine</h1>
+  <p class="sub">Every term, module and number from the first four weeks, placed on the one pipeline they all belong to. Nothing here assumes you already know a word — if a term is used, it is defined first.</p>
+  <div class="howto">
+    <span>Click any term to reveal its definition</span>
+    <span>Hidden by default, so it doubles as recall practice</span>
+    <span>Glossary is searchable at the bottom</span>
+  </div>
+</header>
+
+<nav class="chain" aria-label="Pipeline stages">
+  <button class="node" data-go="s0"><span class="n">00</span><span class="t">Symbols</span><span class="w">read first</span></button>
+  <span class="arrow" aria-hidden="true">──▸</span>
+  <button class="node" data-go="s1"><span class="n">01</span><span class="t">Dataset</span><span class="w">week 1</span></button>
+  <span class="arrow" aria-hidden="true">──▸</span>
+  <button class="node" data-go="s2"><span class="n">02</span><span class="t">Tokenizer</span><span class="w">week 2</span></button>
+  <span class="arrow" aria-hidden="true">──▸</span>
+  <button class="node" data-go="s3"><span class="n">03</span><span class="t">Model</span><span class="w">week 3</span></button>
+  <span class="arrow" aria-hidden="true">──▸</span>
+  <button class="node" data-go="s4"><span class="n">04</span><span class="t">Adaptation</span><span class="w">week 4</span></button>
+</nav>
+
+<!-- ============ 00 SYMBOLS ============ -->
+<section id="s0">
+  <div class="sec-head">
+    <span class="sec-num">00</span>
+    <h2>Symbols, defined before anything else</h2>
+  </div>
+  <div class="job">
+    <b>Why this comes first</b>
+    Every formula in weeks 1–4 is built from these eight letters. If a letter is unfamiliar the whole formula becomes unreadable, so fix them here once.
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Symbol</th><th>Name</th><th>What it actually is</th><th>Typical value</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">V, |V|</td><td>vocabulary size</td><td>How many distinct tokens the model knows. One row of the embedding table per token.</td><td class="num">30k – 128k</td></tr>
+        <tr><td class="sym">d, d_model</td><td>embedding dimension</td><td>The length of the vector that stands for one token. Same width all the way through the model.</td><td class="num">768 – 4096</td></tr>
+        <tr><td class="sym">T</td><td>sequence length</td><td>How many tokens are in this particular input.</td><td class="num">varies</td></tr>
+        <tr><td class="sym">ctx</td><td>context length</td><td>The largest T the model will accept. A fixed property of the model, set at build time.</td><td class="num">512 – 8192</td></tr>
+        <tr><td class="sym">N</td><td>parameter count</td><td>Total number of learnable numbers in the model. "7B" means N = 7×10⁹.</td><td class="num">117M – 175B</td></tr>
+        <tr><td class="sym">L</td><td>number of layers</td><td>How many transformer blocks are stacked on top of each other.</td><td class="num">6 – 96</td></tr>
+        <tr><td class="sym">h</td><td>attention heads</td><td>How many parallel attention computations run inside one block. Does not change the parameter count.</td><td class="num">12 – 64</td></tr>
+        <tr><td class="sym">B, G</td><td>batch size, grad-accum</td><td>B = samples per forward pass on one device. G = how many such passes are summed before the weights are updated.</td><td class="num">1 – 64, 1 – 32</td></tr>
+        <tr><td class="sym">r</td><td>LoRA rank</td><td>The width of the small matrices LoRA trains instead of the full weight matrix. Higher r = more trainable parameters.</td><td class="num">4 – 64</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>The one unit convention that matters</b>
+    This course defines <code>1 GB = 10⁹ bytes</code>, not 2³⁰. Every memory answer in the past papers and graded assignments uses it. Divide bytes by 1e9 and stop thinking about it.
+  </div>
+</section>
+
+<!-- ============ 01 DATASET ============ -->
+<section id="s1">
+  <div class="sec-head">
+    <span class="sec-num">01</span>
+    <h2>Dataset</h2>
+    <span class="mod">import datasets</span>
+  </div>
+  <div class="job">
+    <b>The job of this stage</b>
+    Take text that lives in a hundred different file formats and sizes, and turn it into one uniform object you can slice, transform and stream — without ever loading the whole thing into memory.
+  </div>
+
+  <div class="termbar">
+    <h3>Terms</h3>
+    <button class="toggle" data-all="s1">Reveal all</button>
+  </div>
+  <div class="terms" data-group="s1">
+    <button class="term" aria-expanded="false"><span class="word">config (subset)</span><span class="def">A named variant of a dataset that lives under the same name. <em>naamapadam</em> has 11 configs, one per Indian language. You pick one when you load.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">split</span><span class="def">A partition of a dataset by purpose: <em>train</em>, <em>validation</em>, <em>test</em>. Loading without naming one gives you all of them wrapped together.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">DatasetDict</span><span class="def">A dictionary whose keys are split names and whose values are Datasets. What you get back when you load every split at once.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">Arrow</span><span class="def">The on-disk file format this library stores everything in. Columnar, meaning one column is stored contiguously rather than one row at a time. This is what makes the next term possible. Files end in <span class="alias">.arrow</span>.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">memory-mapping</span><span class="def">Reading a file directly off disk as though it were already in memory, letting the operating system fetch only the pages you touch. A 100 GB dataset can be used on an 8 GB machine because of this.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">streaming</span><span class="def">Pulling samples one at a time over the network and never writing the full dataset to disk. Used when the dataset is too large to store at all.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">cache directory</span><span class="def">The folder where downloaded and transformed copies are kept, so the same work is never repeated. Default is <span class="alias">~/.cache/huggingface/datasets</span>.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">.map()</span><span class="def">Apply a function to every sample and keep the result. Used to add columns. With <span class="alias">batched=True</span> the function receives a dictionary of <em>lists</em> rather than one sample, and <span class="alias">batch_size</span> controls how many come at a time.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">.filter()</span><span class="def">Keep only the samples for which a function returns True. Returns a smaller dataset; the original is untouched.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">concatenate_datasets()</span><span class="def">Stack datasets end to end. Total samples = sum of the parts. Columns must match.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">interleave_datasets()</span><span class="def">Mix datasets by drawing samples from each according to given probabilities, for example 80% from one and 20% from another. Needs a <span class="alias">seed</span> for the result to be reproducible.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">.cast_column()</span><span class="def">Change the declared type of one column, for example re-declaring an audio column at a different sampling rate. Appears in week 1 and again heavily in the speech weeks.</span></button>
+  </div>
+
+  <div class="trap">
+    <b>The behaviour this week is actually examined on</b>
+    Every transform writes a <em>new</em> cache file rather than editing the old one. So disk usage grows with each <code>.map()</code>, and adding one sizeable column can roughly double the space the dataset occupies. Both of those were True/False questions in GA1. The reason is that Arrow files are immutable once written — which is also exactly why memory-mapping is safe.
+  </div>
+  <div class="note">
+    <b>What to expect in the quiz</b>
+    Both past Quiz-1 papers contained zero questions on this module, because the graded-assignment style here ("download this and report the count") cannot be asked in a closed-book exam. What <em>can</em> be asked is the conceptual shape above: what each method does, and how caching behaves. Budget about forty minutes on this stage, no more.
+  </div>
+</section>
+
+<!-- ============ 02 TOKENIZER ============ -->
+<section id="s2">
+  <div class="sec-head">
+    <span class="sec-num">02</span>
+    <h2>Tokenizer</h2>
+    <span class="mod">import tokenizers / AutoTokenizer</span>
+  </div>
+  <div class="job">
+    <b>The job of this stage</b>
+    Convert text into a list of integers the model can look up, and convert the model's integers back into text. Nothing else in the pipeline sees words.
+  </div>
+
+  <h3 class="block">The four-step pipeline, always in this order</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Step</th><th>Component</th><th>What happens</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">Clean</td><td>normalizer</td><td>Lowercase, strip accents, collapse repeated spaces, remove HTML.</td><td class="num">"Hmm.., I Don't" → "hmm.., i don't"</td></tr>
+        <tr><td class="sym">Cut</td><td>pre_tokenizer</td><td>First rough split, usually on whitespace. This is what used to be called "tokenization" before subwords existed.</td><td class="num">→ [hmm.., i, don't]</td></tr>
+        <tr><td class="sym">Merge</td><td>model</td><td>The learned algorithm — BPE, WordPiece or Unigram — breaks each piece into subwords from the vocabulary.</td><td class="num">→ [hmm.., i, do, ##n't]</td></tr>
+        <tr><td class="sym">Wrap</td><td>post_processor</td><td>Insert the model's own special tokens around the sequence.</td><td class="num">→ [CLS] hmm.., i do ##n't [SEP]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>Memory hook</b>
+    <strong>Clean, Cut, Merge, Wrap.</strong> Four verbs, and they map one-to-one onto the four settable properties of the <code>Tokenizer</code> class. If you can say the four verbs you can name the four components.
+  </div>
+
+  <div class="termbar">
+    <h3>Terms</h3>
+    <button class="toggle" data-all="s2">Reveal all</button>
+  </div>
+  <div class="terms" data-group="s2">
+    <button class="term" aria-expanded="false"><span class="word">token</span><span class="def">Whatever unit the tokenizer decided on. It may be a whole word, a fragment of a word, a single character, or a punctuation mark. It is <em>not</em> the same thing as a word, and that difference is the source of most questions in this week.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">vocabulary (V)</span><span class="def">The fixed list of every token the tokenizer can produce, each with a unique integer id. Its size sets the height of the embedding table.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">subword</span><span class="def">A token smaller than a word. Lets "enjoyed" become "enjoy" + "ed", so the model can handle "enjoying" without ever having seen it.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">OOV — out of vocabulary</span><span class="def">A word that is not in V. A word-level tokenizer must replace it with a single unknown marker and lose its meaning. Subword tokenizers almost eliminate the problem by falling back to smaller pieces, down to individual characters.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">merge rule</span><span class="def">A learned instruction of the form "wherever these two pieces sit next to each other, join them into one". Training a BPE tokenizer means discovering an ordered list of these, and tokenizing means replaying them in order.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">agglutinative language</span><span class="def">A language where one word carries what English needs a whole phrase for, by gluing pieces together — Tamil, Turkish, Finnish. The number of possible words is effectively unlimited, which is why a fixed word-level vocabulary fails badly on them.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">special tokens</span><span class="def">Tokens that carry structure rather than meaning. <span class="alias">[CLS] [SEP] [PAD] [MASK] [UNK] &lt;|endoftext|&gt;</span>. Which ones exist, and what integer each maps to, is decided by the model, not by a standard.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">input_ids</span><span class="def">The actual output: a list of integers, one per token, ready to be looked up in the embedding table.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">attention_mask</span><span class="def">A list of 1s and 0s the same length as input_ids. A 0 marks a padding position the model must ignore. Nothing to do with causal masking, which is a different thing entirely in stage 03.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">token_type_ids</span><span class="def">Marks which of two joined sentences each token came from, for models like BERT that take sentence pairs. Not about letter case, which was a wrong option in a past paper.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">offset_mapping</span><span class="def">For each token, the character positions in the original string it came from. Needed when a prediction about a token must be mapped back onto the raw text.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">padding</span><span class="def">Adding filler tokens so every sequence in a batch has the same length, because a tensor must be rectangular. <span class="alias">padding=True</span> pads to the longest sequence present in that batch; <span class="alias">padding="max_length"</span> pads every sequence to a fixed number regardless of the batch.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">truncation</span><span class="def">Cutting a sequence that exceeds the limit. It cuts at the token limit, not at a word or sentence boundary, and the special tokens are counted inside that budget.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">AutoTokenizer</span><span class="def">A loader that reads a model's name and returns whichever tokenizer class that model needs, already configured with its vocabulary and special tokens. You almost never name the class yourself.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">PreTrainedTokenizer</span><span class="def">The wrapper that gives a tokenizer you trained yourself the same interface a hub model's tokenizer has, so the rest of the library will accept it.</span></button>
+  </div>
+
+  <h3 class="block">The three algorithms — only the merge rule really differs</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Algorithm</th><th>Direction</th><th>What it merges or drops</th><th>Used by</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">BPE</td><td>grows</td><td>Merges the pair with the highest <em>raw count</em>. Greedy and deterministic.</td><td>GPT-2, GPT-1</td></tr>
+        <tr><td class="sym">WordPiece</td><td>grows</td><td>Merges the pair with the highest <em>score</em> = count(a,b) ÷ (count(a) × count(b)). Dividing by the parts favours pairs whose halves are individually rare, so common letters do not dominate.</td><td>BERT</td></tr>
+        <tr><td class="sym">Unigram<br>(SentencePiece)</td><td>shrinks</td><td>Starts from a deliberately oversized vocabulary and repeatedly deletes the subwords whose removal costs the least likelihood. Picks a segmentation by probability, using Viterbi search, rather than by replaying merges.</td><td>T5, ALBERT, XLNet</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>Memory hook</b>
+    Two build <strong>up</strong> from characters, one carves <strong>down</strong> from a big block. BPE and WordPiece are sculptors adding clay; Unigram is a sculptor removing marble. And within the two that grow: BPE counts, WordPiece scores.
+  </div>
+
+  <div class="trap">
+    <b>The vocabulary-size trade-off, which is asked constantly</b>
+    A larger vocabulary means each word needs <em>fewer</em> tokens, so sequences get shorter — but the embedding table is V × d, so it gets <em>bigger</em>. You are trading sequence length against parameter count. Any option claiming a larger vocabulary reduces both, or reduces total compute outright, is wrong. GA2 added the real-world wrinkle: past a point, raising V stops shortening the sequence at all, because the extra merges are for words your text does not contain.
+  </div>
+</section>
+
+<!-- ============ 03 MODEL ============ -->
+<section id="s3">
+  <div class="sec-head">
+    <span class="sec-num">03</span>
+    <h2>Model &amp; Pre-training</h2>
+    <span class="mod">import transformers</span>
+  </div>
+  <div class="job">
+    <b>The job of this stage</b>
+    Learn how language works from raw text that nobody labelled, by setting the model a task it can grade itself on: predict a token that was hidden from it.
+  </div>
+
+  <div class="termbar">
+    <h3>Terms</h3>
+    <button class="toggle" data-all="s3">Reveal all</button>
+  </div>
+  <div class="terms" data-group="s3">
+    <button class="term" aria-expanded="false"><span class="word">language model</span><span class="def">A function that takes a sequence and returns how probable that sequence is. "I ate an apple" should score higher than "an apple ate I".</span></button>
+    <button class="term" aria-expanded="false"><span class="word">pre-training</span><span class="def">The first and longest training run, done on enormous amounts of unlabelled text, producing a model that understands language in general but no task in particular.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">CLM — causal language modelling</span><span class="def">The training task: predict the next token given everything before it. "Causal" because information may only flow forward in time. This is what decoder-only models like GPT are trained on.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">MLM — masked language modelling</span><span class="def">The alternative training task: hide a fraction of the tokens and predict them using the words on <em>both</em> sides. This is what encoder-only models like BERT are trained on.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">autoregressive</span><span class="def">Generating one token, appending it to the input, and feeding the result back in to generate the next. "Auto" = self, "regressive" = depending on earlier values of itself.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">causal mask</span><span class="def">A matrix added to the attention scores before softmax, holding 0 where attention is allowed and minus infinity where it is not. Minus infinity becomes zero after softmax, so those positions contribute nothing. For CLM it is upper-triangular: the future is blocked.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">logits</span><span class="def">The raw, unnormalised scores the model produces, one per vocabulary entry, before softmax turns them into probabilities.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">transformer block</span><span class="def">The unit that gets stacked L times. Contains masked multi-head attention, then a feed-forward network, each wrapped in a residual connection and a layer normalisation.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">residual connection</span><span class="def">Adding a layer's input to its output, so the layer only has to learn the change rather than the whole signal. Keeps gradients flowing in deep stacks.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">FFN — feed-forward network</span><span class="def">Two linear layers inside each block that widen the vector from d to 4d and then squeeze it back to d. Holds roughly twice as many parameters as the attention in the same block.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">GELU</span><span class="def">The activation function GPT uses instead of ReLU. A smoother version of the same idea.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">positional embedding</span><span class="def">A vector added to each token to tell the model where in the sequence it sits, since attention by itself has no notion of order. GPT <em>learns</em> these, giving a table of size ctx × d; the original transformer paper instead used fixed sine waves, which cost no parameters.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">data collator</span><span class="def">The function that takes a list of individual samples and assembles them into one rectangular batch tensor, padding as required. <span class="alias">DataCollatorForLanguageModeling(mlm=False)</span> is the CLM one; with <span class="alias">mlm=True</span> it also does the random masking for BERT-style training.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">packing (chunking)</span><span class="def">Concatenating all tokenised samples into one long stream, then re-cutting it into fixed-length blocks and discarding the ragged remainder. Wastes no space on padding, at the cost of samples running into each other.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">-100</span><span class="def">The label value PyTorch's cross-entropy loss is hard-coded to skip. Used to mark positions that should not be scored: padding, and in MLM, every token that was <em>not</em> masked.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">Trainer</span><span class="def">The class that owns the training loop — batching, moving data to the GPU, the backward pass, the optimizer step, logging and checkpoints — so you supply only a model, a dataset and a settings object.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">TrainingArguments</span><span class="def">The settings object Trainer reads: batch size, gradient accumulation, precision, learning-rate schedule, gradient clipping, and so on.</span></button>
+  </div>
+
+  <h3 class="block">The three architecture families</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Family</th><th>Sees</th><th>Trained with</th><th>Good at</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td class="sym">encoder-only</td><td>both directions</td><td>MLM</td><td>Understanding a complete text: classification, named-entity recognition</td><td>BERT</td></tr>
+        <tr><td class="sym">decoder-only</td><td>past only</td><td>CLM</td><td>Generating text one token at a time</td><td>GPT</td></tr>
+        <tr><td class="sym">encoder–decoder</td><td>both, then past</td><td>sequence-to-sequence</td><td>Turning one whole sequence into another: translation, summarisation</td><td>T5, BART</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="block">GPT-1, worth memorising as a reference point</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Property</th><th>Value</th><th>Property</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>layers (L)</td><td class="num">12</td><td>vocabulary (V)</td><td class="num">40,478</td></tr>
+        <tr><td>context (ctx)</td><td class="num">512</td><td>tokenizer</td><td class="num">BPE</td></tr>
+        <tr><td>dimension (d)</td><td class="num">768</td><td>corpus</td><td class="num">BookCorpus</td></tr>
+        <tr><td>heads (h)</td><td class="num">12</td><td>activation</td><td class="num">GELU</td></tr>
+        <tr><td>FFN width</td><td class="num">3072 = 4d</td><td>total parameters</td><td class="num">~117M</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>The parameter count assembles cleanly — check it yourself</b>
+    Embeddings 40,478×768 + 512×768 = 31.3M. Attention per block 4d² = 2.36M. FFN per block 8d² = 4.7M. So 12d² ≈ 7.1M per block, times 12 blocks = 85M. Total 31.3 + 85 ≈ 116M. Say <strong>"attention is four, feed-forward is eight, twelve per block"</strong> and you can rebuild any transformer's size from scratch.
+  </div>
+</section>
+
+<!-- ============ 04 ADAPTATION ============ -->
+<section id="s4">
+  <div class="sec-head">
+    <span class="sec-num">04</span>
+    <h2>Adaptation</h2>
+    <span class="mod">transformers + peft + trl + bitsandbytes</span>
+  </div>
+  <div class="job">
+    <b>The job of this stage</b>
+    Take the general-purpose pre-trained model and make it do your task — either by changing its weights, or by changing nothing and just writing a better prompt.
+  </div>
+
+  <h3 class="block">The branching tree — everything in week 4 sits on one of these two limbs</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>Weights change</th><th>Weights do not change</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="sym">name</td>
+          <td>fine-tuning</td>
+          <td>prompting</td>
+        </tr>
+        <tr>
+          <td class="sym">when</td>
+          <td>training time; needs gradients, so needs the memory for them</td>
+          <td>inference time; no gradients, so far less memory</td>
+        </tr>
+        <tr>
+          <td class="sym">variants</td>
+          <td>full fine-tuning · head-only · PEFT (LoRA, QLoRA, AdaLoRA) · continued pre-training · instruction tuning · preference tuning (RLHF, DPO, IPO, KTO)</td>
+          <td>zero-shot · few-shot, also called in-context learning · chain of thought · prompt chaining · meta prompting</td>
+        </tr>
+        <tr>
+          <td class="sym">cost</td>
+          <td>a separate copy of the model per task</td>
+          <td>one model serves every task, reachable by API</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="termbar">
+    <h3>Terms</h3>
+    <button class="toggle" data-all="s4">Reveal all</button>
+  </div>
+  <div class="terms" data-group="s4">
+    <button class="term" aria-expanded="false"><span class="word">full fine-tuning</span><span class="def">Updating every one of the N parameters on your task's data. Best results, worst memory bill.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">head-only (partial) fine-tuning</span><span class="def">Freezing the whole pre-trained body and training only a newly added final linear layer. The body becomes a fixed feature extractor. Costs almost nothing in memory, because gradients and optimizer state are only needed for the head.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">classification head</span><span class="def">The new linear layer bolted on for a classification task, mapping the d-dimensional output vector to one score per label. Its size is d × number_of_labels.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">PEFT — parameter-efficient fine-tuning</span><span class="def">The family of methods that get most of the benefit of fine-tuning while training only a tiny fraction of the parameters.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">LoRA — low-rank adaptation</span><span class="def">Freeze the original weight matrix W. Alongside it, learn two thin matrices whose product has the same shape as W, and add that product to W's output. "Thin" means their shared inner dimension is r, which is tiny next to d. Raising r raises the number of trainable parameters.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">quantization</span><span class="def">Storing weights in fewer bits — 8-bit or 4-bit integers instead of 32-bit floats — to cut the memory needed to hold the model, accepting a small accuracy loss.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">QLoRA</span><span class="def">LoRA applied on top of a quantized base model. The frozen body is squeezed to 4-bit, and only the small LoRA matrices are trained at full precision.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">mixed precision</span><span class="def">Doing the arithmetic in 16-bit while keeping a 32-bit master copy of the weights and the optimizer state. Saves memory on activations and speeds up computation. It does <em>not</em> halve the optimizer state — that master copy is the whole point.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">gradient accumulation</span><span class="def">Running G forward-and-backward passes, adding the gradients together, and only then updating the weights once. Gives the statistical effect of a batch G times larger without ever holding one in memory. Does not change how many optimizer states exist.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">gradient checkpointing</span><span class="def">Deliberately throwing away most intermediate activations during the forward pass and recomputing them during the backward pass. Trades extra computation for a large saving in memory.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">weight decay</span><span class="def">A penalty added to the loss that grows with the size of the weights, discouraging the model from making large updates to its pre-trained values. The specific lever for this, as opposed to batch size or checkpointing.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">warmup</span><span class="def">Raising the learning rate linearly from near zero to its target over the first few hundred steps. Early gradients are large and erratic because the new layers are random, and a full-size step then would wreck the pre-trained weights. It saves no memory.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">gradient clipping</span><span class="def">Capping the size of the gradient before the update, so one freak batch cannot blow the weights apart. Set by <span class="alias">max_grad_norm</span>.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">continued pre-training</span><span class="def">Carrying on the <em>original</em> pre-training task — next-token or masked-token prediction — but on a corpus from your domain, such as eight million unlabelled medical documents. No labels, no instructions. Teaches the model the vocabulary and style of a field.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">instruction tuning</span><span class="def">Training on pairs of written instructions and their correct responses, so the model learns to <em>follow a request</em> rather than merely continue the text. Asked to explain how to get somewhere, an untuned model might reply "by train" — a plausible continuation, not an answer.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">preference tuning</span><span class="def">Training on human judgements of which of two responses is better, aligning the model with what people actually want. RLHF was the first method; DPO, IPO and KTO are later ones that avoid training a separate reward model.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">zero-shot / few-shot</span><span class="def">Zero-shot: giving the task description and nothing else. Few-shot: putting a handful of worked examples in the prompt itself. Few-shot is also called <em>in-context learning</em>, because the model learns from the context window rather than from any weight update.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">emergent abilities</span><span class="def">Capabilities that are absent in smaller models and appear once scale passes a threshold, rather than improving gradually. The reason the field kept building bigger models.</span></button>
+    <button class="term" aria-expanded="false"><span class="word">catastrophic forgetting</span><span class="def">Losing previously learned skills while learning a new task. The reason you might freeze the lower layers when fine-tuning on a very small dataset.</span></button>
+  </div>
+
+  <div class="trap">
+    <b>Continued pre-training is not instruction tuning — you got this one wrong in GA4</b>
+    They feel alike because both continue training an already-trained model on text, so it is tempting to call the objective the same. The grader says otherwise. Continued pre-training predicts <em>every</em> token of plain domain text with no labels at all. Instruction tuning trains on explicit instruction-and-response pairs, where the point is learning to obey a request, and the loss is concentrated on the response. One teaches the model a <em>subject</em>; the other teaches it a <em>manner</em>. A full side-by-side of all four adaptation types is the first thing I'll put in the Notes.
+  </div>
+
+  <div class="note">
+    <b>The memory story that nearly every week-4 question reduces to</b>
+    Training holds <strong>four copies</strong> of the model: the weights, their gradients, and Adam's two running averages (momentum and variance). Four copies × four bytes each = <strong>16 bytes per parameter</strong>. Inference holds only the first of the four, which is why it needs a quarter of the memory. Every memory lever in the course just attacks one of those four copies, or the activations alongside them.
+  </div>
+</section>
+
+<!-- ============ FORMULAS ============ -->
+<section id="s5">
+  <div class="sec-head">
+    <span class="sec-num">05</span>
+    <h2>The seven numbers</h2>
+    <span class="mod">≈ 30% of the paper</span>
+  </div>
+  <div class="job">
+    <b>Why these seven</b>
+    Every numeric short-answer question across both past Quiz-1 papers and all four graded assignments reduces to one of these. Learn the story, not the symbols — the symbols follow from the story.
+  </div>
+
+  <div class="formulas">
+    <div class="formula">
+      <div class="fname">1 · Memory to train</div>
+      <div class="feq">bytes = N × 16   (fp32 + AdamW)</div>
+      <div class="fstory">You are carrying four copies of the model — weights, gradients, momentum, variance — and each number is four bytes. Four fours are sixteen.</div>
+      <div class="fex"><b>1.2B →</b> 19.2 GB &nbsp;·&nbsp; <b>5B →</b> 80 GB &nbsp;·&nbsp; <b>4B →</b> 64 GB, which is why it will not fit on a 32 GB card</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">2 · Memory to merely load</div>
+      <div class="feq">bytes = N × 4 (fp32) · N × 2 (fp16) · N × 1 (int8)</div>
+      <div class="fstory">Only the first of the four copies. Drop the question's mention of optimizer states and you are just weighing the weights.</div>
+      <div class="fex"><b>7B fp32 →</b> 28 GB &nbsp;·&nbsp; <b>7B int8 →</b> 7 GB</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">3 · Embedding parameters</div>
+      <div class="feq">params = (V × d) + (ctx × d)</div>
+      <div class="fstory">Two lookup tables, both d wide. One row per vocabulary entry, plus one row per position in the context. Only counts the second term when the model <em>learns</em> its positional embeddings — sinusoidal ones are free.</div>
+      <div class="fex"><b>V=32000, ctx=2048, d=1024 →</b> 34.9M &nbsp;·&nbsp; <b>V=65000, ctx=4096, d=1536 →</b> 106.1M</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">4 · Parameters inside one block</div>
+      <div class="feq">attention = 4d²   ·   FFN = 8d²   ·   block = 12d²</div>
+      <div class="fstory">Attention has four square matrices — query, key, value, output. The feed-forward goes d → 4d → d, which is two matrices of d × 4d, so eight. Heads and sequence length do not appear, and past papers plant both as decoys.</div>
+      <div class="fex"><b>d=768 →</b> attention 2.36M &nbsp;·&nbsp; <b>d=1536 →</b> attention 9.44M</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">5 · Optimizer steps in one epoch</div>
+      <div class="feq">steps = samples ÷ (B × G × devices)</div>
+      <div class="fstory">An update happens once per <em>effective</em> batch, not once per forward pass and certainly not once per epoch. So divide the pile by the size of one bite.</div>
+      <div class="fex"><b>1,000,000 ÷ (16 × 4) →</b> 15,625 steps</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">6 · Tokens processed in a run</div>
+      <div class="feq">tokens = B × G × ctx × steps</div>
+      <div class="fstory">Effective batch size, times the tokens in each sample, times how many times you did it.</div>
+      <div class="fex"><b>8 × 4 × 4096 × 10,000 →</b> 1310.7M tokens</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">7 · Classification head</div>
+      <div class="feq">params = d × num_labels   (+ num_labels if bias counted)</div>
+      <div class="fstory">One weight from every dimension of the output vector to every possible label. Read whether the question says to exclude the bias — it usually does.</div>
+      <div class="fex"><b>d=2048, 8 entity labels →</b> 16,384</div>
+    </div>
+
+    <div class="formula">
+      <div class="fname">Bonus · Change from a longer context</div>
+      <div class="feq">Δparams = Δctx × d</div>
+      <div class="fstory">Lengthening the context only adds rows to the positional table. It does not touch the vocabulary table, the attention matrices or the feed-forward layers — so the memory needed to <em>load</em> the model barely moves. GA4 built a whole question on people expecting otherwise.</div>
+      <div class="fex"><b>512 → 1024 at d=768 →</b> 0.393M &nbsp;·&nbsp; <b>2048 → 8000 at d=2048 →</b> 12.2M, about 0.05 GB on a 28 GB model</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section id="s6">
+  <div class="sec-head">
+    <span class="sec-num">06</span>
+    <h2>Every abbreviation, in one place</h2>
+  </div>
+  <p style="max-width:66ch;color:var(--ink-soft);margin-bottom:18px">If a short form appears anywhere in the course material and you cannot expand it instantly, it belongs here. Type to filter.</p>
+  <input class="search" id="gsearch" type="search" placeholder="filter — try 'lora' or 'mask'" autocomplete="off" aria-label="Filter glossary">
+  <dl class="gloss" id="gloss">
+    <div class="gitem"><dt>AdamW</dt><dd>The optimizer used throughout. Keeps two running averages per parameter, which is why training costs four copies of the model rather than two.</dd></div>
+    <div class="gitem"><dt>Arrow</dt><dd>The columnar on-disk format the datasets library stores everything in.</dd></div>
+    <div class="gitem"><dt>BPE</dt><dd>Byte Pair Encoding. Subword tokenizer that repeatedly merges the most frequent adjacent pair.</dd></div>
+    <div class="gitem"><dt>CLM</dt><dd>Causal Language Modelling. Predict the next token from the previous ones.</dd></div>
+    <div class="gitem"><dt>[CLS]</dt><dd>Classification token. Placed at the front of a BERT input; its output vector represents the whole sequence.</dd></div>
+    <div class="gitem"><dt>CoT</dt><dd>Chain of Thought. Prompting the model to write out intermediate reasoning before its answer.</dd></div>
+    <div class="gitem"><dt>DPO</dt><dd>Direct Preference Optimization. Preference tuning without training a separate reward model.</dd></div>
+    <div class="gitem"><dt>EM</dt><dd>Expectation-Maximization. The two-step procedure Unigram uses to settle its subword probabilities.</dd></div>
+    <div class="gitem"><dt>&lt;|endoftext|&gt;</dt><dd>GPT-2's single special token. Marks a document boundary, and gets reused as the padding token because GPT-2 defines none.</dd></div>
+    <div class="gitem"><dt>FFN</dt><dd>Feed-Forward Network. The d → 4d → d pair of linear layers in each transformer block.</dd></div>
+    <div class="gitem"><dt>FLAN</dt><dd>The paper that popularised instruction tuning by reformatting many existing datasets into instructions.</dd></div>
+    <div class="gitem"><dt>fp32 / fp16 / bf16</dt><dd>Floating-point formats at 32 and 16 bits. bf16 trades precision for a wider range than fp16, which makes it more stable to train in.</dd></div>
+    <div class="gitem"><dt>GELU</dt><dd>Gaussian Error Linear Unit. The smooth activation function GPT uses in place of ReLU.</dd></div>
+    <div class="gitem"><dt>GIL</dt><dd>Global Interpreter Lock. The Python limitation that stops one process fetching the next batch while training on the current one, which is why DataLoader uses worker processes.</dd></div>
+    <div class="gitem"><dt>HF</dt><dd>Hugging Face. The company and the hub hosting roughly 150k datasets and 350k models.</dd></div>
+    <div class="gitem"><dt>in-context learning</dt><dd>Another name for few-shot prompting. The model picks up the task from examples in the prompt, with no weight update.</dd></div>
+    <div class="gitem"><dt>LoRA</dt><dd>Low-Rank Adaptation. Freeze the big matrix, train two thin ones beside it.</dd></div>
+    <div class="gitem"><dt>[MASK]</dt><dd>The token BERT substitutes for a hidden word during masked language modelling.</dd></div>
+    <div class="gitem"><dt>MLM</dt><dd>Masked Language Modelling. Hide some tokens, predict them from both sides.</dd></div>
+    <div class="gitem"><dt>MMLU</dt><dd>A multiple-choice benchmark across many subjects, used to score a model's general knowledge.</dd></div>
+    <div class="gitem"><dt>NER</dt><dd>Named Entity Recognition. Labelling which spans of text are people, places or organisations.</dd></div>
+    <div class="gitem"><dt>OOV</dt><dd>Out Of Vocabulary. A word the tokenizer's vocabulary does not contain.</dd></div>
+    <div class="gitem"><dt>[PAD]</dt><dd>Filler token added so every sequence in a batch is the same length.</dd></div>
+    <div class="gitem"><dt>PEFT</dt><dd>Parameter-Efficient Fine-Tuning. The library, and the family of methods it implements.</dd></div>
+    <div class="gitem"><dt>pre-tokenization</dt><dd>The rough first split, usually on whitespace, that happens before the subword algorithm runs.</dd></div>
+    <div class="gitem"><dt>QLoRA</dt><dd>LoRA on top of a 4-bit quantized base model.</dd></div>
+    <div class="gitem"><dt>RLHF</dt><dd>Reinforcement Learning from Human Feedback. The original method for aligning a model with human preferences.</dd></div>
+    <div class="gitem"><dt>[SEP]</dt><dd>Separator token. Ends a BERT sequence and divides a pair of sentences.</dd></div>
+    <div class="gitem"><dt>SFT</dt><dd>Supervised Fine-Tuning. Training on labelled demonstrations, usually the first stage of an alignment pipeline.</dd></div>
+    <div class="gitem"><dt>SentencePiece</dt><dd>A tokenizer that treats raw text as a stream of characters including spaces, so it needs no whitespace splitting and works on languages that have none.</dd></div>
+    <div class="gitem"><dt>softmax</dt><dd>Turns a vector of raw scores into probabilities that sum to one.</dd></div>
+    <div class="gitem"><dt>T5</dt><dd>An encoder–decoder model that casts every task as text-in, text-out.</dd></div>
+    <div class="gitem"><dt>[UNK]</dt><dd>The token substituted for anything the vocabulary cannot represent.</dd></div>
+    <div class="gitem"><dt>Unsloth</dt><dd>A library that makes single-GPU fine-tuning roughly 2.5× faster. Used in the week-4 instruction-tuning notebook.</dd></div>
+    <div class="gitem"><dt>Viterbi</dt><dd>A search that finds the single highest-scoring path through a set of choices without testing every combination. Unigram uses it to pick how to split a word.</dd></div>
+    <div class="gitem"><dt>WordPiece</dt><dd>BERT's subword tokenizer. Merges by a score that divides the pair's count by its parts' counts.</dd></div>
+    <div class="gitem"><dt>-100</dt><dd>The label value cross-entropy ignores. Marks positions that must not contribute to the loss.</dd></div>
+  </dl>
+  <div class="empty" id="noresult" hidden>No term matches that.</div>
+</section>
+
+<footer>
+  Built from the week 1–4 decks, both past Quiz-1 papers with their answer keys, and graded assignments 1–4. The two past papers are a sample of two, so treat the weighting as a strong prior rather than a guarantee. Next in this series: the Deep Notes, with side-by-side comparisons of every pair this course uses interchangeably but grades differently.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  // stage chips scroll to their section
+  document.querySelectorAll('.node').forEach(function(b){
+    b.addEventListener('click', function(){
+      var el = document.getElementById(b.dataset.go);
+      if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  // a term card hides its definition until clicked, so the list works as recall practice
+  document.querySelectorAll('.term').forEach(function(t){
+    var def = t.querySelector('.def');
+    if (def) def.hidden = true;
+    t.addEventListener('click', function(){
+      var open = t.getAttribute('aria-expanded') === 'true';
+      t.setAttribute('aria-expanded', open ? 'false' : 'true');
+      if (def) def.hidden = open;
+    });
+  });
+
+  // reveal-all / hide-all per stage
+  document.querySelectorAll('.toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var group = document.querySelector('[data-group="' + btn.dataset.all + '"]');
+      if (!group) return;
+      var show = btn.textContent.trim() === 'Reveal all';
+      group.querySelectorAll('.term').forEach(function(t){
+        var def = t.querySelector('.def');
+        t.setAttribute('aria-expanded', show ? 'true' : 'false');
+        if (def) def.hidden = !show;
+      });
+      btn.textContent = show ? 'Hide all' : 'Reveal all';
+    });
+  });
+
+  // glossary filter
+  var input = document.getElementById('gsearch');
+  var items = Array.prototype.slice.call(document.querySelectorAll('#gloss .gitem'));
+  var none  = document.getElementById('noresult');
+  if (input) {
+    input.addEventListener('input', function(){
+      var q = input.value.trim().toLowerCase();
+      var hits = 0;
+      items.forEach(function(it){
+        var match = !q || it.textContent.toLowerCase().indexOf(q) !== -1;
+        it.hidden = !match;
+        if (match) hits++;
+      });
+      if (none) none.hidden = hits !== 0;
+    });
+  }
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>
