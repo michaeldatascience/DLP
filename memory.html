@@ -9,24 +9,17 @@ body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
-<title>The Memory Ledger</title>
+<title>Memory Workshop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 </head>
 <body>
 <style>
-/* Layout concept: a ledger. Four columns of memory are owed, each one charged
-   per parameter; every technique in week 4 is a line item that strikes one of
-   them out. The running total sits against the capacity of a real GPU. */
 :root{
   --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
   --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
   --accent:#0E7490; --accent-soft:#CFF0F5;
-  --signal:#A15C07; --signal-soft:#FBEBD2;
-  --alert:#9F1239; --alert-soft:#FBE0E6;
-  --win:#15803D; --win-soft:#D6F2E0;
-  --cw:#0E7490; --cg:#A15C07; --cm:#6D28D9; --cv:#BE185D;
   --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
   --f-body:"Literata",Georgia,serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -35,126 +28,367 @@ img{max-width:100%}
   :root:not([data-theme="light"]){
     --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
     --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640; color-scheme:dark;
+}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--paper)}
+.sh-in{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sh-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--paper);border-bottom:2px solid var(--ink);padding-block:10px}
+.sh-name{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.sh-name b{color:var(--ink);font-weight:700}
+.sh-tabs{display:flex;flex-wrap:wrap;gap:5px}
+.sh-tab{font-family:var(--f-display);font-size:.78rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:7px 12px;cursor:pointer}
+.sh-tab[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sh-tab:hover:not([aria-pressed="true"]){border-color:var(--accent);color:var(--accent)}
+.sh-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-pane .wrap{max-width:948px!important;padding-bottom:18px!important}
+.sh-pane code{overflow-wrap:anywhere}
+.sh-pane .wq > *,.sh-pane .step > *{min-width:0}
+.sh-bridge{max-width:916px;margin:22px auto 0;font-size:.95rem;color:var(--ink-soft);background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:13px 15px}
+.sh-bridge b{color:var(--ink)}
+.sh-next{font-family:var(--f-display);font-size:.8rem;font-weight:600;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:2px;padding:9px 16px;cursor:pointer;margin-block:8px 44px}
+.sh-foot{border-top:1px solid var(--rule);margin-top:10px;padding-block:18px 60px;color:var(--ink-soft);font-size:.86rem}
+.sc-memory{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --cw:#0E7490; --cg:#A15C07; --cm:#6D28D9; --cv:#BE185D;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-memory{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
     --accent:#2DD4E8; --accent-soft:#113640;
     --signal:#F0B429; --signal-soft:#3A2C0D;
     --alert:#FB7185; --alert-soft:#3D1420;
     --win:#4ADE80; --win-soft:#0F3522;
     --cw:#2DD4E8; --cg:#F0B429; --cm:#A78BFA; --cv:#F472B6;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-memory{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
   --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
   --accent:#2DD4E8; --accent-soft:#113640;
   --signal:#F0B429; --signal-soft:#3A2C0D;
   --alert:#FB7185; --alert-soft:#3D1420;
   --win:#4ADE80; --win-soft:#0F3522;
   --cw:#2DD4E8; --cg:#F0B429; --cm:#A78BFA; --cv:#F472B6;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
-h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
-code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
-p{margin:0}
-
-.mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
-.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
-.mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
-.mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
-
-section{margin-block:46px}
-.sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:20px}
-.sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
-.sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
-.lede{max-width:68ch;color:var(--ink-soft);margin-bottom:18px}
-h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:26px 11px}
-
-/* four copies */
-.copies{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-.copy{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c);padding:14px 15px;display:grid;gap:6px;min-width:0}
-.copy .cn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--c)}
-.copy h4{font-size:.98rem;font-weight:600}
-.copy .cb{font-family:var(--f-mono);font-size:.85rem;font-weight:600;background:var(--surface-2);padding:6px 9px;border-radius:2px}
-.copy p{font-size:.91rem;color:var(--ink-soft)}
-
-.panel{background:var(--surface);border:1px solid var(--rule);padding:17px}
-.ctrls{display:grid;gap:15px;grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
-.ctrl{display:grid;gap:5px;min-width:0}
-.ctrl label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
-.ctrl select,.ctrl input[type=number]{font-family:var(--f-mono);font-size:.86rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
-.ctrl select:focus,.ctrl input:focus{outline:2px solid var(--accent);outline-offset:1px}
-.levers{display:grid;gap:8px;margin-top:16px;padding-top:15px;border-top:1px solid var(--rule)}
-.lever{display:flex;align-items:flex-start;gap:10px;font-size:.93rem;cursor:pointer;color:var(--ink)}
-.lever input{accent-color:var(--accent);width:16px;height:16px;margin-top:4px;flex:0 0 auto}
-.lever span small{display:block;color:var(--ink-soft);font-size:.84rem}
-
-.readout{margin-top:20px;display:grid;gap:13px}
-.total{font-family:var(--f-mono);font-size:clamp(1.7rem,5.5vw,2.5rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.total small{font-size:.86rem;color:var(--ink-soft);font-weight:400;letter-spacing:0;font-family:var(--f-body)}
-.bar{display:flex;height:38px;border:1px solid var(--rule);overflow:hidden;background:var(--surface-2)}
-.seg{min-width:0;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.72rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;transition:flex-basis .25s ease}
-.seg.w{background:var(--cw)} .seg.g{background:var(--cg)} .seg.m{background:var(--cm)} .seg.v{background:var(--cv)}
-.legend{display:flex;flex-wrap:wrap;gap:13px;font-size:.82rem;color:var(--ink-soft)}
-.legend span{display:flex;align-items:center;gap:6px}
-.dot{width:10px;height:10px;border-radius:2px;flex:0 0 auto}
-.verdict{font-family:var(--f-mono);font-size:.9rem;padding:10px 13px;border-radius:2px;font-weight:600}
-.verdict.fits{background:var(--win-soft);color:var(--win)}
-.verdict.no{background:var(--alert-soft);color:var(--alert)}
-
-.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
-table{border-collapse:collapse;width:100%;min-width:520px;font-size:.91rem}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
-th{font-family:var(--f-display);font-size:.69rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
-tr:last-child td{border-bottom:none}
-td.m{font-family:var(--f-mono)}
-td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.yes{color:var(--win);font-weight:600} .no2{color:var(--alert);font-weight:600}
-
-.trap,.note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
-.trap{border-left:3px solid var(--alert)}
-.note{border-left:3px solid var(--accent)}
-.trap b,.note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
-.trap b{color:var(--alert)} .note b{color:var(--accent)}
-
-.worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:13px}
-.worked .wq{padding:15px 16px;display:grid;gap:8px}
-.wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
-.wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
-.wbtn:hover{background:var(--accent-soft)}
-.wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
-.step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
-.step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
-.wans{font-family:var(--f-mono);font-size:.92rem;font-weight:600;background:var(--signal-soft);padding:9px 12px;border-radius:2px}
-
-.quiz{display:grid;gap:13px}
-.q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
-.q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
-.opts{display:grid;gap:6px}
-.opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
-.opt:hover:not(.done){border-color:var(--accent)}
-.opt.right{background:var(--win-soft);border-color:var(--win);font-weight:500}
-.opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
-.opt.done{cursor:default}
-.expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
-.score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
-
-footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
-
-<div class="wrap">
-
+  color-scheme:dark;}
+.sc-memory,.sc-memory *{box-sizing:border-box}
+.sc-memory{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-memory .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+.sc-memory h1,.sc-memory h2,.sc-memory h3,.sc-memory h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-memory code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-memory p{margin:0}
+.sc-memory .mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
+.sc-memory .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.sc-memory .mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+.sc-memory .mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
+.sc-memory section{margin-block:46px}
+.sc-memory .sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:20px}
+.sc-memory .sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-memory .sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
+.sc-memory .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:18px}
+.sc-memory h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:26px 11px}
+.sc-memory .copies{display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.sc-memory .copy{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c);padding:14px 15px;display:grid;gap:6px;min-width:0}
+.sc-memory .copy .cn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--c)}
+.sc-memory .copy h4{font-size:.98rem;font-weight:600}
+.sc-memory .copy .cb{font-family:var(--f-mono);font-size:.85rem;font-weight:600;background:var(--surface-2);padding:6px 9px;border-radius:2px}
+.sc-memory .copy p{font-size:.91rem;color:var(--ink-soft)}
+.sc-memory .panel{background:var(--surface);border:1px solid var(--rule);padding:17px}
+.sc-memory .ctrls{display:grid;gap:15px;grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
+.sc-memory .ctrl{display:grid;gap:5px;min-width:0}
+.sc-memory .ctrl label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.sc-memory .ctrl select,.sc-memory .ctrl input[type=number]{font-family:var(--f-mono);font-size:.86rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
+.sc-memory .ctrl select:focus,.sc-memory .ctrl input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.sc-memory .levers{display:grid;gap:8px;margin-top:16px;padding-top:15px;border-top:1px solid var(--rule)}
+.sc-memory .lever{display:flex;align-items:flex-start;gap:10px;font-size:.93rem;cursor:pointer;color:var(--ink)}
+.sc-memory .lever input{accent-color:var(--accent);width:16px;height:16px;margin-top:4px;flex:0 0 auto}
+.sc-memory .lever span small{display:block;color:var(--ink-soft);font-size:.84rem}
+.sc-memory .readout{margin-top:20px;display:grid;gap:13px}
+.sc-memory .total{font-family:var(--f-mono);font-size:clamp(1.7rem,5.5vw,2.5rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.sc-memory .total small{font-size:.86rem;color:var(--ink-soft);font-weight:400;letter-spacing:0;font-family:var(--f-body)}
+.sc-memory .bar{display:flex;height:38px;border:1px solid var(--rule);overflow:hidden;background:var(--surface-2)}
+.sc-memory .seg{min-width:0;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.72rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;transition:flex-basis .25s ease}
+.sc-memory .seg.w{background:var(--cw)}
+.sc-memory .seg.g{background:var(--cg)}
+.sc-memory .seg.m{background:var(--cm)}
+.sc-memory .seg.v{background:var(--cv)}
+.sc-memory .legend{display:flex;flex-wrap:wrap;gap:13px;font-size:.82rem;color:var(--ink-soft)}
+.sc-memory .legend span{display:flex;align-items:center;gap:6px}
+.sc-memory .dot{width:10px;height:10px;border-radius:2px;flex:0 0 auto}
+.sc-memory .verdict{font-family:var(--f-mono);font-size:.9rem;padding:10px 13px;border-radius:2px;font-weight:600}
+.sc-memory .verdict.fits{background:var(--win-soft);color:var(--win)}
+.sc-memory .verdict.no{background:var(--alert-soft);color:var(--alert)}
+.sc-memory .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+.sc-memory table{border-collapse:collapse;width:100%;min-width:520px;font-size:.91rem}
+.sc-memory th,.sc-memory td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-memory th{font-family:var(--f-display);font-size:.69rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-memory tr:last-child td{border-bottom:none}
+.sc-memory td.m{font-family:var(--f-mono)}
+.sc-memory td.num,.sc-memory th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sc-memory .yes{color:var(--win);font-weight:600}
+.sc-memory .no2{color:var(--alert);font-weight:600}
+.sc-memory .trap,.sc-memory .note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.sc-memory .trap{border-left:3px solid var(--alert)}
+.sc-memory .note{border-left:3px solid var(--accent)}
+.sc-memory .trap b,.sc-memory .note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-memory .trap b{color:var(--alert)}
+.sc-memory .note b{color:var(--accent)}
+.sc-memory .worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:13px}
+.sc-memory .worked .wq{padding:15px 16px;display:grid;gap:8px}
+.sc-memory .wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
+.sc-memory .wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
+.sc-memory .wbtn:hover{background:var(--accent-soft)}
+.sc-memory .wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
+.sc-memory .step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
+.sc-memory .step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
+.sc-memory .wans{font-family:var(--f-mono);font-size:.92rem;font-weight:600;background:var(--signal-soft);padding:9px 12px;border-radius:2px}
+.sc-memory .quiz{display:grid;gap:13px}
+.sc-memory .q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
+.sc-memory .q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.sc-memory .opts{display:grid;gap:6px}
+.sc-memory .opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.sc-memory .opt:hover:not(.done){border-color:var(--accent)}
+.sc-memory .opt.right{background:var(--win-soft);border-color:var(--win);font-weight:500}
+.sc-memory .opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
+.sc-memory .opt.done{cursor:default}
+.sc-memory .expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
+.sc-memory .score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+.sc-memory footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
+.sc-memory :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.sc-memory,.sc-memory *{transition:none!important}}
+.sc-levers{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --frozen:#64748B; --frozen-soft:#E7EBF0;
+  --sign:#BE185D; --expo:#0E7490; --mant:#A15C07;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-levers{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --frozen:#8A99AD; --frozen-soft:#1E2733;
+    --sign:#F472B6; --expo:#2DD4E8; --mant:#F0B429;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-levers{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --frozen:#8A99AD; --frozen-soft:#1E2733;
+  --sign:#F472B6; --expo:#2DD4E8; --mant:#F0B429;
+  color-scheme:dark;}
+.sc-levers,.sc-levers *{box-sizing:border-box}
+.sc-levers{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-levers .wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 76px}
+.sc-levers h1,.sc-levers h2,.sc-levers h3,.sc-levers h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-levers code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-levers p{margin:0}
+.sc-levers .mast{padding-block:40px 24px;border-bottom:2px solid var(--ink)}
+.sc-levers .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.sc-levers .mast h1{font-size:clamp(1.9rem,5.5vw,2.9rem);font-weight:700;letter-spacing:-.025em}
+.sc-levers .mast .sub{margin-top:13px;max-width:62ch;color:var(--ink-soft);font-size:1.01rem}
+.sc-levers section{margin-block:46px}
+.sc-levers .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:18px}
+.sc-levers .sec-num{font-family:var(--f-mono);font-size:.76rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-levers .sec-head h2{font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:700;letter-spacing:-.015em}
+.sc-levers .sec-head .attacks{font-family:var(--f-display);font-size:.65rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  padding:3px 9px;border-radius:2px;margin-left:auto;background:var(--tagbg);color:var(--tagfg)}
+.sc-levers .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:16px}
+.sc-levers .quad{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));margin-block:16px}
+.sc-levers .qd{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c);padding:12px 14px}
+.sc-levers .qd b{font-family:var(--f-display);font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--c);display:block;margin-bottom:5px}
+.sc-levers .qd span{font-size:.91rem;color:var(--ink-soft)}
+.sc-levers .qd span em{color:var(--ink);font-style:normal;font-weight:500}
+.sc-levers .step{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;margin-block:13px}
+.sc-levers .step .sn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+.sc-levers .step h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.sc-levers .step p{font-size:.94rem;color:var(--ink-soft)}
+.sc-levers .step p + p{margin-top:7px}
+.sc-levers .step p b{color:var(--ink)}
+.sc-levers .bits{display:grid;gap:9px;margin-block:14px}
+.sc-levers .bitrow{display:grid;grid-template-columns:62px 1fr;gap:12px;align-items:center}
+.sc-levers .bitrow .nm{font-family:var(--f-mono);font-size:.84rem;font-weight:600}
+.sc-levers .bitbar{display:flex;height:26px;border:1px solid var(--rule);overflow:hidden;border-radius:2px}
+.sc-levers .bitbar div{display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.64rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+.sc-levers .bitbar .s{background:var(--sign)}
+.sc-levers .bitbar .e{background:var(--expo)}
+.sc-levers .bitbar .m{background:var(--mant)}
+.sc-levers .bitkey{display:flex;flex-wrap:wrap;gap:14px;font-size:.84rem;color:var(--ink-soft);margin-top:6px}
+.sc-levers .bitkey span{display:flex;align-items:center;gap:6px}
+.sc-levers .dot{width:10px;height:10px;border-radius:2px;flex:0 0 auto}
+.sc-levers .timeline{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:14px}
+.sc-levers .mb{background:var(--signal-soft);border:1px solid var(--signal);padding:9px 12px;border-radius:2px;
+    font-family:var(--f-mono);font-size:.78rem;text-align:center;min-width:96px}
+.sc-levers .mb small{display:block;color:var(--ink-soft);font-size:.68rem}
+.sc-levers .arrowdown{font-family:var(--f-mono);color:var(--ink-soft);font-size:1.1rem}
+.sc-levers .buffer{background:var(--alert-soft);border:2px solid var(--alert);padding:11px 14px;border-radius:2px;
+        font-family:var(--f-mono);font-size:.82rem;font-weight:600;margin-block:11px;display:inline-block}
+.sc-levers .update{background:var(--win-soft);border:2px solid var(--win);padding:11px 14px;border-radius:2px;
+        font-family:var(--f-mono);font-size:.82rem;font-weight:600;display:inline-block}
+.sc-levers .ckpt{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-block:14px}
+.sc-levers .ck{background:var(--surface);border:1px solid var(--rule);padding:13px 14px}
+.sc-levers .ck h4{font-size:.93rem;font-weight:600;margin-bottom:9px}
+.sc-levers .layers{display:grid;gap:3px}
+.sc-levers .ly{display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center;font-family:var(--f-mono);font-size:.72rem}
+.sc-levers .ly .lb{color:var(--ink-soft)}
+.sc-levers .ly .box{padding:4px 7px;border-radius:2px;font-size:.68rem;text-align:center}
+.sc-levers .ly .full{background:var(--signal-soft);border:1px solid var(--signal)}
+.sc-levers .ly .keep{background:var(--accent-soft);border:1px solid var(--accent)}
+.sc-levers .ly .drop{background:var(--surface-2);border:1px dashed var(--rule);color:var(--ink-soft)}
+.sc-levers .ck .tot{font-family:var(--f-mono);font-size:.82rem;font-weight:600;margin-top:10px;padding-top:9px;border-top:1px solid var(--rule)}
+.sc-levers .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-block:14px}
+.sc-levers table{border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem}
+.sc-levers th,.sc-levers td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-levers th{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-levers tr:last-child td{border-bottom:none}
+.sc-levers td.m{font-family:var(--f-mono)}
+.sc-levers td.num,.sc-levers th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sc-levers tr.hl td{background:var(--alert-soft);font-weight:600}
+.sc-levers .trap,.sc-levers .note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.sc-levers .trap{border-left:3px solid var(--alert)}
+.sc-levers .note{border-left:3px solid var(--accent)}
+.sc-levers .trap b.h,.sc-levers .note b.h{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-levers .trap b.h{color:var(--alert)}
+.sc-levers .note b.h{color:var(--accent)}
+.sc-levers .stack{background:var(--surface);border:1px solid var(--rule);padding:17px}
+.sc-levers .sc{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:15px}
+.sc-levers .sc label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;justify-content:space-between;gap:8px;align-items:baseline;margin-bottom:5px}
+.sc-levers .sc label b{font-family:var(--f-mono);font-size:.86rem;color:var(--accent);letter-spacing:0;text-transform:none}
+.sc-levers .sc input[type=range]{width:100%;accent-color:var(--accent)}
+.sc-levers .sc select{font-family:var(--f-mono);font-size:.85rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
+.sc-levers .lvs{display:grid;gap:7px;padding-top:14px;border-top:1px solid var(--rule)}
+.sc-levers .lv{display:flex;align-items:flex-start;gap:10px;font-size:.93rem;cursor:pointer}
+.sc-levers .lv input{accent-color:var(--accent);width:16px;height:16px;margin-top:4px;flex:0 0 auto}
+.sc-levers .lv span small{display:block;color:var(--ink-soft);font-size:.83rem}
+.sc-levers .total{font-family:var(--f-mono);font-size:clamp(1.6rem,5vw,2.3rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:16px}
+.sc-levers .total small{font-size:.82rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+.sc-levers .sbar{display:flex;height:34px;border:1px solid var(--rule);overflow:hidden;background:var(--surface-2);margin-block:11px}
+.sc-levers .sbar div{display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;transition:flex-basis .25s ease}
+.sc-levers .sbar .c{background:var(--accent)}
+.sc-levers .sbar .a{background:var(--signal)}
+.sc-levers .slegend{display:flex;flex-wrap:wrap;gap:14px;font-size:.84rem;color:var(--ink-soft)}
+.sc-levers .verdict{font-family:var(--f-mono);font-size:.88rem;padding:9px 12px;border-radius:2px;font-weight:600;margin-top:11px}
+.sc-levers .verdict.ok{background:var(--win-soft);color:var(--win)}
+.sc-levers .verdict.no{background:var(--alert-soft);color:var(--alert)}
+.sc-levers footer{margin-top:48px;padding-top:19px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:66ch}
+.sc-levers :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.sc-levers,.sc-levers *{transition:none!important}}
+.sc-oneblock{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --frozen:#64748B; --frozen-soft:#E7EBF0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-oneblock{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --frozen:#8A99AD; --frozen-soft:#1E2733;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-oneblock{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --frozen:#8A99AD; --frozen-soft:#1E2733;
+  color-scheme:dark;}
+.sc-oneblock,.sc-oneblock *{box-sizing:border-box}
+.sc-oneblock{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-oneblock .wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 76px}
+.sc-oneblock h1,.sc-oneblock h2,.sc-oneblock h3,.sc-oneblock h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-oneblock code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-oneblock p{margin:0}
+.sc-oneblock .mast{padding-block:40px 24px;border-bottom:2px solid var(--ink)}
+.sc-oneblock .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.sc-oneblock .mast h1{font-size:clamp(1.9rem,5.5vw,2.9rem);font-weight:700;letter-spacing:-.025em}
+.sc-oneblock .mast .sub{margin-top:13px;max-width:62ch;color:var(--ink-soft);font-size:1.01rem}
+.sc-oneblock section{margin-block:44px}
+.sc-oneblock .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:18px}
+.sc-oneblock .sec-num{font-family:var(--f-mono);font-size:.76rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-oneblock .sec-head h2{font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:700;letter-spacing:-.015em}
+.sc-oneblock .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:16px}
+.sc-oneblock .key{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));margin-block:16px}
+.sc-oneblock .kitem{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--c);padding:11px 13px}
+.sc-oneblock .kitem b{font-family:var(--f-display);font-size:.78rem;font-weight:700;color:var(--c);display:block;margin-bottom:3px}
+.sc-oneblock .kitem span{font-size:.88rem;color:var(--ink-soft)}
+.sc-oneblock .mrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-block:14px}
+.sc-oneblock .mat{display:inline-grid;gap:6px;min-width:0}
+.sc-oneblock .mat .cap{font-family:var(--f-mono);font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.sc-oneblock .mat .cap b{color:var(--c)}
+.sc-oneblock .mat .cap i{font-style:normal;font-size:.72rem;color:var(--ink-soft);font-weight:400}
+.sc-oneblock .grid{display:grid;gap:2px;overflow-x:auto;padding-bottom:2px}
+.sc-oneblock .cell{font-family:var(--f-mono);font-size:.76rem;font-variant-numeric:tabular-nums;
+      padding:5px 6px;text-align:right;border-radius:2px;min-width:44px;
+      background:var(--bg);color:var(--ink);border:1px solid transparent}
+.sc-oneblock .cell.zero{opacity:.38}
+.sc-oneblock .op{font-family:var(--f-mono);font-size:1.3rem;color:var(--ink-soft);align-self:center;padding-top:20px}
+.sc-oneblock .shapes{font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);margin-top:7px}
+.sc-oneblock .shapes b{color:var(--ink)}
+.sc-oneblock .step{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;margin-block:13px}
+.sc-oneblock .step .sn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+.sc-oneblock .step h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.sc-oneblock .step p{font-size:.94rem;color:var(--ink-soft)}
+.sc-oneblock .step p + p{margin-top:7px}
+.sc-oneblock .step p b{color:var(--ink)}
+.sc-oneblock .trap,.sc-oneblock .note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.sc-oneblock .trap{border-left:3px solid var(--alert)}
+.sc-oneblock .note{border-left:3px solid var(--accent)}
+.sc-oneblock .trap b.h,.sc-oneblock .note b.h{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-oneblock .trap b.h{color:var(--alert)}
+.sc-oneblock .note b.h{color:var(--accent)}
+.sc-oneblock .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-block:14px}
+.sc-oneblock table{border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem}
+.sc-oneblock th,.sc-oneblock td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-oneblock th{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-oneblock tr:last-child td{border-bottom:none}
+.sc-oneblock td.m{font-family:var(--f-mono)}
+.sc-oneblock td.num,.sc-oneblock th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sc-oneblock .calc{background:var(--surface);border:1px solid var(--rule);padding:16px}
+.sc-oneblock .cc{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:14px}
+.sc-oneblock .cc label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+.sc-oneblock .cc label b{font-family:var(--f-mono);font-size:.88rem;color:var(--accent);letter-spacing:0;text-transform:none}
+.sc-oneblock .cc input[type=range]{width:100%;accent-color:var(--accent)}
+.sc-oneblock .cc select{font-family:var(--f-mono);font-size:.85rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
+.sc-oneblock .bigratio{font-family:var(--f-mono);font-size:clamp(1.5rem,5vw,2.1rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.sc-oneblock .bigratio small{font-size:.8rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+.sc-oneblock .lbar{display:flex;height:30px;border:1px solid var(--rule);overflow:hidden;background:var(--frozen-soft);margin-block:11px}
+.sc-oneblock .lbar .f{background:var(--frozen)}
+.sc-oneblock .lbar .t{background:var(--win)}
+.sc-oneblock .lbar div{display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+.sc-oneblock footer{margin-top:48px;padding-top:19px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:66ch}
+.sc-oneblock :focus-visible{outline:2px solid var(--accent);outline-offset:2px}</style>
+<div class="sh-bar"><div class="sh-in"><div class="sh-name"><b>Memory Workshop</b> &nbsp;&middot;&nbsp; Week 4</div><div class="sh-tabs" role="group" aria-label="Sections"><button class="sh-tab" data-pane="ledger" aria-pressed="true">1 &middot; The four copies</button><button class="sh-tab" data-pane="levers" aria-pressed="false">2 &middot; The five levers</button><button class="sh-tab" data-pane="lora" aria-pressed="false">3 &middot; LoRA on a real matrix</button><button class="sh-tab" data-pane="stack" aria-pressed="false">4 &middot; Stack the levers</button><button class="sh-tab" data-pane="exam" aria-pressed="false">5 &middot; Exam questions &amp; quiz</button></div></div></div>
+<div class="sh-pane" data-pane="ledger">
+<div class="sc-memory"><div class="wrap">
 <header class="mast">
-  <div class="kicker">DA5013 · Concept 04 · Week 4</div>
+  <div class="kicker">DA5013 · Week 4</div>
   <h1>The Memory Ledger</h1>
   <p class="sub">Training holds four copies of your model, not one. Once you can name the four, every memory question in week 4 becomes arithmetic, and every technique in the syllabus becomes a line item that strikes one of them out. This is the single largest block of marks on the paper.</p>
 </header>
-
-<!-- ===== 01 FOUR COPIES ===== -->
 <section>
   <div class="sec-head"><span class="sec-num">01</span><h2>Four copies, four bytes each</h2></div>
   <p class="lede">A parameter is one learnable number. To <em>run</em> a model you need the number itself. To <em>train</em> it you also need somewhere to accumulate its error, and AdamW keeps two running averages besides. Four numbers per parameter, four bytes each in fp32.</p>
@@ -176,8 +410,6 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
     Think of moving house. The <em>weights</em> are your furniture. The <em>gradients</em> are the note on each item saying which room it goes to. Momentum is your memory of which way you have been carrying things, and variance is your sense of which items are fragile and need small, careful moves. Only the furniture has to exist for you to live in the house — the other three are the apparatus of moving it, and you can put them down once you have arrived.
   </div>
 </section>
-
-<!-- ===== 02 THE LEDGER ===== -->
 <section>
   <div class="sec-head"><span class="sec-num">02</span><h2>Run the ledger</h2></div>
   <p class="lede">Set a model and a card, then switch levers on. Every past-paper configuration is in the presets. Activations and buffers are excluded, exactly as every exam question says to.</p>
@@ -185,8 +417,8 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
   <div class="panel">
     <div class="ctrls">
       <div class="ctrl">
-        <label for="mN">Model size</label>
-        <select id="mN">
+        <label for="me-mN">Model size</label>
+        <select id="me-mN">
           <option value="0.124">GPT-2 small · 124M</option>
           <option value="1.2">1.2B · T1 Q18</option>
           <option value="4">4B · T1 Q8</option>
@@ -197,8 +429,8 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
         </select>
       </div>
       <div class="ctrl">
-        <label for="mPrec">Weight precision</label>
-        <select id="mPrec">
+        <label for="me-mPrec">Weight precision</label>
+        <select id="me-mPrec">
           <option value="4" selected>fp32 · 4 bytes</option>
           <option value="2">fp16 / bf16 · 2 bytes</option>
           <option value="1">int8 · 1 byte</option>
@@ -206,16 +438,16 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
         </select>
       </div>
       <div class="ctrl">
-        <label for="mOpt">Optimizer</label>
-        <select id="mOpt">
+        <label for="me-mOpt">Optimizer</label>
+        <select id="me-mOpt">
           <option value="2" selected>AdamW · 2 states</option>
           <option value="1">SGD + momentum · 1 state</option>
           <option value="0">SGD · no state</option>
         </select>
       </div>
       <div class="ctrl">
-        <label for="mGpu">Card</label>
-        <select id="mGpu">
+        <label for="me-mGpu">Card</label>
+        <select id="me-mGpu">
           <option value="16">T4 · 16 GB</option>
           <option value="32" selected>V100 · 32 GB</option>
           <option value="80">A100 · 80 GB</option>
@@ -225,15 +457,17 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
     </div>
 
     <div class="levers">
-      <label class="lever"><input type="checkbox" id="lInf"><span><b>Inference only</b><small>No backward pass, so no gradients and no optimizer states. Drops three of the four copies.</small></span></label>
-      <label class="lever"><input type="checkbox" id="lLora"><span><b>LoRA — train adapters only</b><small>Base weights frozen. Gradients and optimizer states exist only for the small adapter matrices, here taken as 0.15% of parameters, the figure from 2026 T2 Q4.</small></span></label>
-      <label class="lever"><input type="checkbox" id="lHead"><span><b>Head-only fine-tuning</b><small>The body is frozen and used as a feature extractor. Only a final linear layer trains — well under 0.1% of parameters.</small></span></label>
+      <div style="font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)">What is being trained? Pick one</div>
+      <label class="lever"><input type="radio" name="trainmode" id="me-lFull" checked><span><b>Full fine-tuning</b><small>Every parameter trains. All four copies are charged on the whole model.</small></span></label>
+      <label class="lever"><input type="radio" name="trainmode" id="me-lInf"><span><b>Inference only</b><small>No backward pass, so no gradients and no optimizer states. Drops three of the four copies.</small></span></label>
+      <label class="lever"><input type="radio" name="trainmode" id="me-lLora"><span><b>LoRA — train adapters only</b><small>Base weights frozen. Gradients and optimizer states exist only for the small adapter matrices, here taken as 0.15% of parameters, the figure from 2026 T2 Q4.</small></span></label>
+      <label class="lever"><input type="radio" name="trainmode" id="me-lHead"><span><b>Head-only fine-tuning</b><small>The body is frozen and used as a feature extractor. Only a final linear layer trains — well under 0.1% of parameters.</small></span></label>
     </div>
 
     <div class="readout">
-      <div class="total"><span id="tot">0</span> GB <small id="totSub"></small></div>
-      <div class="bar" id="bar" role="img" aria-label="Memory breakdown by copy">
-        <div class="seg w" id="sW"></div><div class="seg g" id="sG"></div><div class="seg m" id="sM"></div><div class="seg v" id="sV"></div>
+      <div class="total"><span id="me-tot">0</span> GB <small id="me-totSub"></small></div>
+      <div class="bar" id="me-bar" role="img" aria-label="Memory breakdown by copy">
+        <div class="seg w" id="me-sW"></div><div class="seg g" id="me-sG"></div><div class="seg m" id="me-sM"></div><div class="seg v" id="me-sV"></div>
       </div>
       <div class="legend">
         <span><i class="dot" style="background:var(--cw)"></i> weights</span>
@@ -241,7 +475,7 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
         <span><i class="dot" style="background:var(--cm)"></i> momentum</span>
         <span><i class="dot" style="background:var(--cv)"></i> variance</span>
       </div>
-      <div class="verdict" id="verdict"></div>
+      <div class="verdict" id="me-verdict"></div>
     </div>
 
     <h3 class="block">The arithmetic</h3>
@@ -249,19 +483,347 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <table>
         <thead><tr><th>Copy</th><th class="num">Parameters charged</th><th class="num">Bytes each</th><th class="num">GB</th></tr></thead>
         <tbody>
-          <tr><td>Weights</td><td class="num" id="pW">—</td><td class="num" id="bW">—</td><td class="num" id="gW">—</td></tr>
-          <tr><td>Gradients</td><td class="num" id="pG">—</td><td class="num" id="bG">—</td><td class="num" id="gG">—</td></tr>
-          <tr><td>Momentum</td><td class="num" id="pM">—</td><td class="num" id="bM">—</td><td class="num" id="gM">—</td></tr>
-          <tr><td>Variance</td><td class="num" id="pV">—</td><td class="num" id="bV">—</td><td class="num" id="gV">—</td></tr>
+          <tr><td>Weights</td><td class="num" id="me-pW">—</td><td class="num" id="me-bW">—</td><td class="num" id="me-gW">—</td></tr>
+          <tr><td>Gradients</td><td class="num" id="me-pG">—</td><td class="num" id="me-bG">—</td><td class="num" id="me-gG">—</td></tr>
+          <tr><td>Momentum</td><td class="num" id="me-pM">—</td><td class="num" id="me-bM">—</td><td class="num" id="me-gM">—</td></tr>
+          <tr><td>Variance</td><td class="num" id="me-pV">—</td><td class="num" id="me-bV">—</td><td class="num" id="me-gV">—</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </section>
-
-<!-- ===== 03 THE LEVERS ===== -->
+</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="levers">Next: the five levers &rarr;</button></div></div>
+<div class="sh-pane" data-pane="levers" hidden>
+<div class="sc-levers"><div class="wrap">
+<header class="mast">
+  <div class="kicker">DA5013 · Week 4</div>
+  <h1>The Five Levers</h1>
+  <p class="sub">Mixed precision, gradient accumulation, gradient checkpointing, quantization, LoRA. Each one taken apart separately, each answering the same four questions, so they stop being a list of names and become five machines you can tell apart.</p>
+</header>
 <section>
-  <div class="sec-head"><span class="sec-num">03</span><h2>Which lever removes which copy</h2></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Everything lands in one of two piles</h2></div>
+  <p class="lede">Before any technique: GPU memory during training splits into exactly two kinds of thing, and <b>no lever attacks both</b>. Get this and the rest is bookkeeping.</p>
+
+  <div class="quad">
+    <div class="qd" style="--c:var(--accent)"><b>Pile A · per parameter</b><span>Weights, gradients, momentum, variance. Four numbers for every parameter in the model. <em>Grows with model size. Completely unaffected by batch size.</em></span></div>
+    <div class="qd" style="--c:var(--signal)"><b>Pile B · per token</b><span>Activations — every intermediate value the forward pass produced and the backward pass still needs. <em>Grows with batch size and sequence length. Unaffected by how many parameters you have.</em></span></div>
+  </div>
+
+  <div class="note">
+    <b class="h">The sorting rule</b>
+    <b>Levers 1, 2 and 3 attack Pile B.</b> Mixed precision, gradient accumulation, gradient checkpointing.<br>
+    <b>Levers 4 and 5 attack Pile A.</b> Quantization, LoRA.<br><br>
+    That is the whole lever grid, and it is why "which does mixed precision shrink?" has an answer that surprises people.
+  </div>
+</section>
+<section>
+  <div class="sec-head" style="--tagbg:var(--signal-soft);--tagfg:var(--signal)"><span class="sec-num">02</span><h2>Mixed precision</h2><span class="attacks">attacks pile B</span></div>
+
+  <div class="quad">
+    <div class="qd" style="--c:var(--accent)"><b>The problem</b><span>Activations are enormous and 32-bit arithmetic is slower than the hardware can go.</span></div>
+    <div class="qd" style="--c:var(--win)"><b>What it does</b><span>Runs the maths in 16 bits while keeping a 32-bit <em>master copy</em> of the weights.</span></div>
+    <div class="qd" style="--c:var(--signal)"><b>What it costs</b><span>Nothing in memory. Some numerical fiddliness with fp16; none with bf16.</span></div>
+    <div class="qd" style="--c:var(--alert)"><b>What it does NOT do</b><span>It does <em>not</em> shrink the optimizer states. Per parameter the bill is unchanged.</span></div>
+  </div>
+
+  <h4 style="margin-top:22px;margin-bottom:9px">Sixteen bits, spent two different ways</h4>
+  <div class="bits">
+    <div class="bitrow"><span class="nm">fp32</span><div class="bitbar">
+      <div class="s" style="flex:1">S</div><div class="e" style="flex:8">8 exponent</div><div class="m" style="flex:23">23 mantissa</div></div></div>
+    <div class="bitrow"><span class="nm">fp16</span><div class="bitbar" style="width:50%">
+      <div class="s" style="flex:1">S</div><div class="e" style="flex:5">5 exp</div><div class="m" style="flex:10">10 mantissa</div></div></div>
+    <div class="bitrow"><span class="nm">bf16</span><div class="bitbar" style="width:50%">
+      <div class="s" style="flex:1">S</div><div class="e" style="flex:8">8 exponent</div><div class="m" style="flex:7">7 mant</div></div></div>
+  </div>
+  <div class="bitkey">
+    <span><i class="dot" style="background:var(--sign)"></i> sign</span>
+    <span><i class="dot" style="background:var(--expo)"></i> exponent &mdash; buys <b>range</b></span>
+    <span><i class="dot" style="background:var(--mant)"></i> mantissa &mdash; buys <b>precision</b></span>
+  </div>
+
+  <div class="step">
+    <span class="sn">fp16 vs bf16</span><h4>Range matters more than precision</h4>
+    <p><b>fp16</b> spends its bits on precision and ends up with only 5 exponent bits, so its largest value is <code>65,504</code> and small gradients around <code>1e-8</code> <b>underflow to zero</b>. Training with it needs a trick called loss scaling: multiply the loss by 1024 before the backward pass so gradients land in representable range, then divide out afterwards.</p>
+    <p><b>bf16</b> keeps fp32's full 8 exponent bits, so it has <b>the same range as fp32</b> with fewer digits of precision. Nothing underflows and no loss scaling is needed. Networks turn out to care far more about range than precision, which is why modern training is nearly all bf16.</p>
+  </div>
+
+  <div class="trap">
+    <b class="h">Why the fp32 master copy is not optional — watch a weight fail to move</b>
+    <p>Take a weight of <code>0.5</code> and an update of <code>1e-4</code> (learning rate 1e-4, gradient 1.0). The gap between representable numbers near 0.5 is:</p>
+    <div class="tablewrap" style="margin-block:11px">
+      <table style="min-width:360px"><tbody>
+        <tr><td class="m">fp32</td><td class="num">0.00000006</td><td>far smaller than the update</td></tr>
+        <tr class="hl"><td class="m">fp16</td><td class="num">0.00048828</td><td><b>larger than the update itself</b></td></tr>
+      </tbody></table>
+    </div>
+    <p>So in fp16, <code>0.5 &minus; 0.0001</code> rounds straight back to <code>0.5</code>. The weight does not move. I ran <b>2000 consecutive updates</b> in each precision:</p>
+    <div class="tablewrap" style="margin-block:11px">
+      <table style="min-width:360px"><tbody>
+        <tr><td class="m">fp32, after 2000 steps</td><td class="num">0.3000</td><td>moved, as it should</td></tr>
+        <tr class="hl"><td class="m">fp16, after 2000 steps</td><td class="num">0.5000</td><td><b>never moved once</b></td></tr>
+      </tbody></table>
+    </div>
+    <p>Two thousand updates, zero progress. <strong>That is what the fp32 master copy prevents.</strong> The 16-bit copy does the fast matrix multiplications; the 32-bit copy is where the optimizer actually accumulates change. Delete it to "save memory" and training silently stops working.</p>
+  </div>
+
+  <div class="note">
+    <b class="h">The per-parameter bill, counted both ways</b>
+    <div class="tablewrap" style="margin-block:10px">
+      <table style="min-width:420px">
+        <thead><tr><th>Copy</th><th class="num">pure fp32</th><th class="num">mixed precision</th></tr></thead>
+        <tbody>
+          <tr><td>Weights, working</td><td class="num">4</td><td class="num">2 &nbsp;<span style="color:var(--ink-soft)">bf16</span></td></tr>
+          <tr><td>Weights, master</td><td class="num">&mdash;</td><td class="num">4 &nbsp;<span style="color:var(--ink-soft)">fp32</span></td></tr>
+          <tr><td>Gradients</td><td class="num">4</td><td class="num">2</td></tr>
+          <tr><td>Momentum</td><td class="num">4</td><td class="num">4</td></tr>
+          <tr><td>Variance</td><td class="num">4</td><td class="num">4</td></tr>
+          <tr style="font-weight:600"><td>Total bytes/param</td><td class="num">16</td><td class="num">16</td></tr>
+        </tbody>
+      </table>
+    </div>
+    Identical. <strong>The entire saving is in Pile B</strong> — activations stored at 2 bytes instead of 4 — plus a large speed gain from running matmuls on tensor cores.
+  </div>
+</section>
+<section>
+  <div class="sec-head" style="--tagbg:var(--signal-soft);--tagfg:var(--signal)"><span class="sec-num">03</span><h2>Gradient accumulation</h2><span class="attacks">attacks pile B</span></div>
+
+  <div class="quad">
+    <div class="qd" style="--c:var(--accent)"><b>The problem</b><span>You want batch 64 for stable gradients. Batch 64's activations do not fit.</span></div>
+    <div class="qd" style="--c:var(--win)"><b>What it does</b><span>Runs 4 passes of batch 16, adds the gradients into one buffer, updates once.</span></div>
+    <div class="qd" style="--c:var(--signal)"><b>What it costs</b><span><em>Time.</em> Four sequential passes instead of one parallel one. Same total arithmetic, less parallelism.</span></div>
+    <div class="qd" style="--c:var(--alert)"><b>What it does NOT do</b><span>It does <em>not</em> reduce optimizer states or gradient storage. One buffer, not four.</span></div>
+  </div>
+
+  <div class="step">
+    <span class="sn">Why you want a big batch at all</span><h4>A gradient from 4 samples is noisy; from 64 it is not</h4>
+    <p>Each sample pulls the weights in a slightly different direction. Averaging more samples cancels the disagreement and leaves the signal, so the step you take is more likely to be the right one. Tiny batches make training jittery and sometimes unstable.</p>
+    <p>Accumulation buys you that statistical benefit <b>without ever holding a big batch in memory</b>.</p>
+  </div>
+
+  <h4 style="margin-top:20px;margin-bottom:10px">One optimizer step, four passes</h4>
+  <div class="timeline">
+    <div class="mb">pass 1<small>batch 16</small></div>
+    <div class="mb">pass 2<small>batch 16</small></div>
+    <div class="mb">pass 3<small>batch 16</small></div>
+    <div class="mb">pass 4<small>batch 16</small></div>
+  </div>
+  <div class="arrowdown">&darr; &nbsp; each adds into the same place</div>
+  <div class="buffer">ONE gradient buffer &mdash; size N, never 4N</div>
+  <div class="arrowdown">&darr;</div>
+  <div class="update">one optimizer step &mdash; effective batch 64</div>
+
+  <div class="trap">
+    <b class="h">The two statements the exam plants</b>
+    <p><b>"Gradient accumulation reduces the number of optimizer states."</b> False. Momentum and variance are one per parameter regardless of how many passes you summed first. The optimizer has no idea accumulation happened.</p>
+    <p style="margin-top:8px"><b>"The optimizer updates after every batch."</b> False when accumulation is on. With <code>gradient_accumulation_steps = 8</code> it updates after every <b>eight</b> passes. That is the definition of the setting.</p>
+  </div>
+
+  <div class="note">
+    <b class="h">Analogy</b>
+    Carrying a week's shopping in four trips instead of one. The same goods arrive, your arms carry a quarter as much at any moment, and it takes four times as long. What does <em>not</em> change is the size of the kitchen you unload into — that is the gradient buffer.
+  </div>
+</section>
+<section>
+  <div class="sec-head" style="--tagbg:var(--signal-soft);--tagfg:var(--signal)"><span class="sec-num">04</span><h2>Gradient checkpointing</h2><span class="attacks">attacks pile B</span></div>
+
+  <div class="quad">
+    <div class="qd" style="--c:var(--accent)"><b>The problem</b><span>The backward pass needs values the forward pass computed, so by default <em>everything</em> is kept.</span></div>
+    <div class="qd" style="--c:var(--win)"><b>What it does</b><span>Keeps only each layer's input. Rebuilds the rest by re-running that layer when needed.</span></div>
+    <div class="qd" style="--c:var(--signal)"><b>What it costs</b><span><em>About +33% compute</em> &mdash; roughly one extra forward pass over the network.</span></div>
+    <div class="qd" style="--c:var(--alert)"><b>What it does NOT do</b><span>Touches nothing in Pile A. Weights, gradients and optimizer states are unchanged.</span></div>
+  </div>
+
+  <div class="step">
+    <span class="sn">The reason activations are stored at all</span><h4>You saw this in the Transformer Workshop</h4>
+    <p><code>dW2 = A&#7488; @ dY</code>. Computing the gradient of <code>W2</code> <b>requires A</b>, the activation from the forward pass. Activations are not cached as an optimisation — the backward pass is arithmetically impossible without them.</p>
+    <p>Checkpointing does not dispute this. It just says: <b>don't store it, recompute it at the moment you need it.</b></p>
+  </div>
+
+  <div class="ckpt">
+    <div class="ck">
+      <h4>Without checkpointing</h4>
+      <div class="layers" id="lv-ckA"></div>
+      <div class="tot" style="color:var(--signal)">849.3M numbers &nbsp;=&nbsp; 1.70 GB</div>
+    </div>
+    <div class="ck">
+      <h4>With checkpointing</h4>
+      <div class="layers" id="lv-ckB"></div>
+      <div class="tot" style="color:var(--win)">89.7M numbers &nbsp;=&nbsp; 0.18 GB</div>
+    </div>
+  </div>
+  <div class="note" style="margin-top:4px">
+    <b class="h">9.5&times; less memory for 33% more time</b>
+    Twelve layers, batch 2, sequence 1024, bf16. Without: every layer's full internals, 70.8M numbers each. With: twelve small layer inputs (18.9M total) plus one layer's worth of scratch space while it is being rebuilt (70.8M).<br><br>
+    <b>When to reach for it:</b> when activations dominate — long context, deep model, large batch — and you have compute to spare. If your problem is the optimizer rather than activations, it buys you nothing.
+  </div>
+
+  <div class="note">
+    <b class="h">Analogy</b>
+    Instead of keeping every line of working, you keep only the answer at the bottom of each page. If the examiner questions line 43, you redo that one page. Much less paper, a bit more pencil.
+  </div>
+</section>
+<section>
+  <div class="sec-head" style="--tagbg:var(--accent-soft);--tagfg:var(--accent)"><span class="sec-num">05</span><h2>Quantization</h2><span class="attacks">attacks pile A</span></div>
+
+  <div class="quad">
+    <div class="qd" style="--c:var(--accent)"><b>The problem</b><span>A 7B model in fp32 is 28 GB before training has even started.</span></div>
+    <div class="qd" style="--c:var(--win)"><b>What it does</b><span>Stores each weight as a small integer plus one shared scale factor per block.</span></div>
+    <div class="qd" style="--c:var(--signal)"><b>What it costs</b><span><em>Accuracy</em> &mdash; small, but real. The weights are approximations now.</span></div>
+    <div class="qd" style="--c:var(--alert)"><b>What it does NOT do</b><span>Nothing for activations, and it is normally used on <em>frozen</em> weights only.</span></div>
+  </div>
+
+  <div class="step">
+    <span class="sn">The mechanism</span><h4>It is not simply "fewer bits" — there is a scale factor</h4>
+    <p>An int8 can hold &minus;127 to 127. Weights are small decimals. So you find the largest magnitude in a block, divide by 127 to get a <b>scale</b>, and store each weight as the nearest integer multiple of that scale.</p>
+  </div>
+
+  <div class="tablewrap">
+    <table style="min-width:520px">
+      <thead><tr><th></th><th class="num">w1</th><th class="num">w2</th><th class="num">w3</th><th class="num">w4</th><th class="num">w5</th><th class="num">w6</th><th class="num">w7</th><th class="num">w8</th></tr></thead>
+      <tbody>
+        <tr><td><b>original fp32</b></td><td class="num">0.076</td><td class="num">-0.209</td><td class="num">-0.165</td><td class="num">-0.977</td><td class="num">0.720</td><td class="num">0.458</td><td class="num">-0.130</td><td class="num">0.310</td></tr>
+        <tr><td><b>stored int8</b></td><td class="num">10</td><td class="num">-27</td><td class="num">-21</td><td class="num">-127</td><td class="num">94</td><td class="num">60</td><td class="num">-17</td><td class="num">40</td></tr>
+        <tr><td><b>reconstructed</b></td><td class="num">0.077</td><td class="num">-0.208</td><td class="num">-0.162</td><td class="num">-0.977</td><td class="num">0.723</td><td class="num">0.462</td><td class="num">-0.131</td><td class="num">0.308</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note" style="margin-top:4px">
+    scale = max|w| / 127 = <code>0.00769</code> &nbsp;·&nbsp; largest error <code>0.0036</code> &nbsp;·&nbsp; memory <b>32 bytes &rarr; 8 bytes + 4 for the scale</b><br><br>
+    Note the largest weight (&minus;0.977) maps to exactly &minus;127 and comes back perfectly. Everything else is approximated, and the error is bounded by half a scale step.
+  </div>
+
+  <h4 style="margin-top:20px;margin-bottom:9px">What the integer formats look like</h4>
+  <div class="bits">
+    <div class="bitrow"><span class="nm">int8</span><div class="bitbar" style="width:25%">
+      <div class="s" style="flex:1">S</div><div class="m" style="flex:7">7 bits</div></div></div>
+    <div class="bitrow"><span class="nm">int4</span><div class="bitbar" style="width:12.5%">
+      <div class="s" style="flex:1">S</div><div class="m" style="flex:3">3</div></div></div>
+  </div>
+  <div class="bitkey"><span>no exponent at all &mdash; the shared scale factor plays that role for the whole block</span></div>
+</section>
+<section>
+  <div class="sec-head" style="--tagbg:var(--accent-soft);--tagfg:var(--accent)"><span class="sec-num">06</span><h2>LoRA and head-only</h2><span class="attacks">attacks pile A</span></div>
+
+  <div class="quad">
+    <div class="qd" style="--c:var(--accent)"><b>The problem</b><span>Three of the four copies are charged per <em>trainable</em> parameter. Full fine-tuning makes everything trainable.</span></div>
+    <div class="qd" style="--c:var(--win)"><b>What it does</b><span>Freezes the base so it receives no gradient, and trains tiny matrices beside it.</span></div>
+    <div class="qd" style="--c:var(--signal)"><b>What it costs</b><span>Some adaptation capacity, controlled by the rank r.</span></div>
+    <div class="qd" style="--c:var(--alert)"><b>What it does NOT do</b><span>The frozen base is <em>still fully resident</em>. Weights do not shrink by one byte.</span></div>
+  </div>
+
+  <div class="note">
+    <b class="h">Covered in full elsewhere</b>
+    The mechanism &mdash; <code>W + A@B</code>, why B starts at zero, the <code>2r/d</code> ratio &mdash; is worked through number by number in the next tab, <b>LoRA on a real matrix</b>. What matters here is only the memory consequence.
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>Weights</th><th>Gradients</th><th>Optimizer</th></tr></thead>
+      <tbody>
+        <tr><td><b>Full fine-tune</b></td><td>all N</td><td>all N</td><td>all N &times; 2</td></tr>
+        <tr><td><b>LoRA</b></td><td>all N &nbsp;<span style="color:var(--alert)">unchanged</span></td><td>~0.1% of N</td><td>~0.1% of N &times; 2</td></tr>
+        <tr><td><b>Head-only</b></td><td>all N &nbsp;<span style="color:var(--alert)">unchanged</span></td><td>d &times; labels</td><td>d &times; labels &times; 2</td></tr>
+        <tr><td><b>QLoRA</b></td><td><b>N &times; 0.5 bytes</b></td><td>~0.1% of N</td><td>~0.1% of N &times; 2</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note" style="margin-top:4px">
+    Read the weights column: it only moves on the QLoRA row, and only because <b>quantization</b> is doing that work, not LoRA. That is exactly why the two are combined &mdash; they attack different entries in the same pile.
+  </div>
+</section>
+</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="lora">Next: LoRA on a real matrix &rarr;</button></div></div>
+<div class="sh-pane" data-pane="lora" hidden>
+<div class="sc-oneblock"><div class="wrap">
+<header class="mast"><div class="kicker">DA5013 · Week 4</div><h1>LoRA on a real matrix</h1><p class="sub">One 4&times;4 matrix, frozen, with two thin matrices learned beside it. Every number visible, then the same idea scaled up to a real model with the sliders.</p></header>
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Now LoRA, on <code>W_Q</code></h2></div>
+  <p class="lede"><code>W_Q</code> is the 4&times;4 query matrix from the Transformer Workshop &mdash; the one that turned the token vectors X into the queries Q. Fine-tuning normally means computing a gradient for all 16 of its numbers and keeping momentum and variance for each. LoRA says: don't.</p>
+
+  <div class="step">
+    <span class="sn">Step 10</span><h4>Freeze the matrix; learn a correction beside it</h4>
+    <p><code>W_Q</code> is frozen — it still runs in every forward pass, it still sits in GPU memory, but <b>no gradient is ever computed for it</b>. Instead two thin matrices are added: <code>A</code> of shape 4×1 and <code>B</code> of shape 1×4. Their product <code>A @ B</code> is 4×4 — the same shape as <code>W_Q</code>.</p>
+    <p>The model now uses <code>W_Q + A@B</code> wherever it used <code>W_Q</code>. The <b>1</b> in those shapes is the rank <code>r</code>.</p>
+  </div>
+  <div id="ob-m-lora1"></div>
+
+  <div class="note">
+    <b class="h">Why B starts at zero</b>
+    <code>A@B</code> is all zeros at step 0, so <code>W_Q + A@B</code> equals <code>W_Q</code> exactly. The adapted model starts out <em>identical</em> to the pretrained one and departs from it only as training proceeds. Initialising both to random would corrupt the pretrained behaviour on the very first forward pass.
+  </div>
+
+  <div class="step">
+    <span class="sn">Step 11</span><h4>After a few steps, B has moved</h4>
+    <p>Only <code>A</code> and <code>B</code> received gradients, so only they changed. Their product is now a non-zero 4×4 correction, which is added to the frozen matrix to give the effective one.</p>
+  </div>
+  <div id="ob-m-lora2"></div>
+
+  <div class="trap">
+    <b class="h">The toy does not show the saving — the formula does</b>
+    Here: 8 trainable against 16 frozen. That is 50%, which is no saving at all. <strong>That is not a flaw in the example; it is the point.</strong> The ratio is
+    <br><br><code>2·d·r / d² = 2r / d</code><br><br>
+    At <code>d = 4, r = 1</code> that is 0.5. The win appears only when <code>d</code> is large and <code>r</code> stays small — and <code>r</code> stays small because the <em>correction</em> a fine-tune needs is simple even when the matrix is huge. Move the sliders.
+  </div>
+
+  <div class="calc">
+    <div class="cc">
+      <div>
+        <label for="ob-cD">d_model <b id="ob-vD">4096</b></label>
+        <input type="range" id="ob-cD" min="64" max="8192" step="64" value="4096">
+      </div>
+      <div>
+        <label for="ob-cR">rank r <b id="ob-vR">8</b></label>
+        <input type="range" id="ob-cR" min="1" max="128" step="1" value="8">
+      </div>
+      <div>
+        <label for="ob-cM">matrices adapted</label>
+        <select id="ob-cM">
+          <option value="2" selected>Q, V only (common default)</option>
+          <option value="4">Q, K, V, O (all four)</option>
+        </select>
+      </div>
+      <div>
+        <label for="ob-cL">layers L <b id="ob-vL">32</b></label>
+        <input type="range" id="ob-cL" min="1" max="96" step="1" value="32">
+      </div>
+    </div>
+    <div class="bigratio"><span id="ob-ratio">—</span> <small>of one matrix is trainable &nbsp;·&nbsp; 2r/d</small></div>
+    <div class="lbar"><div class="f" id="ob-barF"></div><div class="t" id="ob-barT"></div></div>
+    <div class="shapes" id="ob-totals"></div>
+  </div>
+
+  <div class="note">
+    <b class="h">Head-only fine-tuning, for contrast</b>
+    LoRA touches every layer with a small correction. Head-only touches <em>one new layer</em> and freezes everything else. Its size is just <code>d × num_labels</code> — for <code>d = 2048</code> and 8 entity labels that is 16,384 parameters, roughly 0.0002% of a 7B model. Hundreds of times smaller than LoRA, and correspondingly less able to adapt: the body cannot change at all, so it only works when the pretrained features already suit your task.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>What each method actually pays for</h2></div>
+  <p class="lede">Same block, four ways of training it. Counting only this one block's 128 parameters, in fp32 with AdamW.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Method</th><th class="num">Weights</th><th class="num">Gradients</th><th class="num">Momentum</th><th class="num">Variance</th><th class="num">Bytes</th></tr></thead>
+      <tbody>
+        <tr><td><b>Full fine-tune</b></td><td class="num">128</td><td class="num">128</td><td class="num">128</td><td class="num">128</td><td class="num">2,048</td></tr>
+        <tr><td><b>LoRA on W_Q, r=1</b></td><td class="num">128</td><td class="num">8</td><td class="num">8</td><td class="num">8</td><td class="num">608</td></tr>
+        <tr><td><b>Head-only</b> (4×2 head)</td><td class="num">128</td><td class="num">8</td><td class="num">8</td><td class="num">8</td><td class="num">608</td></tr>
+        <tr><td><b>Inference</b></td><td class="num">128</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">512</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b class="h">Read the weights column</b>
+    It says 128 on every row. <strong>No training method reduces the weights</strong> — the frozen matrices still have to be in memory to run the forward pass. Only quantization attacks that column, by storing each of those 128 numbers in fewer bytes.<br><br>
+    Everything else — LoRA, head-only, inference — works purely by shrinking the other three columns. That is the lever grid on The Memory Ledger, and it is now just this table read sideways.
+  </div>
+</section>
+</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="stack">Next: stack the levers &rarr;</button></div></div>
+<div class="sh-pane" data-pane="stack" hidden>
+<div class="sc-memory"><div class="wrap">
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Which lever removes which copy</h2></div>
   <p class="lede">This grid is worth more marks than anything else in week 4. Both past papers tested it as multiple-select, where every wrong option was a technique credited with saving something it does not touch.</p>
   <div class="tablewrap">
     <table>
@@ -290,10 +852,64 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
     <strong>Shrink, Skip, Forget, Freeze.</strong> Quantization <em>shrinks</em> each number. Accumulation <em>skips</em> the update until later. Checkpointing <em>forgets</em> activations and recomputes them. LoRA <em>freezes</em> the base so no gradients are owed on it. Four verbs, four different victims — and mixed precision is the odd one out, which is exactly why it is the one the exam lies about.
   </div>
 </section>
-
-<!-- ===== 04 WORKED ===== -->
+</div></div><div class="sc-levers"><div class="wrap">
 <section>
-  <div class="sec-head"><span class="sec-num">04</span><h2>Now solve the real questions</h2></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Stack them yourself</h2></div>
+  <p class="lede">Switch levers on in any order and watch which pile moves. The point is not the total &mdash; it is noticing that the first three levers never touch the blue bar, and the last two never touch the amber one.</p>
+
+  <div class="stack">
+    <div class="sc">
+      <div>
+        <label for="lv-sM">model</label>
+        <select id="lv-sM">
+          <option value="0.124">GPT-2 small · 124M</option>
+          <option value="1.5">GPT-2 XL · 1.5B</option>
+          <option value="7" selected>7B</option>
+          <option value="13">13B</option>
+        </select>
+      </div>
+      <div>
+        <label for="lv-sB">batch size <b id="lv-vB">8</b></label>
+        <input type="range" id="lv-sB" min="1" max="32" step="1" value="8">
+      </div>
+      <div>
+        <label for="lv-sT">sequence length <b id="lv-vT">1024</b></label>
+        <input type="range" id="lv-sT" min="128" max="4096" step="128" value="1024">
+      </div>
+      <div>
+        <label for="lv-sG">GPU</label>
+        <select id="lv-sG">
+          <option value="16">T4 · 16 GB</option>
+          <option value="24">A10 · 24 GB</option>
+          <option value="80" selected>A100 · 80 GB</option>
+          <option value="0">no limit</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="lvs">
+      <label class="lv"><input type="checkbox" id="lv-lMP"><span><b>1 · Mixed precision (bf16)</b><small>activations at 2 bytes; fp32 master retained, so Pile A does not move</small></span></label>
+      <label class="lv"><input type="checkbox" id="lv-lGA"><span><b>2 · Gradient accumulation</b><small>per-pass batch cut to 2, accumulation steps made up to match</small></span></label>
+      <label class="lv"><input type="checkbox" id="lv-lGC"><span><b>3 · Gradient checkpointing</b><small>store layer inputs only, rebuild the rest; about +33% compute</small></span></label>
+      <label class="lv"><input type="checkbox" id="lv-lQ"><span><b>4 · 4-bit quantized base</b><small>frozen weights at 0.5 bytes each</small></span></label>
+      <label class="lv"><input type="checkbox" id="lv-lL"><span><b>5 · LoRA</b><small>0.15% trainable; base frozen but still fully resident</small></span></label>
+    </div>
+
+    <div class="total"><span id="lv-tot">—</span> <small id="lv-totsub"></small></div>
+    <div class="sbar"><div class="c" id="lv-barC"></div><div class="a" id="lv-barA"></div></div>
+    <div class="slegend">
+      <span><i class="dot" style="background:var(--accent)"></i> Pile A &mdash; per parameter</span>
+      <span><i class="dot" style="background:var(--signal)"></i> Pile B &mdash; activations</span>
+    </div>
+    <div class="verdict" id="lv-verdict"></div>
+  </div>
+</section>
+</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="exam">Next: exam questions &rarr;</button></div></div>
+<div class="sh-pane" data-pane="exam" hidden>
+<div class="sc-memory"><div class="wrap">
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Now solve the real questions</h2></div>
 
   <div class="worked">
     <div class="wq">
@@ -301,11 +917,11 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <p>A model with 4B parameters (fp32) is being trained using the AdamW optimizer on a single 32 GB GPU. Why is full fine-tuning impossible in this configuration?</p>
       <button class="wbtn" data-sol="m1">Show the steps</button>
     </div>
-    <div class="wsol" id="m1" hidden>
+    <div class="wsol" id="me-m1" hidden>
       <div class="step"><i>1</i><div>Weights: 4e9 × 4 bytes = 16 GB.</div></div>
       <div class="step"><i>2</i><div>Gradients: another 16 GB.</div></div>
       <div class="step"><i>3</i><div>Optimizer: momentum 16 + variance 16 = 32 GB.</div></div>
-      <div class="step"><i>4</i><div>Total 64 GB against a 32 GB card. Set the panel to 4B, fp32, AdamW, V100 and the verdict bar turns red at exactly this figure.</div></div>
+      <div class="step"><i>4</i><div>Total 64 GB against a 32 GB card. On tab 1, set the ledger to 4B, fp32, AdamW, V100 and the verdict bar turns red at exactly this figure.</div></div>
       <div class="step"><i>5</i><div>The distractor to reject says fp32 means 8 bytes per parameter. It means 4. The other says the 4B parameters alone fill the card — they take 16 GB, which fits comfortably; it is the other three copies that break it.</div></div>
       <div class="wans">optimizer 32 + weights 16 + gradients 16 = 64 GB &gt; 32 GB</div>
     </div>
@@ -317,7 +933,7 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <p><strong>(a)</strong> A transformer has 1.2 billion parameters, fine-tuned with AdamW. Parameters, gradients and optimizer states (first and second moments) are all stored in 32-bit precision, 4 bytes each. Ignoring activations and buffers, calculate the total GPU memory in GB. <strong>(b)</strong> A model contains 5 billion parameters, trained with AdamW in fp32, same assumptions. Total memory in GB?</p>
       <button class="wbtn" data-sol="m2">Show the steps</button>
     </div>
-    <div class="wsol" id="m2" hidden>
+    <div class="wsol" id="me-m2" hidden>
       <div class="step"><i>1</i><div>The question lists the four copies for you: parameters, gradients, first moment, second moment. Four copies at 4 bytes = 16 bytes per parameter.</div></div>
       <div class="step"><i>2</i><div>(a) 1.2e9 × 16 = 19.2e9 bytes. With 1 GB = 10⁹, that is <strong>19.2 GB</strong>. Accepted band 19.1 to 19.3.</div></div>
       <div class="step"><i>3</i><div>(b) 5e9 × 16 = 80e9 → <strong>80 GB</strong>. Accepted band 79.5 to 80.5.</div></div>
@@ -332,9 +948,9 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <p>A 7 billion parameter model is loaded in FP32 precision. Ignoring activations and optimizer states, approximately how much GPU memory is required for storing model weights? <em>And GA4's follow-up:</em> if the context length rises from 2048 to 8000, how much is required then?</p>
       <button class="wbtn" data-sol="m3">Show the steps</button>
     </div>
-    <div class="wsol" id="m3" hidden>
+    <div class="wsol" id="me-m3" hidden>
       <div class="step"><i>1</i><div>"Ignoring optimizer states" means only copy one is charged. 7e9 × 4 = 28e9 → <strong>28 GB</strong>.</div></div>
-      <div class="step"><i>2</i><div>Tick <em>Inference only</em> on the panel with 7B and fp32 selected to see the other three copies vanish.</div></div>
+      <div class="step"><i>2</i><div>On tab 1, choose <em>Inference only</em> with 7B and fp32 selected to see the other three copies vanish.</div></div>
       <div class="step"><i>3</i><div>For the context change: longer context only adds rows to the positional embedding table, Δ = (8000 − 2048) × 2048 ≈ 12.2M parameters.</div></div>
       <div class="step"><i>4</i><div>12.2M × 4 bytes ≈ 0.05 GB, on a model already weighing 28 GB. The answer stays <strong>28 GB</strong>, and GA4's accepted band of 26 to 30 was deliberately wide enough that the increase cannot move you out of it.</div></div>
       <div class="wans">28 GB, and still 28 GB after the context change</div>
@@ -347,7 +963,7 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <p>Given <code>TrainingArguments(per_device_train_batch_size=1, gradient_accumulation_steps=8, fp16=True, max_grad_norm=1.0)</code>, which effects are expected? And in T2's variant with <code>fp16=True, gradient_accumulation_steps=8, per_device_train_batch_size=2</code>, which statements are correct?</p>
       <button class="wbtn" data-sol="m4">Show the steps</button>
     </div>
-    <div class="wsol" id="m4" hidden>
+    <div class="wsol" id="me-m4" hidden>
       <div class="step"><i>1</i><div>Effective batch size = per-device batch × accumulation steps. 1×8 = 8, and 2×8 = 16. Both papers asked you to confirm it exceeds the per-device figure. <span class="yes">Correct.</span></div></div>
       <div class="step"><i>2</i><div>fp16 reduces memory against fp32 training, via activations and gradient storage. <span class="yes">Correct.</span></div></div>
       <div class="step"><i>3</i><div><code>max_grad_norm=1.0</code> is gradient clipping: it caps the update size so one freak batch cannot wreck the weights. <span class="yes">Correct.</span></div></div>
@@ -364,7 +980,7 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <p><strong>(a)</strong> A team hits GPU out-of-memory errors while fine-tuning a language model. Which actions may help: mixed precision, quantization, gradient checkpointing, LoRA, increasing vocabulary size? <strong>(b)</strong> Which single technique is most effective at reducing GPU memory during training <em>without modifying the model architecture</em>: gradient clipping, mixed-precision training, increasing learning-rate warmup, or saving checkpoints less often?</p>
       <button class="wbtn" data-sol="m5">Show the steps</button>
     </div>
-    <div class="wsol" id="m5" hidden>
+    <div class="wsol" id="me-m5" hidden>
       <div class="step"><i>1</i><div>(a) The first four each attack a real line in the ledger — activations, weights, activations again, and gradients-plus-optimizer. All four help.</div></div>
       <div class="step"><i>2</i><div>Increasing vocabulary size makes the embedding table <em>larger</em>. It is the only option that moves memory the wrong way, and it is attractive because the other four are all "advanced technique" words.</div></div>
       <div class="step"><i>3</i><div>(b) Gradient clipping bounds the gradient's magnitude, not its storage — the tensor is the same size either way. Warmup is a learning-rate schedule and saves nothing. Checkpoint frequency is disk, not VRAM.</div></div>
@@ -379,7 +995,7 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
       <p>A 7B model, context 2048, embedding dimension 2048, dataset of 1,000,000 samples each exactly one context long, per-device batch 16, gradient accumulation 4. <strong>(a)</strong> How many optimizer update steps complete one epoch on a single GPU? <strong>(b)</strong> Fine-tuning for NER with 8 labels, tuning only the classification head — how many parameters in that head, excluding bias? <strong>(c)</strong> Does raising LoRA's rank r increase the number of tunable parameters?</p>
       <button class="wbtn" data-sol="m6">Show the steps</button>
     </div>
-    <div class="wsol" id="m6" hidden>
+    <div class="wsol" id="me-m6" hidden>
       <div class="step"><i>1</i><div>(a) One update consumes an effective batch of 16 × 4 = 64 samples. 1,000,000 ÷ 64 = <strong>15,625</strong> steps.</div></div>
       <div class="step"><i>2</i><div>The companion True/False — "the weight update happens only at the end of one epoch" — is <strong>false</strong>, and these 15,625 steps are the proof.</div></div>
       <div class="step"><i>3</i><div>(b) The head maps the d-dimensional output vector to one score per label: 2048 × 8 = <strong>16,384</strong>. The question says to exclude the bias, which would have added 8.</div></div>
@@ -388,21 +1004,43 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
     </div>
   </div>
 </section>
-
-<!-- ===== 05 QUIZ ===== -->
 <section>
-  <div class="sec-head"><span class="sec-num">05</span><h2>Quiz yourself</h2></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Quiz yourself</h2></div>
   <p class="lede">Eight questions. Half are the trap statements in disguise.</p>
-  <div class="quiz" id="quiz"></div>
-  <p class="score" id="score">0 of 8 answered</p>
+  <div class="quiz" id="me-quiz"></div>
+  <p class="score" id="me-score">0 of 8 answered</p>
 </section>
-
-<footer>
-  Concept 04 of the DLP series, completing Track A alongside The DLP Spine, Transformer Anatomy, Tokenizer Lab and The Three Architectures. Every figure checked against the past papers' accepted answer bands before publishing.
-</footer>
+</div></div>
 </div>
-
+<div class="sh-in"><div class="sh-foot">Week 4 of the Quiz 1 set. Notes and formulas live in the <b>Quiz 1 Cheatsheet</b>; Week 2 is the <b>Tokenizer Lab</b>; Week 3 is the <b>Transformer Workshop</b>; then the <b>Mock Papers</b>.</div></div>
 <script>
+function scopedDoc(cls, ns){
+  var D = window.document;
+  function inScope(el){ return !!el.closest('.' + cls); }
+  return {
+    getElementById: function(id){ return D.getElementById(ns + id) || D.createElement('div'); },
+    querySelectorAll: function(s){ return Array.prototype.filter.call(D.querySelectorAll(s), inScope); },
+    querySelector: function(s){ var a = this.querySelectorAll(s); return a.length ? a[0] : null; },
+    createElement: function(t){ return D.createElement(t); },
+    createElementNS: function(n, t){ return D.createElementNS(n, t); }
+  };
+}
+(function(){
+  var tabs = document.querySelectorAll('.sh-tab'), panes = document.querySelectorAll('.sh-pane');
+  function show(name){
+    tabs.forEach(function(t){ t.setAttribute('aria-pressed', t.dataset.pane === name ? 'true' : 'false'); });
+    panes.forEach(function(p){ p.hidden = (p.dataset.pane !== name); });
+    window.scrollTo(0, 0);
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.pane); }); });
+  document.querySelectorAll('.sh-next').forEach(function(b){
+    b.addEventListener('click', function(){ show(b.dataset.pane); });
+  });
+})();
+</script>
+<script>
+(function(document){
+
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var LORA_FRAC = 0.0015, HEAD_FRAC = 0.0004;
@@ -545,6 +1183,246 @@ footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:v
 
   calc();
 })();
+
+// the added 'Full fine-tuning' choice re-runs the same calculation
+document.getElementById('lFull').addEventListener('change', function(){
+  document.getElementById('lInf').dispatchEvent(new Event('change'));
+});
+
+})(scopedDoc("sc-memory", "me-"));
+</script>
+<script>
+(function(document){
+
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  // checkpointing columns
+  var a = '', b = '';
+  for (var i = 1; i <= 12; i++){
+    a += '<div class="ly"><span class="lb">layer ' + i + '</span><span class="box full">all internals kept &middot; 70.8M</span></div>';
+    b += '<div class="ly"><span class="lb">layer ' + i + '</span><span class="box ' + (i===7?'full':'keep') + '">' +
+         (i===7 ? 'rebuilt now &middot; 70.8M' : 'input only &middot; 1.6M') + '</span></div>';
+  }
+  $('ckA').innerHTML = a;
+  $('ckB').innerHTML = b;
+
+  // ---- stacker ----
+  var CFG = { 0.124:{d:768,L:12,h:12}, 1.5:{d:1600,L:48,h:25}, 7:{d:4096,L:32,h:32}, 13:{d:5120,L:40,h:40} };
+
+  function compute(){
+    var Nb = parseFloat($('sM').value), N = Nb*1e9;
+    var c = CFG[$('sM').value] || CFG[7];
+    var d = c.d, L = c.L, h = c.h;
+    var B = +$('sB').value, T = +$('sT').value, gpu = parseFloat($('sG').value);
+    var mp = $('lMP').checked, ga = $('lGA').checked, gc = $('lGC').checked,
+        q  = $('lQ').checked,  lo = $('lL').checked;
+
+    $('vB').textContent = B; $('vT').textContent = T;
+
+    // ---- pile A ----
+    var frac = lo ? 0.0015 : 1;
+    var wB   = q ? 0.5 : (mp ? 2 : 4);
+    var weights = N * wB;
+    var master  = mp ? N*frac*4 : 0;              // fp32 master only for trainable params
+    var grads   = N * frac * (mp ? 2 : 4);
+    var optim   = N * frac * 8;
+    var pileA   = weights + master + grads + optim;
+
+    // ---- pile B ----
+    var Beff = ga ? Math.min(B, 2) : B;
+    var bpn  = mp ? 2 : 4;
+    var per  = (Beff*T*d) + 4*(Beff*T*d) + 2*(Beff*T*4*d) + 2*(Beff*h*T*T);
+    var pileB = (gc ? (L*Beff*T*d + per) : L*per) * bpn;
+
+    var tot = pileA + pileB, GB = function(x){ return x/1e9; };
+    var f = function(x){ var v = GB(x); return v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v.toFixed(2); };
+
+    $('tot').textContent = f(tot) + ' GB';
+    $('totsub').textContent = '· ' + f(pileA) + ' GB parameters + ' + f(pileB) + ' GB activations' +
+      (ga && B > 2 ? ' · accumulation ' + Math.ceil(B/2) + ' steps' : '');
+
+    var pa = tot ? 100*pileA/tot : 0;
+    $('barC').style.flexBasis = pa + '%';       $('barC').style.flexGrow = '0';
+    $('barA').style.flexBasis = (100-pa) + '%'; $('barA').style.flexGrow = '0';
+    $('barC').textContent = pa > 15 ? f(pileA) + ' GB' : '';
+    $('barA').textContent = (100-pa) > 15 ? f(pileB) + ' GB' : '';
+
+    var v = $('verdict');
+    if (!gpu){ v.className = 'verdict ok'; v.textContent = 'No capacity limit selected.'; }
+    else if (GB(tot) <= gpu){
+      v.className = 'verdict ok';
+      v.textContent = 'Fits on ' + gpu + ' GB, with ' + (gpu - GB(tot)).toFixed(1) + ' GB to spare.';
+    } else {
+      v.className = 'verdict no';
+      v.textContent = 'Does not fit — needs ' + f(tot) + ' GB on a ' + gpu + ' GB card. Over by ' + (GB(tot)-gpu).toFixed(1) + ' GB.';
+    }
+  }
+
+  ['sM','sB','sT','sG'].forEach(function(id){ $(id).addEventListener('input', compute); });
+  ['lMP','lGA','lGC','lQ','lL'].forEach(function(id){ $(id).addEventListener('change', compute); });
+  compute();
+})();
+
+})(scopedDoc("sc-levers", "lv-"));
+</script>
+<script>
+(function(document){
+
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = null;
+
+  var KIND = { w:{c:'var(--accent)', bg:'var(--accent-soft)'},
+               a:{c:'var(--signal)', bg:'var(--signal-soft)'},
+               g:{c:'var(--alert)',  bg:'var(--alert-soft)'},
+               f:{c:'var(--frozen)', bg:'var(--frozen-soft)'},
+               t:{c:'var(--win)',    bg:'var(--win-soft)'} };
+
+  function mat(name, data, kind, note){
+    var k = KIND[kind], rows = data.length, cols = data[0].length;
+    var html = '<div class="mat" style="--c:' + k.c + '">' +
+      '<div class="cap"><b>' + name + '</b><i>' + rows + ' x ' + cols + ' = ' + (rows*cols) + ' numbers</i>' +
+      (note ? '<i>' + note + '</i>' : '') + '</div>' +
+      '<div class="grid" style="grid-template-columns:repeat(' + cols + ',auto)">';
+    data.forEach(function(r){
+      r.forEach(function(v){
+        var z = (v === 0) ? ' zero' : '';
+        var txt = (v === -Infinity) ? '-inf' : v.toFixed(2);
+        html += '<div class="cell' + z + '" style="--bg:' + k.bg + '">' + txt + '</div>';
+      });
+    });
+    return html + '</div></div>';
+  }
+  function op(sym){ return '<div class="op">' + sym + '</div>'; }
+  function row(html){ return '<div class="mrow">' + html + '</div>'; }
+
+  // ---------- the data, all computed ----------
+  var X  = [[1,0,1,0],[0,2,0,1],[1,1,0,0]];
+  var W1 = [[-0.00,0.20,0.10,0.10,0.20,0.00,0.30,0.10],
+            [0.40,-0.20,-0.00,-0.30,-0.70,-1.00,0.20,-0.30],
+            [-0.20,-0.10,0.40,0.40,0.50,0.60,1.60,0.30],
+            [0.20,-0.90,-0.70,1.20,1.50,0.40,0.10,0.40]];
+  var H  = [[-0.20,0.10,0.50,0.50,0.70,0.60,1.90,0.40],
+            [1.00,-1.30,-0.70,0.60,0.10,-1.60,0.50,-0.20],
+            [0.40,0.00,0.10,-0.20,-0.50,-1.00,0.50,-0.20]];
+  var A  = [[0,0.10,0.50,0.50,0.70,0.60,1.90,0.40],
+            [1.00,0,0,0.60,0.10,0,0.50,0],
+            [0.40,0,0.10,0,0,0,0.50,0]];
+  var W2 = [[-1.00,-0.30,-0.20,0.90],[-0.50,0.20,0.40,0.50],[-0.20,-0.30,-1.10,0.60],
+            [0.60,-0.20,0.10,-0.70],[-0.10,0.40,-0.20,0.00],[0.50,0.30,-0.30,0.80],
+            [0.90,0.50,0.30,0.40],[0.40,-0.60,0.50,-0.40]];
+  var Y  = [[2.25,0.94,-0.01,1.08],[-0.20,-0.13,-0.01,0.68],[0.03,0.10,-0.04,0.62]];
+  var dY = [[0.10,-0.10,0.30,1.10],[0.30,-0.10,0.40,0.10],[-1.00,-1.10,-0.30,1.20]];
+  var dW2= [[-0.10,-0.54,0.28,0.58],[0.01,-0.01,0.03,0.11],[-0.05,-0.16,0.12,0.67],
+            [0.23,-0.11,0.39,0.61],[0.10,-0.08,0.25,0.78],[0.06,-0.06,0.18,0.66],
+            [-0.16,-0.79,0.62,2.74],[0.04,-0.04,0.12,0.44]];
+  var dW1= [[2.47,0.60,1.92,-0.66,-0.11,0.81,-0.49,-0.19],
+            [1.95,0,1.58,0.34,-0.30,0,-0.30,0],
+            [0,0.60,0.34,-0.66,-0.11,0.81,0.57,-0.19],
+            [-0.26,0,0,0.17,-0.15,0,0.38,0]];
+
+  var WQ = [[0.00,0.80,0.70,-0.30],[-0.20,-0.30,0.30,-0.00],[0.40,-1.10,0.90,-0.10],[0.40,-0.10,-0.20,0.30]];
+  var WK = [[0.50,-0.10,-0.10,0.40],[-0.50,-0.90,0.20,-0.40],[-1.20,-0.50,-0.30,-0.70],[-0.90,0.00,0.50,-0.10]];
+  var WV = [[-0.40,0.20,0.40,-0.20],[0.30,0.60,-0.10,-0.50],[0.20,0.10,0.70,-0.80],[-0.40,-0.50,-1.00,0.10]];
+  var WO = [[0.30,-0.40,0.80,0.50],[0.40,0.20,0.60,-0.80],[0.40,0.40,-1.10,0.20],[-0.20,0.50,-0.30,-0.00]];
+  var Q  = [[0.40,-0.30,1.60,-0.40],[0.00,-0.70,0.40,0.30],[-0.20,0.50,1.00,-0.30]];
+  var K  = [[-0.70,-0.60,-0.40,-0.30],[-1.90,-1.80,0.90,-0.90],[0.00,-1.00,0.10,0.00]];
+  var V  = [[-0.20,0.30,1.10,-1.00],[0.20,0.70,-1.20,-0.90],[-0.10,0.80,0.30,-0.70]];
+  var S0 = [[-0.07,-Infinity,-Infinity],[0.30,0.89,-Infinity],[-0.11,-0.37,-0.35]];
+  var P0 = [[1.00,0,0],[0.36,0.64,0],[0.39,0.30,0.31]];
+  var O0 = [[-0.20,0.30],[0.06,0.56],[-0.05,0.57]];
+  var S1 = [[-0.37,-Infinity,-Infinity],[-0.18,0.06,-Infinity],[-0.22,0.83,0.07]];
+  var P1 = [[1.00,0,0],[0.44,0.56,0],[0.19,0.55,0.26]];
+  var O1 = [[1.10,-1.00],[-0.19,-0.94],[-0.37,-0.87]];
+  var C  = [[-0.20,0.30,1.10,-1.00],[0.06,0.56,-0.19,-0.94],[-0.05,0.57,-0.37,-0.87]];
+  var OUT= [[0.70,0.08,-0.89,-0.12],[0.35,-0.46,0.87,-0.45],[0.24,-0.45,0.97,-0.56]];
+
+  var LA = [[0.10],[-0.40],[0.20],[-0.00]];
+  var LB0= [[0,0,0,0]];
+  var LD0= [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  var LB1= [[0.30,-0.20,0.00,0.10]];
+  var LD1= [[0.03,-0.02,0.00,0.01],[-0.12,0.08,0.00,-0.04],[0.06,-0.04,0.00,0.02],[0,0,0,0]];
+  var WQe= [[0.03,0.78,0.70,-0.29],[-0.32,-0.22,0.30,-0.04],[0.46,-1.14,0.90,-0.08],[0.40,-0.10,-0.20,0.30]];
+
+  // ---------- render ----------
+  $('m-X').innerHTML = row(mat('X', X, 'a', 'one row per token'));
+
+  $('m-ffn1').innerHTML = row(mat('X', X, 'a') + op('@') + mat('W1', W1, 'w') + op('=') + mat('H', H, 'a')) +
+    '<div class="shapes">(3 x 4) @ (<b>4 x 8</b>) = (3 x 8) &nbsp;-&nbsp; the inner 4s cancel; the token count 3 passes straight through</div>';
+
+  $('m-ffn2').innerHTML = row(mat('H', H, 'a') + op('→') + mat('A = ReLU(H)', A, 'a', 'negatives became 0'));
+
+  $('m-ffn3').innerHTML = row(mat('A', A, 'a') + op('@') + mat('W2', W2, 'w') + op('=') + mat('Y', Y, 'a')) +
+    '<div class="shapes">(3 x 8) @ (<b>8 x 4</b>) = (3 x 4) &nbsp;-&nbsp; same shape as X, which is what lets blocks stack</div>';
+
+  $('m-dY').innerHTML = row(mat('dY', dY, 'g', 'how wrong each entry of Y was'));
+
+  $('m-dW2').innerHTML = row(mat('Aᵀ', A, 'a', 'needed!') + op('@') + mat('dY', dY, 'g') + op('=') + mat('dW2', dW2, 'g')) +
+    '<div class="shapes">W2 is <b>8 x 4</b> and dW2 is <b>8 x 4</b> &nbsp;-&nbsp; identical shape, always</div>';
+
+  $('m-dW1').innerHTML = row(mat('W1', W1, 'w') + op('vs') + mat('dW1', dW1, 'g')) +
+    '<div class="shapes">Compare the zeros in dW1 with the zeros in A &nbsp;-&nbsp; a unit switched off in the forward pass gets no gradient</div>';
+
+  $('m-qkv').innerHTML =
+    row(mat('X', X, 'a') + op('@') + mat('W_Q', WQ, 'w') + op('=') + mat('Q', Q, 'a')) +
+    row(mat('X', X, 'a') + op('@') + mat('W_K', WK, 'w') + op('=') + mat('K', K, 'a')) +
+    row(mat('X', X, 'a') + op('@') + mat('W_V', WV, 'w') + op('=') + mat('V', V, 'a'));
+
+  $('m-head0').innerHTML = '<div class="shapes" style="margin-top:14px"><b>Head 0</b> &nbsp;-&nbsp; columns 0 and 1 of Q, K, V</div>' +
+    row(mat('scores', S0, 'a', 'after mask') + op('→') + mat('softmax', P0, 'a', 'rows sum to 1') + op('@Vₕ =') + mat('head 0 out', O0, 'a'));
+
+  $('m-head1').innerHTML = '<div class="shapes" style="margin-top:14px"><b>Head 1</b> &nbsp;-&nbsp; columns 2 and 3 of Q, K, V</div>' +
+    row(mat('scores', S1, 'a', 'after mask') + op('→') + mat('softmax', P1, 'a', 'rows sum to 1') + op('@Vₕ =') + mat('head 1 out', O1, 'a'));
+
+  $('m-out').innerHTML = row(mat('concat', C, 'a', 'two heads stitched') + op('@') + mat('W_O', WO, 'w') + op('=') + mat('output', OUT, 'a')) +
+    '<div class="shapes">(3 x 4) again &nbsp;-&nbsp; attention preserves shape exactly like the FFN did</div>';
+
+  $('m-lora1').innerHTML =
+    row(mat('W_Q  FROZEN', WQ, 'f', 'no gradient, ever') + op('+') +
+        mat('A', LA, 't', 'trainable') + op('@') + mat('B', LB0, 't', 'trainable, starts at 0') +
+        op('=') + mat('A@B', LD0, 't')) +
+    '<div class="shapes">(4 x <b>1</b>) @ (<b>1</b> x 4) = (4 x 4) &nbsp;-&nbsp; the bold 1 is the rank r. 8 trainable numbers against 16 frozen.</div>';
+
+  $('m-lora2').innerHTML =
+    row(mat('A', LA, 't') + op('@') + mat('B now', LB1, 't') + op('=') + mat('A@B', LD1, 't')) +
+    row(mat('W_Q  FROZEN', WQ, 'f') + op('+') + mat('A@B', LD1, 't') + op('=') + mat('W_Q effective', WQe, 'w', 'what the model uses')) +
+    '<div class="shapes">W_Q itself never changed. The correction lives entirely in those 8 numbers.</div>';
+
+  // ---------- LoRA calculator ----------
+  function calc(){
+    var d = +$('cD').value, r = +$('cR').value, m = +$('cM').value, L = +$('cL').value;
+    $('vD').textContent = d.toLocaleString('en-US');
+    $('vR').textContent = r;
+    $('vL').textContent = L;
+
+    var ratio = 2*r/d;
+    var per = 2*d*r, full = d*d;
+    $('ratio').textContent = (100*ratio).toFixed(2) + '%';
+
+    var tPct = Math.min(100, 100*ratio);
+    $('barF').style.flexBasis = (100 - tPct) + '%'; $('barF').style.flexGrow = '0';
+    $('barT').style.flexBasis = tPct + '%';         $('barT').style.flexGrow = '0';
+    $('barF').textContent = tPct < 88 ? 'frozen' : '';
+    $('barT').textContent = tPct > 16 ? 'trainable' : '';
+
+    var tot = per * m * L, totFull = full * m * L;
+    var fmt = function(n){
+      if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+      return n.toLocaleString('en-US');
+    };
+    $('totals').innerHTML =
+      'One matrix: <b>' + fmt(per) + '</b> trainable vs <b>' + fmt(full) + '</b> frozen.<br>' +
+      'Across ' + m + ' matrices x ' + L + ' layers: <b>' + fmt(tot) + '</b> trainable, ' +
+      'replacing <b>' + fmt(totFull) + '</b>.' +
+      (ratio >= 1 ? '<br><span style="color:var(--alert)">At this rank LoRA costs more than the matrix it replaces. Keep r well below d/2.</span>' : '');
+  }
+  ['cD','cR','cM','cL'].forEach(function(id){ $(id).addEventListener('input', calc); });
+  calc();
+})();
+
+})(scopedDoc("sc-oneblock", "ob-"));
 </script>
 
 <a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));

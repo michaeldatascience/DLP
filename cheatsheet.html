@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Quiz 1 Cheatsheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: one page to read top to bottom the night before. Each week has
+   the same shape: the idea in one line, what to know, what gets asked, one solved
+   question. Everything else in the set is linked from the place it helps. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.58;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 80px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:2px;overflow-wrap:anywhere}
+p{margin:0}
+a{color:var(--accent)}
+
+.mast{padding-block:32px 16px}
+.kicker{font-family:var(--f-display);font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+.mast h1{font-size:clamp(1.7rem,5vw,2.5rem);font-weight:700;letter-spacing:-.025em}
+.mast .sub{margin-top:10px;max-width:64ch;color:var(--ink-soft);font-size:.97rem}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);padding-block:10px;border-bottom:2px solid var(--ink);margin-bottom:24px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--paper)}
+.jump{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.jump button{font-family:var(--f-display);font-size:.75rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:6px 10px;cursor:pointer}
+.jump button:hover{border-color:var(--accent);color:var(--accent)}
+@media (max-width:700px){.jump{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.jump::-webkit-scrollbar{display:none}.jump button{flex:0 0 auto;white-space:nowrap}.blk{scroll-margin-top:112px}}
+#q{width:100%;font-family:var(--f-mono);font-size:.86rem;padding:8px 11px;border:1px solid var(--rule);border-radius:2px;background:var(--surface);color:var(--ink)}
+#q:focus{outline:2px solid var(--accent);outline-offset:1px}
+.hits{font-family:var(--f-mono);font-size:.75rem;color:var(--ink-soft);margin-top:5px;min-height:1em}
+
+.blk{margin-bottom:44px;scroll-margin-top:120px}
+.blk > h2{font-size:1.3rem;font-weight:700;letter-spacing:-.015em;padding-bottom:8px;border-bottom:1px solid var(--ink);margin-bottom:14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.blk > h2 small{font-family:var(--f-mono);font-size:.72rem;font-weight:500;color:var(--signal);margin-left:auto}
+h3.sub{font-size:.71rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:20px 9px}
+
+.gist{background:var(--ink);color:var(--paper);padding:13px 16px;margin-bottom:12px;font-size:1rem;line-height:1.5}
+.gist b{font-family:var(--f-display);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;display:block;opacity:.7;margin-bottom:4px;font-weight:600}
+.go{font-size:.9rem;color:var(--ink-soft);margin-top:10px;padding:10px 13px;border:1px dashed var(--rule);background:var(--surface)}
+.go b{font-family:var(--f-display);font-size:.64rem;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-right:6px}
+
+.card{background:var(--surface);border:1px solid var(--rule);padding:12px 14px;margin-bottom:9px}
+.card.hot{border-left:3px solid var(--alert)}
+.card.key{border-left:3px solid var(--accent)}
+.card.ga{border-left:3px solid var(--signal)}
+.card.q{border-left:3px solid var(--win)}
+.card h4{font-size:.95rem;font-weight:600;margin-bottom:5px}
+.card .lab{font-family:var(--f-display);font-size:.62rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:4px}
+.card.hot .lab{color:var(--alert)} .card.ga .lab{color:var(--signal)} .card.q .lab{color:var(--win)} .card.key .lab{color:var(--accent)}
+.card p{font-size:.92rem;color:var(--ink-soft)}
+.card p + p{margin-top:6px}
+.card b{color:var(--ink)}
+.card ul,.card ol{margin:6px 0 0;padding-left:19px;font-size:.92rem;color:var(--ink-soft)}
+.card li{margin-bottom:3px}
+.eq{font-family:var(--f-mono);font-size:.86rem;font-weight:600;background:var(--signal-soft);color:var(--ink);padding:7px 10px;border-radius:2px;margin:7px 0;overflow-x:auto}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-bottom:9px}
+table{border-collapse:collapse;width:100%;min-width:430px;font-size:.88rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.64rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.m{font-family:var(--f-mono);font-size:.82rem}
+td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+@media (max-width:700px){table:not(:has(th:nth-child(3))){min-width:0}table:not(:has(th:nth-child(3))) td.m{overflow-wrap:anywhere;width:44%}}
+.y{color:var(--win);font-weight:600} .n{color:var(--alert);font-weight:600}
+
+/* story chain */
+.chain{display:flex;flex-wrap:wrap;gap:6px;margin-block:12px}
+.node{flex:1 1 138px;min-width:0;background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--accent);padding:10px 11px}
+.node i{font-style:normal;font-family:var(--f-mono);font-size:.66rem;font-weight:600;color:var(--signal);display:block}
+.node b{font-family:var(--f-display);font-size:.9rem;display:block;margin-block:2px}
+.node span{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-soft);overflow-wrap:anywhere}
+
+/* resource map */
+.res{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-block:12px}
+.res a{display:block;text-decoration:none;background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:11px 13px;color:var(--ink)}
+.res a:hover{border-color:var(--accent)}
+.res a i{font-style:normal;font-family:var(--f-display);font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);display:block}
+.res a b{font-family:var(--f-display);font-size:.95rem;display:block;margin-block:2px}
+.res a span{font-size:.84rem;color:var(--ink-soft)}
+
+/* drill */
+.drill{background:var(--surface);border:2px solid var(--ink);padding:16px}
+.drill .dq{font-size:1rem;margin-bottom:12px;min-height:3.1em}
+.drill .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.drill input{font-family:var(--f-mono);font-size:.95rem;padding:9px 11px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:150px}
+.drill input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.drill .unit{font-family:var(--f-mono);font-size:.84rem;color:var(--ink-soft)}
+.btn{font-family:var(--f-display);font-size:.77rem;font-weight:600;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:2px;padding:8px 13px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft)}
+.drill .fb{margin-top:11px;font-size:.92rem;min-height:1.5em}
+.drill .fb.ok{color:var(--win);font-weight:600} .drill .fb.no{color:var(--alert);font-weight:600}
+.drill .sol{font-family:var(--f-mono);font-size:.84rem;background:var(--signal-soft);padding:8px 11px;border-radius:2px;margin-top:8px}
+.drill .tally{font-family:var(--f-mono);font-size:.8rem;color:var(--ink-soft);margin-top:10px}
+
+/* rapid fire */
+.rf-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.qa{background:var(--surface);border:1px solid var(--rule);margin-bottom:6px}
+.qa > button{width:100%;text-align:left;background:transparent;border:0;padding:10px 13px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink);display:flex;gap:10px;align-items:baseline}
+.qa > button:hover{background:var(--surface-2)}
+.qa > button i{font-style:normal;font-family:var(--f-mono);font-size:.68rem;color:var(--signal);flex:0 0 auto;min-width:24px}
+.qa .ans{padding:0 13px 12px 47px;font-size:.91rem;color:var(--ink-soft)}
+.qa .ans b{color:var(--ink)}
+.qa .src{font-family:var(--f-mono);font-size:.7rem;color:var(--ink-soft);opacity:.8;display:block;margin-top:4px}
+
+.none{padding:20px 14px;text-align:center;color:var(--ink-soft);font-size:.92rem}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.85rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Deep Learning Practice · Quiz 1</div>
+  <h1>Quiz 1 Cheatsheet</h1>
+  <p class="sub">The one notes page for weeks 1&ndash;4. Read it top to bottom once; every other page in the set is linked from the spot where it helps. Built from the lecture decks, graded assignments 1&ndash;4 and both past Quiz 1 papers.</p>
+</header>
+
+<div class="bar">
+  <div class="jump">
+    <button data-go="start">Start</button>
+    <button data-go="story">Big picture</button>
+    <button data-go="w1">Week 1</button>
+    <button data-go="w2">Week 2</button>
+    <button data-go="w3">Week 3</button>
+    <button data-go="w4">Week 4</button>
+    <button data-go="fx">Formulas + drill</button>
+    <button data-go="traps">Traps</button>
+    <button data-go="rapid">Rapid fire</button>
+    <button data-go="day">Exam day</button>
+  </div>
+  <input id="q" type="search" placeholder="search the whole page — try 'padding', 'lora', '16 bytes', 'nan'" autocomplete="off" aria-label="Search">
+  <div class="hits" id="hits"></div>
+</div>
+
+<div id="body">
+
+<!-- ================= START ================= -->
+<div class="blk" id="start">
+  <h2>Start here</h2>
+  <div class="card key">
+    <span class="lab">The whole set is five things</span>
+    <p>This page holds <b>all the notes</b>. The other four are for doing: three hands-on pages, one per week of real content, and the mock papers.</p>
+  </div>
+  <div class="res">
+    <a href="./tokenizers.html" target="_blank" rel="noopener"><i>Week 2 · hands-on</i><b>Tokenizer Lab</b><span>Run BPE, WordPiece and Unigram step by step on the lecture corpus.</span></a>
+    <a href="./transformer.html" target="_blank" rel="noopener"><i>Week 3 · hands-on</i><b>Transformer Workshop</b><span>Corpus to loss · one block with every number · parameter counter · three architectures and the mask.</span></a>
+    <a href="./memory.html" target="_blank" rel="noopener"><i>Week 4 · hands-on</i><b>Memory Workshop</b><span>The four copies · the five levers · LoRA on a real matrix · lever stacker · exam questions.</span></a>
+    <a href="./mocks.html" target="_blank" rel="noopener"><i>Test yourself</i><b>Mock Papers</b><span>Two full 50-mark papers in the real format, timed and auto-marked.</span></a>
+  </div>
+  <div class="card">
+    <h4>A good order for the time left</h4>
+    <ol>
+      <li><b>Read this page once</b>, Big picture through Week 4. About an hour.</li>
+      <li><b>Formula drill</b> below until ten in a row are right. About 15 minutes. This is roughly a third of the marks.</li>
+      <li><b>Rapid fire</b>: answer aloud before you reveal. Anything you miss, open that week's workshop tab.</li>
+      <li><b>One mock paper</b>, timed. Then read the Traps list one last time.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ================= STORY ================= -->
+<div class="blk" id="story">
+  <h2>The big picture <small>all four weeks are one pipeline</small></h2>
+  <div class="gist"><b>The whole course in one line</b>Text becomes numbers, numbers go through a transformer, the transformer guesses the next token, and the guess is corrected. Weeks 1&ndash;4 are the four parts of that sentence.</div>
+  <div class="chain">
+    <div class="node"><i>WEEK 1</i><b>Dataset</b><span>load, map, filter the raw text</span></div>
+    <div class="node"><i>WEEK 2</i><b>Tokenizer</b><span>"the cat sat" &rarr; [9, 3, 8, 2]</span></div>
+    <div class="node"><i>WEEK 3</i><b>Embedding lookup</b><span>ids pick rows of E &rarr; X (T &times; d)</span></div>
+    <div class="node"><i>WEEK 3</i><b>Transformer blocks</b><span>attention + FFN, L times</span></div>
+    <div class="node"><i>WEEK 3</i><b>LM head + loss</b><span>scores for all V tokens; loss = &minus;ln p(next)</span></div>
+    <div class="node"><i>WEEK 4</i><b>Adapt</b><span>fine-tune, LoRA, or just prompt</span></div>
+  </div>
+  <div class="card">
+    <ul>
+      <li>The <b>tokenizer is trained first</b>, once, on the corpus (often a sample of it). Its vocabulary is then frozen.</li>
+      <li>The <b>whole corpus is tokenized</b> into one long stream of ids and cut into blocks of the context length.</li>
+      <li><b>Pre-training</b> is one loop repeated millions of times: predict the next token, measure the loss, backpropagate, update. The <b>answer key is the text itself</b>, so no labels are needed.</li>
+      <li>The <b>embedding table E</b> starts random and is learned like any other weight. X is just rows looked up from E.</li>
+      <li>An untrained model's loss is about <b>ln(V)</b>, because it spreads probability evenly over V tokens.</li>
+    </ul>
+  </div>
+  <div class="go"><b>See it with numbers</b><a href="./transformer.html" target="_blank" rel="noopener">Transformer Workshop</a> &rarr; tab 1, &ldquo;From corpus to loss&rdquo;.</div>
+</div>
+
+<!-- ================= WEEK 1 ================= -->
+<div class="blk" id="w1">
+  <h2>Week 1 · The datasets module <small>light weight in Quiz 1 — concepts only</small></h2>
+  <div class="gist"><b>The idea</b>A dataset from the Hub becomes one object you can slice and transform. It sits on disk in Arrow files and is read through memory-mapping, so it never has to fit in RAM.</div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Word</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td class="m">config / subset</td><td>A named variant under one dataset name, e.g. one language of <code>naamapadam</code>.</td></tr>
+    <tr><td class="m">split</td><td>train / validation / test.</td></tr>
+    <tr><td class="m">DatasetDict</td><td>What you get when you load all splits: a dictionary of Datasets.</td></tr>
+    <tr><td class="m">Arrow</td><td>The on-disk file format (<code>.arrow</code>). Files are <b>immutable</b> once written.</td></tr>
+    <tr><td class="m">memory-mapping</td><td>Reading the file from disk as if it were in RAM.</td></tr>
+    <tr><td class="m">streaming</td><td>Fetching samples one at a time; nothing saved to disk.</td></tr>
+    <tr><td class="m">cache directory</td><td>Where downloads and every transformed copy are kept.</td></tr>
+  </tbody></table></div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Method</th><th>What it does</th></tr></thead><tbody>
+    <tr><td class="m">load_dataset(name, config, split=)</td><td>Download and open.</td></tr>
+    <tr><td class="m">.map(fn)</td><td>Apply to every sample; used to add or change columns.</td></tr>
+    <tr><td class="m">.map(fn, batched=True, batch_size=N)</td><td>fn receives a <b>dict of lists</b>, N samples at a time.</td></tr>
+    <tr><td class="m">.filter(fn)</td><td>Keep samples where fn is True.</td></tr>
+    <tr><td class="m">.select / .shuffle(seed=) / .train_test_split(test_size=)</td><td>Pick rows / reorder / split in two.</td></tr>
+    <tr><td class="m">concatenate_datasets([...])</td><td><b>Stack</b> end to end. Total = sum of the parts.</td></tr>
+    <tr><td class="m">interleave_datasets([...], probabilities=, seed=)</td><td><b>Mix</b> by sampling from each.</td></tr>
+    <tr><td class="m">.remove_columns / .cast_column</td><td>Drop columns / change a column's type.</td></tr>
+  </tbody></table></div>
+
+  <div class="card hot">
+    <span class="lab">What gets asked</span>
+    <p>Because Arrow files are immutable, <b>every transform writes a new cache file</b>. So disk usage grows with each <code>.map()</code>, and adding one big column can roughly double it.</p>
+  </div>
+  <div class="card ga">
+    <span class="lab">From GA1</span>
+    <ul>
+      <li><code>naamapadam</code> has <b>11 configs</b> and <b>7 classes</b> (NER tags).</li>
+      <li>The cache folder holds <code>-train.arrow</code>, <code>-test.arrow</code>, <code>-validation.arrow</code> and <code>dataset_info.json</code>. There is no combined &ldquo;all&rdquo; file.</li>
+      <li>&ldquo;The modified dataset increased disk space about two-fold&rdquo; &mdash; <b class="y">True</b>.</li>
+      <li>&ldquo;Each modification adds a new cache file, increasing disk space&rdquo; &mdash; <b class="y">True</b>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================= WEEK 2 ================= -->
+<div class="blk" id="w2">
+  <h2>Week 2 · Tokenization <small>about a quarter of the marks</small></h2>
+  <div class="gist"><b>The idea</b>A tokenizer turns text into integers and back. It is learned from the corpus before the model is trained. The three algorithms build the same kind of vocabulary and differ in one thing: the rule for choosing what to merge or drop.</div>
+
+  <div class="card key">
+    <span class="lab">The pipeline, always in this order</span>
+    <p><b>Normalizer &rarr; PreTokenizer &rarr; Model &rarr; PostProcessor</b> &nbsp;(and a Decoder to go back to text).</p>
+    <p>Remember it as <b>Clean, Cut, Merge, Wrap</b>: lowercase and tidy the text, split on whitespace, apply BPE / WordPiece / Unigram, add the special tokens.</p>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Word</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td class="m">token</td><td>The unit the tokenizer produces. Can be a word, a piece of a word, or a character. <b>Not the same as a word.</b></td></tr>
+    <tr><td class="m">vocabulary, V</td><td>The fixed list of tokens, each with an id.</td></tr>
+    <tr><td class="m">subword</td><td>A piece smaller than a word: &ldquo;enjoyed&rdquo; &rarr; &ldquo;enjoy&rdquo; + &ldquo;ed&rdquo;.</td></tr>
+    <tr><td class="m">OOV / [UNK]</td><td>A word not in V. Subword tokenizers avoid it by falling back to smaller pieces.</td></tr>
+    <tr><td class="m">agglutinative language</td><td>Builds long words by gluing pieces (Tamil, Turkish). Word-level vocabularies fail on it.</td></tr>
+  </tbody></table></div>
+
+  <h3 class="sub">The three algorithms</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>BPE</th><th>WordPiece</th><th>Unigram (SentencePiece)</th></tr></thead><tbody>
+    <tr><td><b>Starts from</b></td><td>characters</td><td>characters</td><td>a large vocabulary</td></tr>
+    <tr><td><b>Each step</b></td><td>merge a pair</td><td>merge a pair</td><td>remove subwords</td></tr>
+    <tr><td><b>Chooses by</b></td><td class="m">highest count(a,b)</td><td class="m">highest count(a,b) / (count(a)&times;count(b))</td><td class="m">smallest loss in likelihood</td></tr>
+    <tr><td><b>New word is split by</b></td><td>replaying merges in order</td><td>replaying merges in order</td><td>Viterbi: most probable split</td></tr>
+    <tr><td><b>Marker</b></td><td class="m">&lt;/w&gt; at word end</td><td class="m">## on continuation</td><td class="m">&#9601; before a word</td></tr>
+    <tr><td><b>Needs whitespace split?</b></td><td>yes</td><td>yes</td><td><b>no</b> &mdash; works for Japanese, Chinese</td></tr>
+    <tr><td><b>Used by</b></td><td>GPT-1, GPT-2</td><td>BERT</td><td>T5, ALBERT, XLNet</td></tr>
+  </tbody></table></div>
+
+  <div class="card">
+    <h4>The lecture's worked example, in four lines</h4>
+    <ul>
+      <li>Corpus: &ldquo;knowing the name of something is different from knowing something. knowing something about everything isn't bad&rdquo; &mdash; 13 distinct words, starting vocabulary 22 symbols.</li>
+      <li><b>BPE:</b> <code>(i,n)</code> and <code>(n,g)</code> both occur 7 times. <code>(i,n)</code> is met first, so it merges first &rarr; <code>in</code>. Next merge: <code>(in,g)</code> &rarr; <code>ing</code>.</li>
+      <li><b>WordPiece:</b> score(t,h) = 5 / (8&times;5) = 0.125; score(a,d) = 1 / (3&times;2) = 0.167. The rarer pair scores higher even with a smaller count.</li>
+      <li><b>Unigram:</b> p(k&middot;now&middot;ing) = 63/4096, p(know&middot;ing) = 336/4096, p(knowing) = 768/4096. Fewer pieces usually wins. Viterbi on &ldquo;whereby&rdquo; gives <code>where | by</code> at &minus;8.21 + &minus;7.34 = &minus;15.55.</li>
+    </ul>
+  </div>
+
+  <div class="card hot">
+    <span class="lab">What gets asked</span>
+    <ul>
+      <li><b>Vocabulary size:</b> larger V &rarr; <b>shorter sequences</b> but a <b>bigger embedding table</b> (V &times; d). Never both better.</li>
+      <li>For a fixed text, token count <b>never goes up</b> as V grows. It can stay flat.</li>
+      <li>Merge rules come from <b>corpus statistics</b>, not from meaning or morphology.</li>
+      <li>Text shattering into fragments, or many [UNK]s: <b>retrain the tokenizer on in-domain text</b>, or move from word-level to BPE / SentencePiece. Dropout, batch size or context length cannot fix it.</li>
+    </ul>
+  </div>
+
+  <h3 class="sub">The Hugging Face tokenizer</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Call</th><th>Returns</th></tr></thead><tbody>
+    <tr><td class="m">tokenizer(text)</td><td>a dictionary (BatchEncoding): input_ids, attention_mask, &hellip;</td></tr>
+    <tr><td class="m">tokenizer.encode(text)</td><td>a plain <b>list of integers</b></td></tr>
+    <tr><td class="m">tokenizer.tokenize(text)</td><td>a list of <b>string pieces</b></td></tr>
+    <tr><td class="m">tokenizer.decode(ids)</td><td>text</td></tr>
+  </tbody></table></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Output</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td class="m">input_ids</td><td>one integer per token</td></tr>
+    <tr><td class="m">attention_mask</td><td>1 = real token, <b>0 = padding</b></td></tr>
+    <tr><td class="m">token_type_ids</td><td>which of two sentences a token belongs to</td></tr>
+    <tr><td class="m">offset_mapping</td><td>each token's character span in the original text</td></tr>
+    <tr><td class="m">hidden_states</td><td><b class="n">not from the tokenizer</b> &mdash; the model produces these</td></tr>
+  </tbody></table></div>
+  <div class="card key">
+    <span class="lab">Padding, truncation, special tokens</span>
+    <ul>
+      <li><code>padding=True</code> pads to the <b>longest sequence in the batch</b>. <code>padding="max_length"</code> pads to a <b>fixed length</b>.</li>
+      <li><code>truncation=True</code> cuts at the token limit. <b>Without it nothing is cut</b>, even past 512.</li>
+      <li>Special tokens are <b>counted inside</b> <code>max_length</code>.</li>
+      <li>BERT: <code>[CLS] [SEP] [PAD] [MASK] [UNK]</code> &mdash; five. A single sentence gets <code>[CLS]</code> &hellip; <code>[SEP]</code>.</li>
+      <li>GPT-2: only <code>&lt;|endoftext|&gt;</code>, and <b>no pad token</b> until you set <code>tokenizer.pad_token = tokenizer.eos_token</code>.</li>
+      <li>Special tokens and their ids are <b>model-specific</b>.</li>
+    </ul>
+  </div>
+  <div class="card ga">
+    <span class="lab">From GA2 and GA3</span>
+    <ul>
+      <li>Vocabulary 5K &rarr; 10K: fewer tokens. 10K &rarr; 15K: <b>no change</b>. 15K &rarr; 32K: fewer again.</li>
+      <li>Adding a frequent token by hand (<code>FY</code>) reduced the count, 25 &rarr; 22.</li>
+      <li>&ldquo;Zero is appended to input_ids to pad the batch to 64&rdquo; &mdash; <b>insufficient information</b>. The pad id depends on the tokenizer.</li>
+      <li><code>bert-base-uncased</code>: context length 512, 5 special tokens, inserts [CLS] and [SEP]. It does <b>not</b> truncate past 512 by itself.</li>
+    </ul>
+  </div>
+  <div class="card q">
+    <span class="lab">Solved · 2026 T2 Q18 · 4 marks</span>
+    <p>Batch <code>["Hi", "Hello beautiful world"]</code> through a BERT tokenizer with <code>padding=True</code>. How many zeros in the first attention mask?</p>
+    <p>&ldquo;Hi&rdquo; &rarr; [CLS] hi [SEP] = 3 tokens. The other &rarr; [CLS] hello beautiful world [SEP] = 5 tokens. Pad the first to 5: mask = 1 1 1 0 0. <b>Answer: 2.</b></p>
+  </div>
+  <div class="go"><b>Do it by hand</b><a href="./tokenizers.html" target="_blank" rel="noopener">Tokenizer Lab</a> &mdash; step the merges yourself and watch BPE and WordPiece pick different pairs.</div>
+</div>
+
+<!-- ================= WEEK 3 ================= -->
+<div class="blk" id="w3">
+  <h2>Week 3 · Language models and GPT <small>parameters, masks, architectures</small></h2>
+  <div class="gist"><b>The idea</b>A transformer block has two parts: attention, where tokens look at each other, and a feed-forward network, where each token is processed on its own. Stack L blocks, train it to predict the next token, and you have GPT.</div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td class="m">V</td><td>vocabulary size</td></tr>
+    <tr><td class="m">d (d_model)</td><td>length of the vector for one token &mdash; <b>one number you choose</b></td></tr>
+    <tr><td class="m">T</td><td>number of tokens in this input</td></tr>
+    <tr><td class="m">context length</td><td>the largest T the model accepts</td></tr>
+    <tr><td class="m">L, h</td><td>number of blocks, number of attention heads</td></tr>
+    <tr><td class="m">N (&ldquo;7B&rdquo;)</td><td>the <b>count of all learnable numbers</b> in the model. Not the same as d.</td></tr>
+  </tbody></table></div>
+
+  <div class="card key">
+    <span class="lab">Where the parameters are</span>
+    <div class="eq">embeddings = V&times;d + context&times;d &nbsp;&nbsp;|&nbsp;&nbsp; attention = 4d&sup2; &nbsp;&nbsp;|&nbsp;&nbsp; FFN = 8d&sup2; &nbsp;&nbsp;|&nbsp;&nbsp; one block = 12d&sup2;</div>
+    <ul>
+      <li>Attention has four d&times;d matrices: <b>Q, K, V, O</b>.</li>
+      <li>The FFN goes d &rarr; 4d &rarr; d: two matrices of d&times;4d. It is <b>twice the size</b> of attention.</li>
+      <li><b>Heads add no parameters.</b> Two heads means splitting the columns of Q, K, V into two halves.</li>
+      <li><b>Sequence length adds no parameters.</b> It only costs compute and activation memory.</li>
+      <li>A longer context adds only <code>&Delta;context &times; d</code> (the position table). Tiny.</li>
+      <li>Check: GPT-1 = 40,478&times;768 + 512&times;768 + 12 &times; 12&times;768&sup2; = <b>116.4M</b>.</li>
+    </ul>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Model</th><th class="num">L</th><th class="num">d</th><th class="num">heads</th><th class="num">context</th><th class="num">V</th><th class="num">params</th><th>Notes</th></tr></thead><tbody>
+    <tr><td><b>GPT-1</b></td><td class="num">12</td><td class="num">768</td><td class="num">12</td><td class="num">512</td><td class="num">40,478</td><td class="num">~117M</td><td>BookCorpus, BPE, GELU, FFN 3072</td></tr>
+    <tr><td><b>BERT-base</b></td><td class="num">12</td><td class="num">768</td><td class="num">12</td><td class="num">512</td><td class="num">30,522</td><td class="num">~110M</td><td>WordPiece, absolute positions, embeddings ~23M</td></tr>
+    <tr><td><b>GPT-2</b></td><td class="num">12</td><td class="num">768</td><td class="num">12</td><td class="num">1024</td><td class="num">50,257</td><td class="num">~124M</td><td>no pad token</td></tr>
+  </tbody></table></div>
+
+  <h3 class="sub">Attention and the causal mask</h3>
+  <div class="card key">
+    <ul>
+      <li>Scores = Q K&#7488; / &radic;d. This T&times;T matrix is the only <b>O(N&sup2;)</b> part of a transformer.</li>
+      <li>The <b>causal mask</b> puts &minus;&infin; where a token must not look. After softmax those become 0.</li>
+      <li>The blocked cells are <b>strictly above the diagonal</b> (&ldquo;strictly upper triangular&rdquo;). A token may see itself and the past.</li>
+      <li>Correct code: <code>torch.triu(torch.ones(n,n), diagonal=1)</code>.</li>
+    </ul>
+  </div>
+  <div class="card hot">
+    <span class="lab">The mask bug · 2026 T2 Q9 · 3 marks</span>
+    <p><code>diagonal=0</code> also blocks the diagonal, so each token cannot see <b>itself</b>. The first row is all &minus;&infin; and softmax gives <b>NaN</b>. No error is raised.</p>
+  </div>
+
+  <h3 class="sub">Three kinds of transformer</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Encoder-only</th><th>Decoder-only</th><th>Encoder&ndash;decoder</th></tr></thead><tbody>
+    <tr><td><b>Example</b></td><td>BERT</td><td>GPT</td><td>T5, BART</td></tr>
+    <tr><td><b>Trained with</b></td><td>MLM (masked)</td><td>CLM (causal, next token)</td><td>sequence-to-sequence</td></tr>
+    <tr><td><b>A token sees</b></td><td>both sides</td><td>the past only</td><td>both, then the past</td></tr>
+    <tr><td><b>Cross-attention</b></td><td class="n">no</td><td class="n">no &mdash; no encoder to read</td><td class="y">yes</td></tr>
+    <tr><td><b>Good for</b></td><td>classification, NER</td><td>generation</td><td>translation, summarisation</td></tr>
+  </tbody></table></div>
+  <div class="card hot">
+    <span class="lab">CLM statements · 2026 T1 Q16</span>
+    <ul>
+      <li><b class="y">True</b> &mdash; the loss at position t depends only on tokens before t.</li>
+      <li><b class="y">True</b> &mdash; the mask is strictly upper triangular.</li>
+      <li><b class="y">True</b> &mdash; the sequence probability is a product of next-token probabilities.</li>
+      <li><b class="n">False</b> &mdash; future tokens send gradients to earlier positions. The mask cut that path.</li>
+    </ul>
+  </div>
+
+  <h3 class="sub">Training with Hugging Face</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Piece</th><th>What it is</th></tr></thead><tbody>
+    <tr><td class="m">AutoModelForCausalLM</td><td>GPT-style model with a next-token head</td></tr>
+    <tr><td class="m">AutoModelForMaskedLM</td><td>BERT-style model with a masked-token head</td></tr>
+    <tr><td class="m">AutoModelForSequenceClassification</td><td>model with a classification head</td></tr>
+    <tr><td class="m">DataCollatorForLanguageModeling(mlm=False)</td><td>batches for <b>CLM</b>; no masking</td></tr>
+    <tr><td class="m">DataCollatorForLanguageModeling(mlm=True, mlm_probability=)</td><td>batches for <b>MLM</b>; does the masking</td></tr>
+    <tr><td class="m">Trainer + TrainingArguments</td><td>the training loop and its settings</td></tr>
+  </tbody></table></div>
+  <div class="card key">
+    <ul>
+      <li><b>&minus;100</b> is the label the loss ignores: padding, and in MLM every token that was not masked.</li>
+      <li><b>Packing (chunking):</b> tokenize a batch, join all input ids into one stream, cut into blocks of the context length, drop the short last block.</li>
+      <li>A pretrained <code>ForMaskedLM</code> model trained further on unlabelled domain text = <b>continual pre-training with MLM</b>.</li>
+    </ul>
+  </div>
+  <div class="card ga">
+    <span class="lab">From GA3</span>
+    <ul>
+      <li>Default BERT: <b>12 layers</b>, absolute position embeddings, word embeddings about <b>23M</b>, total about <b>110M</b>.</li>
+      <li>Context 512 &rarr; 1024: parameters go up by 512&times;768 = <b>0.393M</b>.</li>
+      <li>In an MLM batch, the label of an <b>unmasked</b> token is <b>&minus;100</b>.</li>
+    </ul>
+  </div>
+  <div class="card q">
+    <span class="lab">Solved · 2026 T1 Q19 · 4 marks</span>
+    <p>d = 768, 12 heads, only 3 tokens. Parameters in the Q, K, V, O projections, no biases?</p>
+    <p>Heads and tokens do not matter. 4 &times; 768&sup2; = 2,359,296 = <b>2.36M</b>.</p>
+  </div>
+  <div class="go"><b>See it work</b><a href="./transformer.html" target="_blank" rel="noopener">Transformer Workshop</a> &mdash; tab 2 walks one block with every number, tab 3 is the parameter counter, tab 4 has the mask you can break.</div>
+</div>
+
+<!-- ================= WEEK 4 ================= -->
+<div class="blk" id="w4">
+  <h2>Week 4 · Adapting a pretrained model <small>the biggest block of marks</small></h2>
+  <div class="gist"><b>The idea</b>A pretrained model knows language but not your task. You adapt it by changing weights (fine-tuning) or by writing a prompt. Changing weights costs memory, and most of week 4 is about where that memory goes and how to reduce it.</div>
+
+  <h3 class="sub">Ways to adapt</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Type</th><th>Data</th><th>What is learned</th></tr></thead><tbody>
+    <tr><td><b>Task-specific fine-tuning</b></td><td>labelled data for one task</td><td>one task, usually through a new head</td></tr>
+    <tr><td><b>Continued pre-training</b></td><td>unlabelled text from your domain</td><td>the domain's language. Same objective as pre-training.</td></tr>
+    <tr><td><b>Instruction tuning</b></td><td>instruction &rarr; response pairs</td><td>to follow instructions</td></tr>
+    <tr><td><b>Preference tuning</b></td><td>human choices between responses</td><td>what people prefer (RLHF, DPO)</td></tr>
+    <tr><td><b>Prompting</b></td><td>none &mdash; no weights change</td><td>zero-shot, few-shot (in-context), chain of thought</td></tr>
+  </tbody></table></div>
+  <div class="card hot">
+    <span class="lab">Graded False in GA4</span>
+    <p>&ldquo;The training objective for continued pre-training and instruction tuning is the same.&rdquo; <b class="n">False.</b> Continued pre-training learns from every token of plain text. Instruction tuning learns to produce the response to an instruction.</p>
+    <p>Typical order with lots of raw domain text and a few instruction pairs: <b>continued pre-training first, then instruction tuning</b>.</p>
+  </div>
+
+  <h3 class="sub">Where the memory goes</h3>
+  <div class="card key">
+    <span class="lab">The four copies</span>
+    <div class="eq">training = weights + gradients + momentum + variance = 4 copies &times; 4 bytes = 16 bytes per parameter</div>
+    <ul>
+      <li>Momentum and variance are AdamW's two &ldquo;optimizer states&rdquo;.</li>
+      <li><b>Inference keeps only the weights</b>: 4 bytes per parameter in fp32.</li>
+      <li>Weights alone: fp32 = 4 bytes, fp16 / bf16 = 2, int8 = 1, int4 = 0.5.</li>
+      <li><b>Activations</b> are separate. They grow with batch size and sequence length, not with model size. Exam questions say &ldquo;ignore activations&rdquo;.</li>
+    </ul>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Technique</th><th>What it does</th><th>Saves</th><th>Does not save</th></tr></thead><tbody>
+    <tr><td><b>Mixed precision</b> (fp16 / bf16)</td><td>Computes in 16-bit, keeps a 32-bit master copy of the weights.</td><td>activations; faster</td><td class="n">optimizer states</td></tr>
+    <tr><td><b>Gradient accumulation</b></td><td>Adds up gradients over several small batches, then updates once.</td><td>activations (smaller batch)</td><td class="n">optimizer states, gradients</td></tr>
+    <tr><td><b>Gradient checkpointing</b></td><td>Does not store activations; recomputes them in the backward pass.</td><td>activations, a lot</td><td class="n">anything per-parameter; costs extra compute</td></tr>
+    <tr><td><b>Quantization</b> (8-bit, 4-bit)</td><td>Stores each weight in fewer bits.</td><td><b>weights</b></td><td class="n">activations</td></tr>
+    <tr><td><b>LoRA</b></td><td>Freezes the model; trains small matrices beside it.</td><td>gradients + optimizer states</td><td class="n">weights &mdash; base stays loaded</td></tr>
+    <tr><td><b>QLoRA</b></td><td>LoRA on a 4-bit base.</td><td>all three</td><td></td></tr>
+    <tr><td><b>Head-only fine-tuning</b></td><td>Freezes the model; trains one new last layer.</td><td>gradients + optimizer states</td><td class="n">weights</td></tr>
+  </tbody></table></div>
+
+  <div class="card hot">
+    <span class="lab">Always false</span>
+    <ul>
+      <li>&ldquo;FP16 halves the optimizer state.&rdquo; No. The 32-bit master copy and both moments are kept.</li>
+      <li>&ldquo;Gradient accumulation reduces the number of optimizer states.&rdquo; No.</li>
+      <li>&ldquo;The optimizer updates after every batch.&rdquo; No. With <code>gradient_accumulation_steps=8</code>, once every 8 batches.</li>
+      <li>&ldquo;Warmup reduces VRAM.&rdquo; No. It only ramps the learning rate.</li>
+      <li>&ldquo;Increasing vocabulary size helps with out-of-memory.&rdquo; No. It makes the model bigger.</li>
+    </ul>
+  </div>
+
+  <div class="card key">
+    <span class="lab">LoRA in five lines</span>
+    <ul>
+      <li>Keep W frozen. Learn A (d&times;r) and B (r&times;d). Use <b>W + A&middot;B</b>.</li>
+      <li>Trainable parameters for one matrix = <b>2&middot;d&middot;r</b>. Raising the rank r raises this.</li>
+      <li>One of A, B starts at zero so the model starts unchanged.</li>
+      <li>The frozen base is still in memory. Only quantization shrinks it &mdash; hence QLoRA.</li>
+      <li>Head-only is the same idea in one place: a new last layer of <b>d &times; num_labels</b> parameters.</li>
+    </ul>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>TrainingArguments</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td class="m">per_device_train_batch_size</td><td>samples per batch on one GPU</td></tr>
+    <tr><td class="m">gradient_accumulation_steps</td><td>batches added up before one update. Effective batch = batch &times; steps.</td></tr>
+    <tr><td class="m">fp16 / bf16</td><td>mixed precision</td></tr>
+    <tr><td class="m">max_grad_norm</td><td>gradient clipping: limits the size of an update</td></tr>
+    <tr><td class="m">warmup_steps</td><td>learning rate rises linearly from ~0 at the start, then decays</td></tr>
+    <tr><td class="m">weight_decay</td><td>penalty that keeps weights from growing large</td></tr>
+  </tbody></table></div>
+
+  <div class="card ga">
+    <span class="lab">From GA4 &mdash; 7B model, context 2048, d = 2048, 1,000,000 samples, batch 16, accumulation 4</span>
+    <ul>
+      <li>Update steps in one epoch: 1,000,000 / (16&times;4) = <b>15,625</b>.</li>
+      <li>&ldquo;Weights update only at the end of an epoch&rdquo; &mdash; <b class="n">False</b>.</li>
+      <li>Memory to load in fp32: 7B &times; 4 = <b>28 GB</b>. With context raised to 8000: <b>still about 28 GB</b>.</li>
+      <li>Classification head for 8 labels, no bias: 2048 &times; 8 = <b>16,384</b>.</li>
+      <li>Head-only takes far less memory than full fine-tuning &mdash; <b class="y">True</b>.</li>
+      <li>Raising LoRA rank r increases trainable parameters &mdash; <b class="y">True</b>.</li>
+    </ul>
+  </div>
+  <div class="card q">
+    <span class="lab">Solved · 2026 T1 Q8 · 2 marks</span>
+    <p>4B parameters, fp32, AdamW, one 32 GB GPU. Why is full fine-tuning impossible?</p>
+    <p>Weights 16 GB + gradients 16 GB + optimizer states 32 GB = <b>64 GB</b>, which is more than 32 GB.</p>
+  </div>
+  <div class="go"><b>See it move</b><a href="./memory.html" target="_blank" rel="noopener">Memory Workshop</a> &mdash; tab 1 is the memory ledger, tab 2 explains each technique, tab 3 is LoRA with real numbers, tab 4 lets you stack them.</div>
+</div>
+
+<!-- ================= FORMULAS ================= -->
+<div class="blk" id="fx">
+  <h2>Formulas and drill <small>about a third of the marks</small></h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Asked for</th><th>Formula</th><th>Example</th></tr></thead><tbody>
+    <tr><td>Memory to <b>train</b> (fp32, AdamW)</td><td class="m">N &times; 16 bytes</td><td class="m">1.2B &rarr; 19.2 GB · 5B &rarr; 80 GB</td></tr>
+    <tr><td>Memory to <b>load</b></td><td class="m">N &times; 4 (fp32) · 2 (fp16) · 1 (int8)</td><td class="m">7B fp32 &rarr; 28 GB</td></tr>
+    <tr><td>Embedding parameters</td><td class="m">V&times;d + context&times;d</td><td class="m">32000, 1024, 2048 &rarr; 34.9M</td></tr>
+    <tr><td>Attention projections</td><td class="m">4 &times; d&sup2;</td><td class="m">d=768 &rarr; 2.36M · d=1536 &rarr; 9.44M</td></tr>
+    <tr><td>One block / all blocks</td><td class="m">12 &times; d&sup2; &nbsp;/&nbsp; L &times; 12 &times; d&sup2;</td><td class="m">d=768 &rarr; 7.08M per block</td></tr>
+    <tr><td>Longer context</td><td class="m">&Delta;context &times; d</td><td class="m">512&rarr;1024, d=768 &rarr; 0.393M</td></tr>
+    <tr><td>Update steps per epoch</td><td class="m">samples / (batch &times; accumulation)</td><td class="m">1,000,000 / (16&times;4) = 15,625</td></tr>
+    <tr><td>Tokens processed</td><td class="m">batch &times; accumulation &times; context &times; steps</td><td class="m">8&times;4&times;4096&times;10,000 = 1310.7M</td></tr>
+    <tr><td>Classification head</td><td class="m">d &times; num_labels</td><td class="m">2048 &times; 8 = 16,384</td></tr>
+    <tr><td>LoRA, one matrix</td><td class="m">2 &times; d &times; r</td><td class="m">d=4096, r=8 &rarr; 65,536</td></tr>
+    <tr><td>WordPiece score</td><td class="m">count(a,b) / (count(a) &times; count(b))</td><td class="m">5 / (8&times;5) = 0.125</td></tr>
+    <tr><td>Blocked cells in causal mask</td><td class="m">n(n&minus;1)/2</td><td class="m">n=6 &rarr; 15</td></tr>
+  </tbody></table></div>
+  <div class="card key">
+    <ul>
+      <li><b>1 GB = 10&#8313; bytes</b> in this course.</li>
+      <li>Biases and layer-norm are ignored. Answers are accepted within a range.</li>
+    </ul>
+  </div>
+
+  <h3 class="sub">Drill &mdash; new numbers every time</h3>
+  <div class="drill" id="drill">
+    <div class="dq" id="dq"></div>
+    <div class="row">
+      <input id="da" type="text" inputmode="decimal" placeholder="your answer" autocomplete="off" aria-label="Your answer">
+      <span class="unit" id="du"></span>
+      <button class="btn" id="dcheck" type="button">Check</button>
+      <button class="btn ghost" id="dshow" type="button">Show working</button>
+      <button class="btn ghost" id="dnext" type="button">Next question</button>
+    </div>
+    <div class="fb" id="dfb"></div>
+    <div class="sol" id="dsol" hidden></div>
+    <div class="tally" id="dtally">0 right &middot; streak 0</div>
+  </div>
+</div>
+
+<!-- ================= TRAPS ================= -->
+<div class="blk" id="traps">
+  <h2>Traps <small>read this last before the exam</small></h2>
+  <div class="card hot">
+    <span class="lab">Numbers planted to mislead</span>
+    <ul>
+      <li><b>Number of heads</b> in a parameter question. Ignore it.</li>
+      <li><b>Sequence length</b> (&ldquo;only 3 tokens&rdquo;) in a parameter question. Ignore it.</li>
+      <li><b>Context length</b> in a memory question. It changes almost nothing.</li>
+      <li>&ldquo;Ignoring optimizer states&rdquo; means <b>weights only</b>: N &times; 4, not N &times; 16.</li>
+    </ul>
+  </div>
+  <div class="card hot">
+    <span class="lab">Words that usually mark a wrong option</span>
+    <p><b>always · never · perfectly · guaranteed · identical · automatically.</b> In both past papers these sat on wrong options.</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Easily confused</th><th>The difference</th></tr></thead><tbody>
+    <tr><td>attention_mask vs causal mask</td><td>padding (from the tokenizer) vs hiding the future (inside the model)</td></tr>
+    <tr><td>encode() vs tokenizer()</td><td>list of ids vs dictionary</td></tr>
+    <tr><td>padding=True vs "max_length"</td><td>longest in batch vs fixed length</td></tr>
+    <tr><td>concatenate vs interleave</td><td>stack vs mix by sampling</td></tr>
+    <tr><td>BPE vs WordPiece</td><td>raw count vs count divided by the parts</td></tr>
+    <tr><td>mlm=False vs mlm=True</td><td>CLM, no masking vs MLM, masks tokens</td></tr>
+    <tr><td>diagonal=1 vs diagonal=0</td><td>correct vs blocks the token itself &rarr; NaN</td></tr>
+    <tr><td>continued pre-training vs instruction tuning</td><td>plain domain text vs instruction&ndash;response pairs; objectives differ</td></tr>
+    <tr><td>mixed precision vs quantization</td><td>16-bit compute with a 32-bit master vs storing weights in fewer bits</td></tr>
+    <tr><td>gradient accumulation vs checkpointing</td><td>smaller batches added up vs recomputing activations</td></tr>
+    <tr><td>LoRA vs head-only</td><td>small matrices in every layer vs one new last layer</td></tr>
+    <tr><td>gradient clipping vs weight decay</td><td>limits one update vs keeps weights small</td></tr>
+  </tbody></table></div>
+</div>
+
+<!-- ================= RAPID ================= -->
+<div class="blk" id="rapid">
+  <h2>Rapid fire <small>answer first, then reveal</small></h2>
+  <div class="rf-head">
+    <button class="btn ghost" id="rfall" type="button">Reveal all</button>
+    <span style="font-size:.86rem;color:var(--ink-soft)">Every recurring question type from the graded assignments and both past papers.</span>
+  </div>
+  <div id="rf"></div>
+</div>
+
+<!-- ================= DAY ================= -->
+<div class="blk" id="day">
+  <h2>Exam day</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Format in both past papers</th><th></th></tr></thead><tbody>
+    <tr><td>Total</td><td>50 marks, about 19&ndash;20 questions</td></tr>
+    <tr><td>MCQ</td><td>2 marks each (one was 3)</td></tr>
+    <tr><td>Multiple select</td><td>3 marks each</td></tr>
+    <tr><td>Short numeric answer</td><td>4 marks each, accepted within a range</td></tr>
+    <tr><td>Negative marking</td><td><b>none</b></td></tr>
+    <tr><td>Calculator</td><td>scientific calculator allowed</td></tr>
+  </tbody></table></div>
+  <div class="card key">
+    <ul>
+      <li><b>Answer everything.</b> A blank scores the same as a wrong answer.</li>
+      <li>Numeric questions first: they are quick marks if you know the formula.</li>
+      <li>In multiple select, test each option alone as true or false.</li>
+      <li>In code questions, read the arguments: <code>diagonal=</code>, <code>mlm=</code>, <code>padding=</code>, <code>truncation=</code>, <code>gradient_accumulation_steps=</code>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="none" id="none" hidden>Nothing matches that search.</div>
+</div>
+
+<footer>
+  One of five: this Cheatsheet, the Tokenizer Lab, the Transformer Workshop, the Memory Workshop and the Mock Papers. Earlier single-topic pages are now tabs inside the two workshops.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+
+  // ---------------- rapid fire ----------------
+  var RF = [
+   ["W1","Does .map() change the dataset file in place?","No. Arrow files are immutable, so it writes a <b>new cache file</b>. Disk usage grows.","GA1"],
+   ["W1","concatenate_datasets vs interleave_datasets?","Concatenate <b>stacks</b> them. Interleave <b>mixes</b> by sampling with given probabilities and a seed.","GA1"],
+   ["W1","With batched=True, what does the map function receive?","A <b>dictionary of lists</b>, batch_size samples at a time.","GA3"],
+   ["W1","Which files are in the cache after loading one config?","train / test / validation <code>.arrow</code> files and <code>dataset_info.json</code>.","GA1"],
+
+   ["W2","Order of the tokenizer pipeline?","Normalizer &rarr; PreTokenizer &rarr; Model &rarr; PostProcessor.","lecture"],
+   ["W2","What does BPE merge? WordPiece? What does Unigram do?","BPE: the pair with the <b>highest count</b>. WordPiece: highest <b>count / (count(a)&times;count(b))</b>. Unigram: starts large and <b>removes</b> subwords.","lecture"],
+   ["W2","Two pairs have the same count. One is made of rare characters. Which does WordPiece merge?","The <b>rare</b> one. Its denominator is smaller, so its score is higher.","lecture"],
+   ["W2","How is a new word tokenized by each algorithm?","BPE and WordPiece <b>replay the merges in order</b>. Unigram picks the <b>most probable split</b> with Viterbi.","lecture"],
+   ["W2","Which tokenizer works without whitespace splitting?","<b>SentencePiece</b>. It treats the space as a normal character.","lecture"],
+   ["W2","Vocabulary goes from 16K to 128K. What happens?","<b>Shorter sequences, larger embedding layer.</b>","T1 Q3 · T2 Q7"],
+   ["W2","Can a larger vocabulary increase the token count of a fixed sentence?","No. It decreases or stays the same.","GA2"],
+   ["W2","Do BPE and WordPiece split at true morpheme boundaries?","No. They learn merges from <b>corpus statistics</b>, not meaning.","T1 Q2"],
+   ["W2","Chemical names break into many fragments. Best fix?","<b>Retrain the tokenizer</b> on an in-domain corpus.","T1 Q4"],
+   ["W2","Word-level tokenizer gives 18% [UNK] on an agglutinative language. Fix?","Use a <b>subword tokenizer</b>: SentencePiece or BPE.","T2 Q2"],
+   ["W2","What does tokenizer.encode() return?","A plain <b>list of integers</b>.","T2 Q8"],
+   ["W2","Name the tokenizer outputs. Which common one is NOT a tokenizer output?","input_ids, attention_mask, token_type_ids, offset_mapping. <b>hidden_states</b> is not.","T1 Q12 · T2 Q14"],
+   ["W2","220 tokens, max_length=128, truncation=True, padding='max_length'. Output length?","Exactly <b>128</b>, special tokens included.","T2 Q3"],
+   ["W2","Does the BERT tokenizer cut text at 512 tokens automatically?","No. Only with <code>truncation=True</code>.","GA3"],
+   ["W2","A batch is padded to length 64. Are zeros appended to input_ids?","<b>Insufficient information.</b> The pad id depends on the tokenizer.","GA2"],
+   ["W2","Special tokens of BERT? Of GPT-2?","BERT: [CLS] [SEP] [PAD] [MASK] [UNK]. GPT-2: only &lt;|endoftext|&gt;, no pad token.","GA2 · GA3"],
+   ["W2","['Hi', 'Hello beautiful world'], BERT, padding=True. Zeros in the first attention mask?","3 tokens vs 5 tokens &rarr; <b>2 zeros</b>.","T2 Q18"],
+
+   ["W3","What does '7B' in a 7B model count?","All learnable numbers in the model. It is not d.","concept"],
+   ["W3","V = 32,000, context = 2048, d = 1024, learned positions. Embedding parameters?","32,000&times;1024 + 2048&times;1024 = <b>34.9M</b>.","T1 Q20"],
+   ["W3","d = 1536. Parameters in Q, K, V, O?","4 &times; 1536&sup2; = <b>9.44M</b>. Heads do not matter.","T2 Q16"],
+   ["W3","Which is bigger in one block: attention or FFN?","The <b>FFN</b>: 8d&sup2; against 4d&sup2;.","concept"],
+   ["W3","Which component scales as O(N&sup2;) with sequence length?","The <b>attention score matrix QK&#7488;</b>.","T1 Q7"],
+   ["W3","torch.triu(..., diagonal=0) used as the causal mask. Effect?","The current token is masked too. First row all &minus;&infin; &rarr; <b>NaN</b>.","T2 Q9"],
+   ["W3","In CLM, do future tokens give gradients to earlier positions?","<b>No.</b>","T1 Q16"],
+   ["W3","Why does a decoder-only model have no cross-attention?","There is no encoder output to attend to.","lecture"],
+   ["W3","Match: encoder-only, decoder-only, encoder-decoder.","MLM · CLM with causal mask · sequence-to-sequence. They do <b>not</b> share the same mask.","T1 Q14"],
+   ["W3","AutoModelForMaskedLM from a checkpoint, trained on unlabelled domain text. What is this?","<b>Continual pre-training with the MLM objective.</b>","T1 Q6"],
+   ["W3","DataCollatorForLanguageModeling(mlm=False) on GPT-2 fails. Why?","GPT-2 has <b>no pad token</b>. Set pad_token = eos_token.","T2 Q11"],
+   ["W3","What label does an unmasked token get in an MLM batch?","<b>&minus;100</b>, which the loss ignores.","GA3"],
+   ["W3","Default BERT: layers, position embeddings, total parameters?","12 layers, absolute, about 110M (word embeddings about 23M).","GA3"],
+   ["W3","Batch 8, accumulation 4, context 4096, 10,000 updates. Tokens processed?","8&times;4&times;4096&times;10,000 = <b>1310.7M</b>.","T2 Q19"],
+
+   ["W4","What are the four copies in training, and bytes per parameter in fp32?","Weights, gradients, momentum, variance. <b>16 bytes</b>.","T1 Q18"],
+   ["W4","1.2B parameters, AdamW, fp32. Training memory?","1.2 &times; 16 = <b>19.2 GB</b>.","T1 Q18"],
+   ["W4","7B parameters loaded in fp32. Memory for weights?","7 &times; 4 = <b>28 GB</b>.","T2 Q6 · GA4"],
+   ["W4","Why does fine-tuning need more memory than inference?","It also stores <b>gradients and optimizer states</b>.","T1 Q10"],
+   ["W4","1,000,000 samples, batch 16, accumulation 4. Update steps per epoch?","<b>15,625</b>.","GA4"],
+   ["W4","Classification head, d = 2048, 8 labels, no bias?","<b>16,384</b>.","GA4"],
+   ["W4","Continued pre-training and instruction tuning have the same objective?","<b>False.</b>","GA4"],
+   ["W4","8M unlabelled medical documents and 300 QA pairs. Best plan?","<b>Continual pre-training, then instruction tuning.</b>","T2 Q5"],
+   ["W4","LoRA updates 0.15% of parameters. What is saved?","Gradient and optimizer memory. The base weights are still loaded.","T2 Q4"],
+   ["W4","Raising LoRA rank r does what to trainable parameters?","<b>Increases</b> them (2&middot;d&middot;r).","GA4"],
+   ["W4","Does fp16 halve the optimizer states?","<b>No.</b>","T2 Q10"],
+   ["W4","batch 2, accumulation 8, fp16. Which are true?","Effective batch 16 &check; · lower memory than fp32 &check; · accumulation simulates larger batches &check; · updates every batch &cross; · fp16 halves optimizer state &cross;","T2 Q10 · T1 Q13"],
+   ["W4","Out of memory while fine-tuning. What helps?","Mixed precision, quantization, gradient checkpointing, LoRA. <b>Not</b> a bigger vocabulary.","T2 Q12"],
+   ["W4","Best way to cut GPU memory without changing the architecture?","<b>Mixed-precision training.</b>","T1 Q11"],
+   ["W4","What does warmup do?","Raises the learning rate gradually at the start to avoid divergence, then it decays. It saves no memory.","T1 Q17"],
+   ["W4","Which setting discourages large changes to pretrained weights?","<b>Weight decay.</b>","T1 Q9"],
+   ["W4","Generative fine-tuning with an instruction prompt vs a classification head?","The prompt format reuses the language-model head and no new head is trained; it is not the same as logistic regression and gives no guarantees.","T1 Q15 · T2 Q13"]
+  ];
+  $('rf').innerHTML = RF.map(function(r){
+    return '<div class="qa"><button type="button"><i>' + r[0] + '</i><span>' + r[1] + '</span></button>' +
+           '<div class="ans" hidden>' + r[2] + '<span class="src">' + r[3] + '</span></div></div>';
+  }).join('');
+  document.querySelectorAll('.qa > button').forEach(function(b){
+    b.addEventListener('click', function(){ var a = b.nextElementSibling; a.hidden = !a.hidden; });
+  });
+  var allOpen = false;
+  $('rfall').addEventListener('click', function(){
+    allOpen = !allOpen;
+    document.querySelectorAll('.qa .ans').forEach(function(a){ a.hidden = !allOpen; });
+    $('rfall').textContent = allOpen ? 'Hide all' : 'Reveal all';
+  });
+
+  // ---------------- jump + search ----------------
+  document.querySelectorAll('.jump button').forEach(function(b){
+    b.addEventListener('click', function(){
+      if ($('q').value){ $('q').value = ''; filter(); }
+      var el = $(b.dataset.go); if (el) el.scrollIntoView({ block: 'start' });
+    });
+  });
+  function filter(){
+    var q = $('q').value.trim().toLowerCase(), shown = 0;
+    document.querySelectorAll('#body > .blk').forEach(function(blk){
+      var any = false;
+      blk.querySelectorAll('.card,.tablewrap,.qa,.gist,.go,.res,.chain,.drill,.rf-head,h3.sub').forEach(function(e){
+        if (!q){ e.hidden = false; return; }
+        var searchable = e.matches('.card,.tablewrap,.qa');
+        var m = searchable && e.textContent.toLowerCase().indexOf(q) !== -1;
+        e.hidden = !m;
+        if (m){ any = true; shown++; }
+      });
+      blk.hidden = q ? !any : false;
+    });
+    $('none').hidden = !(q && shown === 0);
+    $('hits').textContent = q ? (shown + (shown === 1 ? ' match' : ' matches')) : '';
+  }
+  $('q').addEventListener('input', filter);
+
+  // ---------------- drill ----------------
+  function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+  function f(n){ return n.toLocaleString('en-US'); }
+  function r(x){ return String(Math.round(x * 100) / 100); }
+  var GEN = [
+    function(){ var N = pick([1.2,2,2.5,3,4,5,6,8]), a = N*16;
+      return { q: 'A ' + N + 'B-parameter model is fine-tuned with AdamW in fp32. Parameters, gradients and both optimizer states are stored. Total memory?', a: a, u: 'GB',
+               s: N + 'B × 16 bytes = ' + r(a) + ' GB  (4 copies × 4 bytes)' }; },
+    function(){ var N = pick([2,7,13,70]), p = pick([['fp32',4],['fp16',2],['int8',1]]), a = N*p[1];
+      return { q: 'A ' + N + 'B-parameter model is loaded in ' + p[0] + ' for inference. Memory for the weights?', a: a, u: 'GB',
+               s: N + 'B × ' + p[1] + ' = ' + r(a) + ' GB  (weights only)' }; },
+    function(){ var V = pick([16000,32000,48000,50000,65000]), d = pick([768,1024,1280,1536,2048]), c = pick([512,1024,2048,4096]), a = (V*d + c*d)/1e6;
+      return { q: 'Vocabulary ' + f(V) + ', embedding dimension ' + d + ', context length ' + c + ', learned positional embeddings. Embedding-layer parameters, in millions?', a: a, u: 'million',
+               s: f(V) + '×' + d + ' + ' + c + '×' + d + ' = ' + f(V*d) + ' + ' + f(c*d) + ' = ' + r(a) + 'M' }; },
+    function(){ var d = pick([512,768,1024,1536,2048]), h = pick([8,12,16]), T = pick([3,64,512]), a = 4*d*d/1e6;
+      return { q: 'A block has d_model = ' + d + ', ' + h + ' attention heads and an input of ' + T + ' tokens. Parameters in the Q, K, V, O projections (no biases), in millions?', a: a, u: 'million',
+               s: '4 × ' + d + '² = ' + r(a) + 'M  (heads and tokens do not matter)' }; },
+    function(){ var d = pick([768,1024,2048]), L = pick([6,12,24]), a = L*12*d*d/1e6;
+      return { q: L + ' transformer blocks with d_model = ' + d + '. Parameters in all blocks (attention + FFN, no biases), in millions?', a: a, u: 'million',
+               s: 'one block = 12 × ' + d + '² = ' + r(12*d*d/1e6) + 'M;  × ' + L + ' = ' + r(a) + 'M' }; },
+    function(){ var B = pick([4,8,16]), G = pick([4,8,16]), k = pick([5000,10000,15625,20000]), S = B*G*k;
+      return { q: f(S) + ' samples, per-device batch size ' + B + ', gradient accumulation ' + G + ', one GPU. Optimizer update steps in one epoch?', a: k, u: 'steps',
+               s: f(S) + ' / (' + B + ' × ' + G + ') = ' + f(k) }; },
+    function(){ var B = pick([2,4,8]), G = pick([4,8]), c = pick([1024,2048,4096]), st = pick([5000,10000,25000]), a = B*G*c*st/1e6;
+      return { q: 'Batch size ' + B + ', gradient accumulation ' + G + ', context length ' + c + ', ' + f(st) + ' optimizer updates. Tokens processed, in millions?', a: a, u: 'million',
+               s: B + ' × ' + G + ' × ' + c + ' × ' + f(st) + ' = ' + r(a) + 'M' }; },
+    function(){ var d = pick([768,1024,1536,2048]), n = pick([2,5,8,12]), a = d*n;
+      return { q: 'A classification head (one linear layer, no bias) on a model with d_model = ' + d + ' for ' + n + ' labels. Parameters?', a: a, u: 'parameters',
+               s: d + ' × ' + n + ' = ' + f(a) }; },
+    function(){ var d = pick([768,1280,2048]), c = pick([[512,1024],[1024,4096],[2048,8192]]), a = (c[1]-c[0])*d/1e6;
+      return { q: 'Context length is raised from ' + c[0] + ' to ' + c[1] + ' (d_model = ' + d + ', learned positions). Increase in parameters, in millions?', a: a, u: 'million',
+               s: '(' + c[1] + ' − ' + c[0] + ') × ' + d + ' = ' + r(a) + 'M  (only the position table grows)' }; },
+    function(){ var d = pick([1024,2048,4096]), k = pick([4,8,16]), a = 2*d*k;
+      return { q: 'LoRA with rank r = ' + k + ' on one ' + d + ' × ' + d + ' weight matrix. Trainable parameters for that matrix?', a: a, u: 'parameters',
+               s: '2 × ' + d + ' × ' + k + ' = ' + f(a) + '  (full matrix: ' + f(d*d) + ')' }; }
+  ];
+  var cur = null, right = 0, streak = 0, scored = false;
+  function next(){
+    cur = pick(GEN)();
+    $('dq').textContent = cur.q; $('du').textContent = cur.u;
+    $('da').value = ''; $('dfb').textContent = ''; $('dfb').className = 'fb';
+    $('dsol').hidden = true; $('dsol').textContent = cur.s;
+    $('drill').dataset.answer = String(cur.a);
+    scored = false;
+  }
+  function check(){
+    var v = parseFloat(String($('da').value).replace(/[, ]/g, ''));
+    if (isNaN(v)){ $('dfb').textContent = 'Type a number first.'; $('dfb').className = 'fb'; return; }
+    var ok = Math.abs(v - cur.a) <= Math.max(Math.abs(cur.a) * 0.01, 0.006);
+    $('dfb').textContent = ok ? 'Correct.' : 'Not quite — the answer is ' + r(cur.a) + ' ' + cur.u + '.';
+    $('dfb').className = 'fb ' + (ok ? 'ok' : 'no');
+    $('dsol').hidden = false;
+    if (!scored){ scored = true; if (ok){ right++; streak++; } else { streak = 0; } }
+    $('dtally').textContent = right + ' right · streak ' + streak;
+  }
+  $('dcheck').addEventListener('click', check);
+  $('dnext').addEventListener('click', next);
+  $('dshow').addEventListener('click', function(){ $('dsol').hidden = false; if (!scored){ scored = true; streak = 0; $('dtally').textContent = right + ' right · streak ' + streak; } });
+  $('da').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ if (scored) next(); else check(); } });
+  next();
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

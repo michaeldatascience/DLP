@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Transformer Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640; color-scheme:dark;
+}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--paper)}
+.sh-in{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sh-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--paper);border-bottom:2px solid var(--ink);padding-block:10px}
+.sh-name{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.sh-name b{color:var(--ink);font-weight:700}
+.sh-tabs{display:flex;flex-wrap:wrap;gap:5px}
+.sh-tab{font-family:var(--f-display);font-size:.78rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:7px 12px;cursor:pointer}
+.sh-tab[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sh-tab:hover:not([aria-pressed="true"]){border-color:var(--accent);color:var(--accent)}
+.sh-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sh-pane .wrap{max-width:948px!important;padding-bottom:18px!important}
+.sh-pane code{overflow-wrap:anywhere}
+.sh-pane .wq > *,.sh-pane .step > *{min-width:0}
+.sh-bridge{max-width:916px;margin:22px auto 0;font-size:.95rem;color:var(--ink-soft);background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:13px 15px}
+.sh-bridge b{color:var(--ink)}
+.sh-next{font-family:var(--f-display);font-size:.8rem;font-weight:600;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:2px;padding:9px 16px;cursor:pointer;margin-block:8px 44px}
+.sh-foot{border-top:1px solid var(--rule);margin-top:10px;padding-block:18px 60px;color:var(--ink-soft);font-size:.86rem}
+.sc-corpus{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --frozen:#64748B; --frozen-soft:#E7EBF0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-corpus{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --frozen:#8A99AD; --frozen-soft:#1E2733;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-corpus{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --frozen:#8A99AD; --frozen-soft:#1E2733;
+  color-scheme:dark;}
+.sc-corpus,.sc-corpus *{box-sizing:border-box}
+.sc-corpus{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-corpus .wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 76px}
+.sc-corpus h1,.sc-corpus h2,.sc-corpus h3,.sc-corpus h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-corpus code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-corpus p{margin:0}
+.sc-corpus .mast{padding-block:40px 24px;border-bottom:2px solid var(--ink)}
+.sc-corpus .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.sc-corpus .mast h1{font-size:clamp(1.9rem,5.5vw,2.9rem);font-weight:700;letter-spacing:-.025em}
+.sc-corpus .mast .sub{margin-top:13px;max-width:62ch;color:var(--ink-soft);font-size:1.01rem}
+.sc-corpus section{margin-block:44px}
+.sc-corpus .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:18px}
+.sc-corpus .sec-num{font-family:var(--f-mono);font-size:.76rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-corpus .sec-head h2{font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:700;letter-spacing:-.015em}
+.sc-corpus .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:16px}
+.sc-corpus .chain{display:grid;gap:0;margin-block:18px}
+.sc-corpus .link{display:grid;grid-template-columns:34px 1fr;gap:13px;align-items:start;
+      padding:11px 13px;background:var(--surface);border:1px solid var(--rule);border-bottom:none}
+.sc-corpus .link:last-child{border-bottom:1px solid var(--rule)}
+.sc-corpus .link.done{background:var(--surface-2)}
+.sc-corpus .link .ln{font-family:var(--f-mono);font-size:.74rem;font-weight:600;color:var(--accent);
+          background:var(--accent-soft);border-radius:2px;padding:3px 0;text-align:center}
+.sc-corpus .link.done .ln{color:var(--frozen);background:var(--frozen-soft)}
+.sc-corpus .link b{font-family:var(--f-display);font-size:.95rem;display:block}
+.sc-corpus .link span{font-size:.89rem;color:var(--ink-soft)}
+.sc-corpus .link .tag{font-family:var(--f-display);font-size:.64rem;font-weight:600;letter-spacing:.08em;
+           text-transform:uppercase;color:var(--frozen);border:1px solid var(--rule);
+           padding:2px 7px;border-radius:2px;margin-left:7px}
+.sc-corpus .mrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-block:14px}
+.sc-corpus .mat{display:inline-grid;gap:6px;min-width:0}
+.sc-corpus .mat .cap{font-family:var(--f-mono);font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.sc-corpus .mat .cap b{color:var(--c)}
+.sc-corpus .mat .cap i{font-style:normal;font-size:.72rem;color:var(--ink-soft);font-weight:400}
+.sc-corpus .grid{display:grid;gap:2px;overflow-x:auto;padding-bottom:2px}
+.sc-corpus .cell{font-family:var(--f-mono);font-size:.74rem;font-variant-numeric:tabular-nums;
+      padding:5px 6px;text-align:right;border-radius:2px;min-width:42px;
+      background:var(--bg);color:var(--ink);border:1px solid transparent}
+.sc-corpus .cell.hl{outline:2px solid var(--win);font-weight:600}
+.sc-corpus .cell.neg{outline:2px solid var(--alert);font-weight:600}
+.sc-corpus .op{font-family:var(--f-mono);font-size:1.3rem;color:var(--ink-soft);align-self:center;padding-top:20px}
+.sc-corpus .shapes{font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);margin-top:7px}
+.sc-corpus .shapes b{color:var(--ink)}
+.sc-corpus .step{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;margin-block:13px}
+.sc-corpus .step .sn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+.sc-corpus .step h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.sc-corpus .step p{font-size:.94rem;color:var(--ink-soft)}
+.sc-corpus .step p + p{margin-top:7px}
+.sc-corpus .step p b{color:var(--ink)}
+.sc-corpus .toks{display:flex;flex-wrap:wrap;gap:6px;margin-block:11px}
+.sc-corpus .tk{font-family:var(--f-mono);font-size:.84rem;background:var(--signal-soft);border:1px solid var(--signal);
+    color:var(--ink);padding:5px 9px;border-radius:2px}
+.sc-corpus .tk small{color:var(--ink-soft);font-size:.72rem;display:block;text-align:center}
+.sc-corpus .vocab{display:flex;flex-wrap:wrap;gap:5px;margin-block:11px}
+.sc-corpus .vc{font-family:var(--f-mono);font-size:.8rem;background:var(--surface-2);border:1px solid var(--rule);padding:4px 8px;border-radius:2px}
+.sc-corpus .vc b{color:var(--accent)}
+.sc-corpus .trap,.sc-corpus .note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.sc-corpus .trap{border-left:3px solid var(--alert)}
+.sc-corpus .note{border-left:3px solid var(--accent)}
+.sc-corpus .trap b.h,.sc-corpus .note b.h{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-corpus .trap b.h{color:var(--alert)}
+.sc-corpus .note b.h{color:var(--accent)}
+.sc-corpus .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-block:14px}
+.sc-corpus table{border-collapse:collapse;width:100%;min-width:420px;font-size:.9rem}
+.sc-corpus th,.sc-corpus td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-corpus th{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-corpus tr:last-child td{border-bottom:none}
+.sc-corpus td.m{font-family:var(--f-mono)}
+.sc-corpus td.num,.sc-corpus th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sc-corpus .loss{font-family:var(--f-mono);font-size:clamp(1.5rem,5vw,2.1rem);font-weight:600;
+      font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-block:10px}
+.sc-corpus .loss small{font-size:.8rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+.sc-corpus footer{margin-top:48px;padding-top:19px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:66ch}
+.sc-corpus :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sc-oneblock{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --frozen:#64748B; --frozen-soft:#E7EBF0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-oneblock{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --frozen:#8A99AD; --frozen-soft:#1E2733;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-oneblock{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --frozen:#8A99AD; --frozen-soft:#1E2733;
+  color-scheme:dark;}
+.sc-oneblock,.sc-oneblock *{box-sizing:border-box}
+.sc-oneblock{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-oneblock .wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 76px}
+.sc-oneblock h1,.sc-oneblock h2,.sc-oneblock h3,.sc-oneblock h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-oneblock code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-oneblock p{margin:0}
+.sc-oneblock .mast{padding-block:40px 24px;border-bottom:2px solid var(--ink)}
+.sc-oneblock .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.sc-oneblock .mast h1{font-size:clamp(1.9rem,5.5vw,2.9rem);font-weight:700;letter-spacing:-.025em}
+.sc-oneblock .mast .sub{margin-top:13px;max-width:62ch;color:var(--ink-soft);font-size:1.01rem}
+.sc-oneblock section{margin-block:44px}
+.sc-oneblock .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:18px}
+.sc-oneblock .sec-num{font-family:var(--f-mono);font-size:.76rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-oneblock .sec-head h2{font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:700;letter-spacing:-.015em}
+.sc-oneblock .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:16px}
+.sc-oneblock .key{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));margin-block:16px}
+.sc-oneblock .kitem{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--c);padding:11px 13px}
+.sc-oneblock .kitem b{font-family:var(--f-display);font-size:.78rem;font-weight:700;color:var(--c);display:block;margin-bottom:3px}
+.sc-oneblock .kitem span{font-size:.88rem;color:var(--ink-soft)}
+.sc-oneblock .mrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-block:14px}
+.sc-oneblock .mat{display:inline-grid;gap:6px;min-width:0}
+.sc-oneblock .mat .cap{font-family:var(--f-mono);font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.sc-oneblock .mat .cap b{color:var(--c)}
+.sc-oneblock .mat .cap i{font-style:normal;font-size:.72rem;color:var(--ink-soft);font-weight:400}
+.sc-oneblock .grid{display:grid;gap:2px;overflow-x:auto;padding-bottom:2px}
+.sc-oneblock .cell{font-family:var(--f-mono);font-size:.76rem;font-variant-numeric:tabular-nums;
+      padding:5px 6px;text-align:right;border-radius:2px;min-width:44px;
+      background:var(--bg);color:var(--ink);border:1px solid transparent}
+.sc-oneblock .cell.zero{opacity:.38}
+.sc-oneblock .op{font-family:var(--f-mono);font-size:1.3rem;color:var(--ink-soft);align-self:center;padding-top:20px}
+.sc-oneblock .shapes{font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);margin-top:7px}
+.sc-oneblock .shapes b{color:var(--ink)}
+.sc-oneblock .step{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;margin-block:13px}
+.sc-oneblock .step .sn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+.sc-oneblock .step h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.sc-oneblock .step p{font-size:.94rem;color:var(--ink-soft)}
+.sc-oneblock .step p + p{margin-top:7px}
+.sc-oneblock .step p b{color:var(--ink)}
+.sc-oneblock .trap,.sc-oneblock .note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.sc-oneblock .trap{border-left:3px solid var(--alert)}
+.sc-oneblock .note{border-left:3px solid var(--accent)}
+.sc-oneblock .trap b.h,.sc-oneblock .note b.h{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-oneblock .trap b.h{color:var(--alert)}
+.sc-oneblock .note b.h{color:var(--accent)}
+.sc-oneblock .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-block:14px}
+.sc-oneblock table{border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem}
+.sc-oneblock th,.sc-oneblock td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-oneblock th{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-oneblock tr:last-child td{border-bottom:none}
+.sc-oneblock td.m{font-family:var(--f-mono)}
+.sc-oneblock td.num,.sc-oneblock th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sc-oneblock .calc{background:var(--surface);border:1px solid var(--rule);padding:16px}
+.sc-oneblock .cc{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:14px}
+.sc-oneblock .cc label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+.sc-oneblock .cc label b{font-family:var(--f-mono);font-size:.88rem;color:var(--accent);letter-spacing:0;text-transform:none}
+.sc-oneblock .cc input[type=range]{width:100%;accent-color:var(--accent)}
+.sc-oneblock .cc select{font-family:var(--f-mono);font-size:.85rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
+.sc-oneblock .bigratio{font-family:var(--f-mono);font-size:clamp(1.5rem,5vw,2.1rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.sc-oneblock .bigratio small{font-size:.8rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+.sc-oneblock .lbar{display:flex;height:30px;border:1px solid var(--rule);overflow:hidden;background:var(--frozen-soft);margin-block:11px}
+.sc-oneblock .lbar .f{background:var(--frozen)}
+.sc-oneblock .lbar .t{background:var(--win)}
+.sc-oneblock .lbar div{display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+.sc-oneblock footer{margin-top:48px;padding-top:19px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:66ch}
+.sc-oneblock :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sc-anatomy{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --emb:#0E7490; --att:#A15C07; --ffn:#6D28D9;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-anatomy{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --emb:#2DD4E8; --att:#F0B429; --ffn:#A78BFA;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-anatomy{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --emb:#2DD4E8; --att:#F0B429; --ffn:#A78BFA;
+  color-scheme:dark;}
+.sc-anatomy,.sc-anatomy *{box-sizing:border-box}
+.sc-anatomy{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-anatomy .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+.sc-anatomy h1,.sc-anatomy h2,.sc-anatomy h3,.sc-anatomy h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-anatomy code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-anatomy p{margin:0}
+.sc-anatomy .mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
+.sc-anatomy .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.sc-anatomy .mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+.sc-anatomy .mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
+.sc-anatomy section{margin-block:48px}
+.sc-anatomy .sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:22px}
+.sc-anatomy .sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-anatomy .sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
+.sc-anatomy .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:20px}
+.sc-anatomy h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:30px 13px}
+.sc-anatomy .places{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.sc-anatomy .place{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--c);padding:15px 16px;display:grid;gap:7px;min-width:0}
+.sc-anatomy .place .pn{font-family:var(--f-display);font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+.sc-anatomy .place h4{font-size:1rem;font-weight:600}
+.sc-anatomy .place .pf{font-family:var(--f-mono);font-size:.85rem;font-weight:500;background:var(--surface-2);padding:7px 10px;border-radius:2px;overflow-x:auto;white-space:nowrap}
+.sc-anatomy .place p{font-size:.93rem;color:var(--ink-soft)}
+.sc-anatomy .panel{background:var(--surface);border:1px solid var(--rule);padding:18px 18px 20px}
+.sc-anatomy .ctrls{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.sc-anatomy .ctrl{display:grid;gap:5px;min-width:0}
+.sc-anatomy .ctrl label{font-family:var(--f-display);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.sc-anatomy .ctrl label b{font-family:var(--f-mono);font-size:.88rem;color:var(--accent);font-weight:600;letter-spacing:0;text-transform:none}
+.sc-anatomy .ctrl input[type=range]{width:100%;accent-color:var(--accent)}
+.sc-anatomy .ctrl .hint{font-size:.74rem;color:var(--ink-soft);font-family:var(--f-body)}
+.sc-anatomy .switch{display:flex;align-items:center;gap:9px;font-size:.88rem;color:var(--ink-soft);margin-top:4px;cursor:pointer}
+.sc-anatomy .switch input{accent-color:var(--accent);width:16px;height:16px}
+.sc-anatomy .presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px;padding-top:16px;border-top:1px solid var(--rule)}
+.sc-anatomy .preset{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:var(--surface-2);color:var(--ink);border:1px solid var(--rule);border-radius:2px;padding:5px 11px;cursor:pointer}
+.sc-anatomy .preset:hover{border-color:var(--accent);color:var(--accent)}
+.sc-anatomy .readout{margin-top:22px;display:grid;gap:14px}
+.sc-anatomy .bar{display:flex;height:34px;border:1px solid var(--rule);overflow:hidden;background:var(--surface-2)}
+.sc-anatomy .seg{min-width:0;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.72rem;font-weight:600;color:#fff;overflow:hidden;white-space:nowrap;transition:flex-basis .25s ease}
+.sc-anatomy .seg.e{background:var(--emb)}
+.sc-anatomy .seg.a{background:var(--att)}
+.sc-anatomy .seg.f{background:var(--ffn)}
+.sc-anatomy .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--ink-soft)}
+.sc-anatomy .legend span{display:flex;align-items:center;gap:6px}
+.sc-anatomy .dot{width:10px;height:10px;border-radius:2px;flex:0 0 auto}
+.sc-anatomy .total{font-family:var(--f-mono);font-size:clamp(1.6rem,5vw,2.3rem);font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.sc-anatomy .total span{font-size:.9rem;color:var(--ink-soft);font-weight:400;letter-spacing:0}
+.sc-anatomy .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+.sc-anatomy table{border-collapse:collapse;width:100%;min-width:460px;font-size:.92rem}
+.sc-anatomy th,.sc-anatomy td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-anatomy th{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-anatomy tr:last-child td{border-bottom:none}
+.sc-anatomy td.sym{font-family:var(--f-mono);font-weight:500;color:var(--accent);white-space:nowrap}
+.sc-anatomy td.num,.sc-anatomy th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sc-anatomy tr.sum td{font-weight:600;background:var(--surface-2)}
+.sc-anatomy .trap,.sc-anatomy .note{border:1px solid var(--rule);padding:13px 15px;margin-block:16px;font-size:.95rem;background:var(--surface)}
+.sc-anatomy .trap{border-left:3px solid var(--alert)}
+.sc-anatomy .note{border-left:3px solid var(--accent)}
+.sc-anatomy .trap b,.sc-anatomy .note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-anatomy .trap b{color:var(--alert)}
+.sc-anatomy .note b{color:var(--accent)}
+.sc-anatomy .worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:14px}
+.sc-anatomy .worked .wq{padding:15px 16px;display:grid;gap:8px}
+.sc-anatomy .wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
+.sc-anatomy .wq .qt{font-size:.97rem}
+.sc-anatomy .wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
+.sc-anatomy .wbtn:hover{background:var(--accent-soft)}
+.sc-anatomy .wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
+.sc-anatomy .step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
+.sc-anatomy .step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
+.sc-anatomy .wans{font-family:var(--f-mono);font-size:.95rem;font-weight:600;color:var(--ink);background:var(--signal-soft);padding:9px 12px;border-radius:2px}
+.sc-anatomy .quiz{display:grid;gap:14px}
+.sc-anatomy .q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
+.sc-anatomy .q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.sc-anatomy .q .qp{font-size:.97rem}
+.sc-anatomy .opts{display:grid;gap:6px}
+.sc-anatomy .opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.sc-anatomy .opt:hover:not(.done){border-color:var(--accent)}
+.sc-anatomy .opt.right{background:var(--accent-soft);border-color:var(--accent);font-weight:500}
+.sc-anatomy .opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
+.sc-anatomy .opt.done{cursor:default}
+.sc-anatomy .expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
+.sc-anatomy .score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+.sc-anatomy footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
+.sc-anatomy :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.sc-anatomy,.sc-anatomy *{transition:none!important}}
+.sc-architectures{--paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --att:#0E7490; --ffn:#6D28D9; --norm:#55637A; --io:#A15C07;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc-architectures{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --att:#2DD4E8; --ffn:#A78BFA; --norm:#93A1B5; --io:#F0B429;
+    color-scheme:dark;}}
+:root[data-theme="dark"] .sc-architectures{--paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --att:#2DD4E8; --ffn:#A78BFA; --norm:#93A1B5; --io:#F0B429;
+  color-scheme:dark;}
+.sc-architectures,.sc-architectures *{box-sizing:border-box}
+.sc-architectures{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.sc-architectures .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 72px}
+.sc-architectures h1,.sc-architectures h2,.sc-architectures h3,.sc-architectures h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+.sc-architectures code{font-family:var(--f-mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+.sc-architectures p{margin:0}
+.sc-architectures .mast{padding-block:40px 26px;border-bottom:2px solid var(--ink)}
+.sc-architectures .kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.sc-architectures .mast h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+.sc-architectures .mast .sub{margin-top:14px;max-width:64ch;color:var(--ink-soft);font-size:1.02rem}
+.sc-architectures section{margin-block:46px}
+.sc-architectures .sec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;padding-bottom:11px;border-bottom:1px solid var(--ink);margin-bottom:20px}
+.sc-architectures .sec-num{font-family:var(--f-mono);font-size:.78rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sc-architectures .sec-head h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;letter-spacing:-.015em}
+.sc-architectures .lede{max-width:68ch;color:var(--ink-soft);margin-bottom:18px}
+.sc-architectures h3.block{font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:26px 11px}
+.sc-architectures .modebar{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.sc-architectures .mode{font-family:var(--f-display);font-size:.8rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:8px 14px;cursor:pointer}
+.sc-architectures .mode[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sc-architectures .mode:hover:not([aria-pressed="true"]){border-color:var(--accent);color:var(--accent)}
+.sc-architectures .diagram{background:var(--surface);border:1px solid var(--rule);padding:14px}
+.sc-architectures svg.flow{width:100%;height:auto;display:block;max-width:100%}
+.sc-architectures .blk rect{transition:opacity .2s ease}
+.sc-architectures .blk text{font-family:var(--f-display);font-size:11px;font-weight:600;pointer-events:none}
+.sc-architectures .blk.off rect{opacity:.14}
+.sc-architectures .blk.off text{opacity:.3}
+.sc-architectures .blk{cursor:pointer}
+.sc-architectures .blk:hover rect{stroke-width:2.5}
+.sc-architectures .blk.sel rect{stroke-width:3}
+.sc-architectures .edge{stroke:var(--ink-soft);stroke-width:1.6;fill:none;marker-end:url(#ar-ah)}
+.sc-architectures .edge.off{opacity:.14}
+.sc-architectures .colhdr{font-family:var(--f-display);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;fill:var(--ink-soft)}
+.sc-architectures .colhdr.off{opacity:.25}
+.sc-architectures .nx{font-family:var(--f-mono);font-size:11px;font-weight:600;fill:var(--accent)}
+.sc-architectures .nx.off{opacity:.2}
+.sc-architectures .detail{background:var(--surface-2);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:14px 16px;margin-top:14px;min-height:92px}
+.sc-architectures .detail h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.sc-architectures .detail .meta{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);margin-bottom:8px}
+.sc-architectures .detail p{font-size:.94rem;color:var(--ink-soft)}
+.sc-architectures .detail .absent{display:inline-block;font-family:var(--f-display);font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;background:var(--alert-soft);color:var(--alert);padding:3px 8px;border-radius:2px;margin-top:9px}
+.sc-architectures .tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+.sc-architectures table{border-collapse:collapse;width:100%;min-width:460px;font-size:.91rem}
+.sc-architectures th,.sc-architectures td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+.sc-architectures th{font-family:var(--f-display);font-size:.69rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+.sc-architectures tr:last-child td{border-bottom:none}
+.sc-architectures td.m{font-family:var(--f-mono)}
+.sc-architectures .maskpanel{background:var(--surface);border:1px solid var(--rule);padding:16px}
+.sc-architectures .maskctl{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:14px}
+.sc-architectures .maskctl label{font-family:var(--f-display);font-size:.73rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;cursor:pointer}
+.sc-architectures .maskctl select{font-family:var(--f-mono);font-size:.85rem;padding:6px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink)}
+.sc-architectures .grid{display:grid;gap:3px;max-width:330px;margin-bottom:12px}
+.sc-architectures .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.78rem;font-weight:600;border-radius:2px;min-width:0}
+.sc-architectures .cell.ok{background:var(--win-soft);color:var(--win)}
+.sc-architectures .cell.no{background:var(--alert-soft);color:var(--alert)}
+.sc-architectures .rowflag{font-family:var(--f-mono);font-size:.85rem;padding:9px 12px;border-radius:2px}
+.sc-architectures .rowflag.bad{background:var(--alert-soft);color:var(--alert);font-weight:600}
+.sc-architectures .rowflag.good{background:var(--win-soft);color:var(--win)}
+.sc-architectures .trap,.sc-architectures .note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.sc-architectures .trap{border-left:3px solid var(--alert)}
+.sc-architectures .note{border-left:3px solid var(--accent)}
+.sc-architectures .trap b,.sc-architectures .note b{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.sc-architectures .trap b{color:var(--alert)}
+.sc-architectures .note b{color:var(--accent)}
+.sc-architectures .worked{background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--signal);margin-block:13px}
+.sc-architectures .worked .wq{padding:15px 16px;display:grid;gap:8px}
+.sc-architectures .wsrc{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--signal)}
+.sc-architectures .wbtn{font-family:var(--f-display);font-size:.73rem;font-weight:600;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer;justify-self:start}
+.sc-architectures .wbtn:hover{background:var(--accent-soft)}
+.sc-architectures .wsol{border-top:1px solid var(--rule);padding:15px 16px;background:var(--surface-2);display:grid;gap:9px;font-size:.93rem}
+.sc-architectures .step{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:baseline}
+.sc-architectures .step i{font-family:var(--f-mono);font-size:.76rem;font-style:normal;color:var(--accent);font-weight:600}
+.sc-architectures .wans{font-family:var(--f-mono);font-size:.92rem;font-weight:600;background:var(--signal-soft);padding:9px 12px;border-radius:2px}
+.sc-architectures pre{font-family:var(--f-mono);font-size:.82rem;background:var(--surface-2);border:1px solid var(--rule);padding:11px 13px;border-radius:2px;overflow-x:auto;margin:0}
+.sc-architectures .quiz{display:grid;gap:13px}
+.sc-architectures .q{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;display:grid;gap:10px}
+.sc-architectures .q .qn{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
+.sc-architectures .opts{display:grid;gap:6px}
+.sc-architectures .opt{text-align:left;background:var(--surface-2);border:1px solid var(--rule);border-radius:2px;padding:9px 12px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.sc-architectures .opt:hover:not(.done){border-color:var(--accent)}
+.sc-architectures .opt.right{background:var(--win-soft);border-color:var(--win);font-weight:500}
+.sc-architectures .opt.wrong{background:var(--alert-soft);border-color:var(--alert)}
+.sc-architectures .opt.done{cursor:default}
+.sc-architectures .expl{font-size:.9rem;color:var(--ink-soft);border-top:1px dashed var(--rule);padding-top:9px}
+.sc-architectures .score{font-family:var(--f-mono);font-size:.9rem;color:var(--ink-soft);margin-top:4px}
+.sc-architectures footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.88rem;max-width:66ch}
+.sc-architectures :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.sc-architectures,.sc-architectures *{transition:none!important}}</style>
+<div class="sh-bar"><div class="sh-in"><div class="sh-name"><b>Transformer Workshop</b> &nbsp;&middot;&nbsp; Week 3</div><div class="sh-tabs" role="group" aria-label="Sections"><button class="sh-tab" data-pane="corpus" aria-pressed="true">1 &middot; From corpus to loss</button><button class="sh-tab" data-pane="block" aria-pressed="false">2 &middot; One block, end to end</button><button class="sh-tab" data-pane="anatomy" aria-pressed="false">3 &middot; Count the parameters</button><button class="sh-tab" data-pane="arch" aria-pressed="false">4 &middot; Three architectures &amp; the mask</button></div></div></div>
+<div class="sh-pane" data-pane="corpus">
+<div class="sc-corpus"><div class="wrap">
+<header class="mast">
+  <div class="kicker">DA5013 · Weeks 1–4</div>
+  <h1>From Corpus to Loss</h1>
+  <p class="sub">One sentence of raw text, followed all the way to a number that says how wrong the model was — and then to the gradient that starts backpropagation. This is the front and back of the sandwich. <em>One Block</em> already showed the filling.</p>
+</header>
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>The whole chain, once</h2></div>
+  <p class="lede">Seven stages. Stage 4 is the transformer block you have already walked through number by number; everything else is on this page.</p>
+
+  <div class="chain">
+    <div class="link"><span class="ln">1</span><div><b>Raw text corpus</b><span>Plain text. No numbers anywhere yet.</span></div></div>
+    <div class="link"><span class="ln">2</span><div><b>Train a tokenizer on it<span class="tag">week 2</span></b><span>BPE learns merge rules from this corpus, producing a fixed vocabulary.</span></div></div>
+    <div class="link"><span class="ln">3</span><div><b>Text &rarr; tokens &rarr; integer ids</b><span>Replay the merges, then look each piece up in the vocabulary.</span></div></div>
+    <div class="link"><span class="ln">4</span><div><b>ids &rarr; vectors, by table lookup</b><span>The embedding table turns each id into a row of <code>d</code> numbers. <b style="color:var(--accent)">This produces X.</b></span></div></div>
+    <div class="link done"><span class="ln">5</span><div><b>The transformer block<span class="tag">covered in One Block</span></b><span>Attention, then feed-forward. Shape goes in T&times;d, comes out T&times;d.</span></div></div>
+    <div class="link"><span class="ln">6</span><div><b>Vectors &rarr; a score for every vocabulary entry</b><span>The LM head projects width <code>d</code> back out to width <code>V</code>.</span></div></div>
+    <div class="link"><span class="ln">7</span><div><b>Scores &rarr; probabilities &rarr; loss &rarr; gradient</b><span>Compare against the token that actually came next. <b style="color:var(--alert)">This produces dY.</b></span></div></div>
+  </div>
+
+  <div class="note">
+    <b class="h">Answering two questions directly</b>
+    <b>Where does X come from?</b> Stage 4 — a lookup in the embedding table, not the output of pretraining.<br>
+    <b>How do we know how bad Y is?</b> Stage 7 — the next token in the text is the answer key, and it is free, because the corpus already contains it.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Stages 1–2 · a corpus, and a tokenizer learned from it</h2></div>
+  <p class="lede">Everything downstream is determined by this text. The tokenizer is not given to you — it is <em>trained</em> on the corpus before any model training starts.</p>
+
+  <div class="step">
+    <span class="sn">The corpus</span>
+    <p style="font-family:var(--f-mono);font-size:.95rem;color:var(--ink)">the cat sat on the mat the cat ran the mat sat on the cat</p>
+    <p style="margin-top:9px">Absurdly small, so every number stays visible. A real one is billions of words. <code>_</code> marks a word boundary.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">Six BPE merges later</span><h4>The merge rules it discovered</h4>
+    <p style="font-family:var(--f-mono);font-size:.9rem;color:var(--ink);margin-bottom:8px">a+t &rarr; at &nbsp;|&nbsp; at+_ &rarr; at_ &nbsp;|&nbsp; t+h &rarr; th &nbsp;|&nbsp; th+e &rarr; the &nbsp;|&nbsp; the+_ &rarr; the_ &nbsp;|&nbsp; c+at_ &rarr; cat_</p>
+    <p>Watch what it learned: <code>the_</code> and <code>cat_</code> became <b>single tokens</b>, because they appear often. But <code>ran</code> appears once, so it stayed as loose characters. <b>Frequency alone decided this</b> — the algorithm has no idea what a word is.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">The vocabulary</span><h4>V = 10 tokens, each with a fixed integer id</h4>
+    <div class="vocab" id="co-vocab"></div>
+    <p style="margin-top:9px">This list is now <b>frozen for the life of the model</b>. Every piece of text it will ever see must be expressible in these 10 tokens. That is why a tokenizer trained on English shatters when it meets chemistry, and why the fix is to retrain the tokenizer rather than tune the model.</p>
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Stage 3 · one sentence becomes integers</h2></div>
+  <p class="lede">Take <code>"the cat sat"</code>. Replay the six merge rules in order, then look up each resulting piece.</p>
+  <div class="toks" id="co-toks"></div>
+  <div class="shapes">4 tokens from 3 words &mdash; <b>"sat" split into two pieces</b> because "sat_" was never merged, while "the_" and "cat_" survived whole.</div>
+  <div class="note">
+    <b class="h">This is the only place text exists</b>
+    After this line there is no text anywhere in the system. <code>[9, 3, 8, 2]</code> is all the model ever sees. The words are gone.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Stage 4 · integers become vectors — this is where X comes from</h2></div>
+  <p class="lede">An integer carries no meaning: id 9 is not "bigger" than id 3. So each id is used as a <b>row number</b> into a table of learned vectors.</p>
+
+  <div id="co-m-E"></div>
+
+  <div class="step">
+    <span class="sn">The lookup</span><h4>ids [9, 3, 8, 2] select four rows</h4>
+    <p>Row 9, row 3, row 8, row 2. Stack them, and you have a 4&times;4 matrix: one row per token, <code>d = 4</code> numbers wide.</p>
+    <p><b>That matrix is the X that One Block starts with.</b> It was never computed by a network — it was looked up.</p>
+  </div>
+  <div id="co-m-X"></div>
+
+  <div class="note">
+    <b class="h">The embedding table is itself parameters</b>
+    <code>E</code> is 10&times;4 = <b>40 learnable numbers</b>, and they are trained exactly like every other weight. Initially the rows are random, so "cat_" and "mat_" mean nothing and sit nowhere in particular. Pretraining is what drags similar tokens near each other.<br><br>
+    In general that table is <code>V &times; d</code> — the formula from Transformer Anatomy, now with a reason attached.
+  </div>
+
+  <div class="trap">
+    <b class="h">X being square here is an accident — do not read anything into it</b>
+    This sentence happens to tokenize into 4 pieces, and I happened to choose <code>d = 4</code>. <b>T and d are completely unrelated quantities.</b> T is how many tokens are in <em>this particular input</em>; d is a fixed property of the model. Real shapes look like 512&times;768 or 2048&times;4096.<br><br>
+    Two more things X is not. It is <b>not a subset of E</b> — it is a selection <em>with repetition</em>. Tokenize "the the the" and X is 3&times;d holding row 9 three times over. And T can exceed V: a thousand-token passage drawn from a ten-token vocabulary gives a 1000&times;4 X.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Stage 5 · the block<span style="font-family:var(--f-body);font-size:.85rem;font-weight:400;color:var(--ink-soft);margin-left:auto">already covered</span></h2></div>
+  <p class="lede">X goes in, attention lets the tokens see each other, the feed-forward network thinks about each position, and a 4&times;4 matrix comes out. Every number of this is in <em>One Block, End to End</em> — nothing new here.</p>
+  <div id="co-m-blk"></div>
+  <div class="shapes">In <b>4 x 4</b>, out <b>4 x 4</b>. Stack 32 of these and you have a 7B model.</div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Stage 6 · from width 4 back out to the whole vocabulary</h2></div>
+  <p class="lede">Here is the exact problem. After the block, each token is described by <b>4 numbers</b>. But the question is "which of the <b>10</b> vocabulary entries comes next?" — so we need 10 answers, one per candidate. Four numbers have to become ten scores.</p>
+
+  <div class="step">
+    <span class="sn">The idea</span><h4>Give every vocabulary entry its own detector</h4>
+    <p><code>W_lm</code> has shape <code>d &times; V</code> = 4&times;10. Read it <b>by column</b>: there are ten columns, one per vocabulary entry, and each column is a list of 4 numbers.</p>
+    <p>The score for token <em>j</em> is the <b>dot product</b> of the block's output vector with column <em>j</em>. Column <em>j</em> acts as a detector that asks: <em>does this output vector look like the kind of thing that comes before token j?</em> Ten columns, ten questions, ten scores.</p>
+  </div>
+
+  <div class="tablewrap">
+    <table style="min-width:560px">
+      <thead><tr><th>W_lm</th><th class="num">_</th><th class="num">a</th><th class="num">at_</th><th class="num">cat_</th><th class="num">m</th><th class="num">n</th><th class="num">o</th><th class="num">r</th><th class="num">s</th><th class="num">the_</th></tr></thead>
+      <tbody>
+        <tr><td class="m">row 0</td><td class="num">0.70</td><td class="num">0.30</td><td class="num">1.20</td><td class="num">0.30</td><td class="num">0.40</td><td class="num">0.40</td><td class="num">-0.30</td><td class="num">0.00</td><td class="num">0.70</td><td class="num">-0.20</td></tr>
+        <tr><td class="m">row 1</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.30</td><td class="num">-0.20</td><td class="num">-0.10</td><td class="num">0.10</td><td class="num">0.10</td><td class="num">-0.40</td><td class="num">0.40</td><td class="num">-0.60</td></tr>
+        <tr><td class="m">row 2</td><td class="num">-0.60</td><td class="num">-0.60</td><td class="num">0.50</td><td class="num">-0.20</td><td class="num">-0.50</td><td class="num">-0.60</td><td class="num">0.20</td><td class="num">-0.50</td><td class="num">-0.60</td><td class="num">0.30</td></tr>
+        <tr><td class="m">row 3</td><td class="num">-0.60</td><td class="num">-0.20</td><td class="num">0.00</td><td class="num">-0.20</td><td class="num">0.00</td><td class="num">0.70</td><td class="num">-0.30</td><td class="num">-0.60</td><td class="num">-0.90</td><td class="num">-0.10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="shapes">40 parameters. Each <b>column</b> belongs to one vocabulary entry.</div>
+
+  <div class="step">
+    <span class="sn">Worked, for position 0</span><h4>The block output there is <code>[0.70, 0.40, &minus;1.20, 0.20]</code></h4>
+    <p>Multiply it against each column in turn. Every line below is four multiplications and three additions — nothing more.</p>
+  </div>
+
+  <div class="tablewrap">
+    <table style="min-width:540px">
+      <thead><tr><th>Candidate</th><th>Its column</th><th>Dot product</th><th class="num">Logit</th></tr></thead>
+      <tbody>
+        <tr><td class="m">_</td><td class="m">[0.7, 0.1, &minus;0.6, &minus;0.6]</td><td class="m">(0.7&times;0.7)+(0.4&times;0.1)+(&minus;1.2&times;&minus;0.6)+(0.2&times;&minus;0.6)</td><td class="num">1.13</td></tr>
+        <tr><td class="m">a</td><td class="m">[0.3, 0.0, &minus;0.6, &minus;0.2]</td><td class="m">(0.7&times;0.3)+(0.4&times;0.0)+(&minus;1.2&times;&minus;0.6)+(0.2&times;&minus;0.2)</td><td class="num">0.89</td></tr>
+        <tr><td class="m">at_</td><td class="m">[1.2, 0.3, 0.5, 0.0]</td><td class="m">(0.7&times;1.2)+(0.4&times;0.3)+(&minus;1.2&times;0.5)+(0.2&times;0.0)</td><td class="num">0.36</td></tr>
+        <tr><td class="m">cat_</td><td class="m">[0.3, &minus;0.2, &minus;0.2, &minus;0.2]</td><td class="m">(0.7&times;0.3)+(0.4&times;&minus;0.2)+(&minus;1.2&times;&minus;0.2)+(0.2&times;&minus;0.2)</td><td class="num">0.33</td></tr>
+        <tr><td class="m">n</td><td class="m">[0.4, 0.1, &minus;0.6, 0.7]</td><td class="m">(0.7&times;0.4)+(0.4&times;0.1)+(&minus;1.2&times;&minus;0.6)+(0.2&times;0.7)</td><td class="num">1.18</td></tr>
+        <tr><td class="m">s</td><td class="m">[0.7, 0.4, &minus;0.6, &minus;0.9]</td><td class="m">(0.7&times;0.7)+(0.4&times;0.4)+(&minus;1.2&times;&minus;0.6)+(0.2&times;&minus;0.9)</td><td class="num">1.19</td></tr>
+        <tr><td class="m">the_</td><td class="m">[&minus;0.2, &minus;0.6, 0.3, &minus;0.1]</td><td class="m">(0.7&times;&minus;0.2)+(0.4&times;&minus;0.6)+(&minus;1.2&times;0.3)+(0.2&times;&minus;0.1)</td><td class="num">&minus;0.76</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="shapes">Those ten numbers <b>are</b> row 0 of the logits matrix below. Four rows of this = the whole thing.</div>
+
+  <div id="co-m-logits"></div>
+
+  <div class="step">
+    <span class="sn">Logits</span><h4>One raw score per vocabulary entry, per position</h4>
+    <p><b>Logits</b> are unnormalised scores — any real number, positive or negative, with no requirement to sum to anything. Row 0 is the model's opinion about what follows token 0. Here <code>s</code> scores highest at 1.19 and <code>the_</code> lowest at &minus;0.76, but the weights are random, so this is noise, not knowledge.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">Softmax</span><h4>Scores become probabilities</h4>
+    <p>Exponentiate everything, then divide by the row's total. Now every entry is between 0 and 1 and <b>each row sums to exactly 1</b>.</p>
+  </div>
+  <div id="co-m-probs"></div>
+
+  <div class="note">
+    <b class="h">Weight tying — and the intuition it hands you</b>
+    <code>W_lm</code> is 4&times;10 and the embedding table <code>E</code> is 10&times;4. Same shape, transposed. Many models simply <em>reuse E</em> as the output layer, which is called weight tying, and it is why GPT-2's 124M needs no separate output matrix.<br><br>
+    When they are tied, the score for token <em>j</em> becomes <code>dot(output vector, E[j])</code> — literally <strong>"which token's embedding does my output vector most resemble?"</strong> The model answers by pointing its output in the direction of the token it wants, and the scores fall out as similarities. That is the cleanest way to hold Stage 6 in your head, even for models that do not tie.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>Stage 7 · how wrong was it?</h2></div>
+  <p class="lede">Here is the idea that makes pretraining possible without a single human label: <b>the answer key is the text itself</b>. At each position, the correct next token is simply the token that actually came next.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="num">Position</th><th>Input token</th><th>Must predict</th><th class="num">Probability it gave</th><th class="num">Loss = &minus;ln(p)</th></tr></thead>
+      <tbody id="co-losstab"></tbody>
+    </table>
+  </div>
+
+  <div class="loss">2.190 <small>mean loss across the four positions</small></div>
+
+  <div class="trap">
+    <b class="h">Check this number against chance</b>
+    With V = 10 tokens and no knowledge at all, the model would spread probability evenly — 0.1 each — giving a loss of <code>&minus;ln(0.1) = 2.303</code>.<br><br>
+    We got <b>2.190</b>. The weights are random, so that is pure luck, and it tells you the model knows <b>nothing</b>. <strong>An untrained model's loss is always about ln(V).</strong> That is the baseline every training run starts from, and watching the loss fall below it is watching the model learn.
+  </div>
+
+  <div class="step">
+    <span class="sn">Why the logarithm</span><h4>&minus;ln(p) turns "probability" into "surprise"</h4>
+    <p>If the model gave the right token probability 1, the loss is <code>&minus;ln(1) = 0</code> — no surprise, no error. As p falls toward 0, <code>&minus;ln(p)</code> climbs without limit. Confident and wrong is punished far harder than uncertain and wrong.</p>
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">08</span><h2>The gradient that starts everything</h2></div>
+  <p class="lede">Now differentiate the loss with respect to the logits. For softmax with cross-entropy this collapses to something startlingly simple.</p>
+
+  <div class="shapes" style="font-size:1rem;margin-block:14px"><b>dLogits = (probabilities &minus; one-hot target) / T</b></div>
+
+  <div id="co-m-dlog"></div>
+
+  <div class="step">
+    <span class="sn">Read the signs</span><h4>One negative per row, everything else positive</h4>
+    <p>At the <b style="color:var(--alert)">target</b> column the value is <code>(p &minus; 1)</code>, which is negative — gradient descent subtracts it, so that logit goes <b>up</b>.</p>
+    <p>At every other column the value is <code>(p &minus; 0)</code>, positive — those logits go <b>down</b>.</p>
+    <p>Each step nudges the right answer up and all 9 wrong answers down, by exactly how much probability they were each wrongly given. Do that a few trillion times and you have a pretrained model.</p>
+  </div>
+
+  <div class="note">
+    <b class="h">This is the dY from One Block</b>
+    In <em>One Block</em>, step 4 began with "<code>dY</code> arrives from above". <strong>This is where it arrives from.</strong> The matrix above travels back through <code>W_lm</code>, then through the block, producing <code>dW2</code> and <code>dW1</code> and all the rest exactly as you watched.<br><br>
+    The chain is now closed in both directions: corpus &rarr; tokenizer &rarr; ids &rarr; X &rarr; block &rarr; logits &rarr; loss, and then the gradient all the way back.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">09</span><h2>So what is pretraining, exactly?</h2></div>
+  <p class="lede">Everything above, for one sentence, is <b>one training step</b>. Pretraining is that loop run until the loss stops falling.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Done how often</th><th>Produces</th></tr></thead>
+      <tbody>
+        <tr><td><b>Train the tokenizer</b></td><td>Once, before anything</td><td>Merge rules and a frozen vocabulary</td></tr>
+        <tr><td><b>Tokenize the corpus</b></td><td>Once</td><td>One long stream of integer ids</td></tr>
+        <tr><td><b>Pretraining loop</b></td><td>Millions of steps</td><td>Trained weights: E, the blocks, W_lm</td></tr>
+        <tr><td><b>Continued pre-training</b></td><td>Optional, after</td><td>Same loop, same loss, new domain corpus</td></tr>
+        <tr><td><b>Instruction tuning</b></td><td>Optional, after</td><td>Same machinery, but the corpus is instruction-response pairs and the loss is concentrated on the responses</td></tr>
+        <tr><td><b>LoRA / head-only</b></td><td>Optional, after</td><td>The same loop with almost everything frozen</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b class="h">Why they are all "the same thing with a different corpus"</b>
+    Nothing about the machinery changes between pretraining and continued pre-training — same next-token loss, same backward pass, different text. Instruction tuning changes <em>what the loss is computed over</em>, not how. And LoRA changes only <em>which weights receive the gradient</em>.<br><br>
+    This is why the exam asks whether continued pre-training and instruction tuning share an objective. They share the <b>mechanism</b>, which is why it feels like yes. They differ in the <b>objective</b>, because one scores every token of plain text and the other scores only the response to an instruction.
+  </div>
+</section>
+</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="block">Next: inside one block &rarr;</button></div></div>
+<div class="sh-pane" data-pane="block" hidden>
+<div class="sc-oneblock"><div class="wrap">
+<header class="mast">
+  <div class="kicker">DA5013 · Weeks 3 &amp; 4</div>
+  <h1>One Block, End to End</h1>
+  <p class="sub">Three tokens, four dimensions, every number visible. The same three tokens go through the feed-forward network, back through it, then through attention with two heads. Nothing is abstract and nothing is skipped.</p>
+</header>
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>The setup, and the colour code</h2></div>
+  <p class="lede">A real transformer has <code>d = 768</code> or more. This one has <code>d = 4</code>, so every matrix fits on screen. The <em>structure</em> is identical — only the numbers are small. Three tokens, four dimensions each.</p>
+
+  <div id="ob-m-X"></div>
+
+  <p class="lede" style="margin-top:16px">Three kinds of thing appear on this page, and telling them apart is the whole lesson. The colours never change meaning.</p>
+  <div class="key">
+    <div class="kitem" style="--c:var(--accent)"><b>WEIGHT</b><span>Learned. Persists forever. One entry per parameter. These are what "7B parameters" counts.</span></div>
+    <div class="kitem" style="--c:var(--signal)"><b>ACTIVATION</b><span>Computed fresh each forward pass, thrown away after the backward pass. One entry per token per dimension.</span></div>
+    <div class="kitem" style="--c:var(--alert)"><b>GRADIENT</b><span>Produced by the backward pass. Always the <em>same shape as the weight it belongs to</em>. Discarded after the update.</span></div>
+  </div>
+
+  <div class="note">
+    <b class="h">The one question that classifies everything</b>
+    Does this thing have one number <strong>per parameter</strong>, or one number <strong>per token</strong>? Weights and gradients are per parameter. Activations are per token. That single distinction explains why activations grow when you raise the batch size and why the model's memory does not.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Feed-forward, going forwards</h2></div>
+  <p class="lede">The feed-forward network widens each token's vector, applies a non-linearity, and squeezes it back. Here it widens 4 → 8. A real one widens 4× (768 → 3072); I use 2× so the matrices fit. Each token is processed <em>independently</em> — no token looks at any other in this part.</p>
+
+  <div class="step">
+    <span class="sn">Step 1</span><h4>Widen: multiply by the first weight matrix</h4>
+    <p>Each of the 3 token rows is multiplied by <code>W1</code>. A row of 4 numbers meets a 4×8 matrix and comes out as 8 numbers.</p>
+  </div>
+  <div id="ob-m-ffn1"></div>
+
+  <div class="step">
+    <span class="sn">Step 2</span><h4>Non-linearity: ReLU keeps the positives</h4>
+    <p><code>ReLU(x) = max(0, x)</code>. Negative entries become zero. This is where the network gains the ability to express something other than a straight line. Real GPT uses GELU, a smoothed version of exactly this shape.</p>
+    <p><b>Notice the zeros.</b> They matter in a moment — a zero here blocks a gradient later.</p>
+  </div>
+  <div id="ob-m-ffn2"></div>
+
+  <div class="step">
+    <span class="sn">Step 3</span><h4>Squeeze: back down to width 4</h4>
+    <p><code>W2</code> takes the 8 numbers back to 4, so the block's output has the same shape as its input. That is what lets you stack blocks.</p>
+  </div>
+  <div id="ob-m-ffn3"></div>
+
+  <div class="note">
+    <b class="h">Count what is on screen</b>
+    Weights: <code>W1</code> is 4×8 = 32 and <code>W2</code> is 8×4 = 32, so <strong>64 parameters</strong>. In the general case that is <code>2 · d · 4d = 8d²</code> — the "feed-forward is eight" from Transformer Anatomy.<br><br>
+    Activations: <code>X</code> 12, <code>H</code> 24, <code>A</code> 24 = <strong>60 numbers</strong>. Add a fourth token and the weights do not change at all, but the activations grow to 80.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Feed-forward, going backwards</h2></div>
+  <p class="lede">Something upstream tells us how wrong <code>Y</code> was. That arrives as <code>dY</code>, one number per entry of <code>Y</code> — "nudge this entry down, that one up". The job now is to turn that into a correction for every weight.</p>
+
+  <div id="ob-m-dY"></div>
+
+  <div class="step">
+    <span class="sn">Step 4</span><h4>The gradient of W2 — and why A had to be kept</h4>
+    <p><code>dW2 = Aᵀ @ dY</code>. Read that carefully: computing how to correct <code>W2</code> <b>requires A</b>, the activation from step 2.</p>
+    <p><b>This is the entire reason activations cost memory.</b> They are not stored because someone chose to cache them. They are stored because the backward pass cannot run without them. Throw <code>A</code> away and <code>dW2</code> is uncomputable.</p>
+  </div>
+  <div id="ob-m-dW2"></div>
+
+  <div class="step">
+    <span class="sn">Step 5</span><h4>Push the signal back through, then the gradient of W1</h4>
+    <p>Three small steps: <code>dA = dY @ W2ᵀ</code> sends the signal back across <code>W2</code>; <code>dH = dA ⊙ (H &gt; 0)</code> passes it through the ReLU, <b>zeroing wherever the forward pass zeroed</b>; then <code>dW1 = Xᵀ @ dH</code>.</p>
+    <p>That middle step is why the zeros mattered. A unit switched off in the forward pass receives no gradient in the backward pass.</p>
+  </div>
+  <div id="ob-m-dW1"></div>
+
+  <div class="note">
+    <b class="h">The shape fact to carry away</b>
+    <code>W1</code> is 4×8 and <code>dW1</code> is 4×8. <code>W2</code> is 8×4 and <code>dW2</code> is 8×4. <strong>A gradient always has exactly the shape of the weight it corrects.</strong><br><br>
+    So "gradients cost the same as weights" is not a coincidence or an approximation — it is forced by the arithmetic. And momentum and variance are also one-per-parameter, because they are running averages <em>of these gradients</em>. That is where sixteen bytes per parameter comes from, and you have now watched it happen.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Attention, on the same three tokens</h2></div>
+  <p class="lede">The feed-forward network never let tokens see each other. Attention is the part that does. Same <code>X</code> as before, same four dimensions.</p>
+
+  <div class="step">
+    <span class="sn">Step 6</span><h4>Three projections of the same input</h4>
+    <p><code>X</code> is multiplied by three separate weight matrices to produce three different views of the same tokens. The names are a filing-cabinet metaphor: <b>Query</b> is what this token is looking for, <b>Key</b> is what each token advertises about itself, <b>Value</b> is what it actually hands over if chosen.</p>
+    <p>All three are 4×4 here, so <code>Q</code>, <code>K</code> and <code>V</code> each come out 3×4 — one row per token, exactly like <code>X</code>.</p>
+  </div>
+  <div id="ob-m-qkv"></div>
+
+  <div class="step">
+    <span class="sn">Step 7</span><h4>Split into two heads — and notice no parameters are added</h4>
+    <p>Two heads means: cut each of <code>Q</code>, <code>K</code>, <code>V</code> down the middle. Head 0 takes columns 0–1, head 1 takes columns 2–3. Each head gets width <code>d/h = 2</code>.</p>
+    <p><b>Nothing new is created.</b> The same 4×4 matrices are being read in two halves. This is why the heads count is a decoy in parameter questions — doubling the heads just slices the same numbers more finely.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">Step 8</span><h4>Each head: score, mask, softmax</h4>
+    <p><code>scores = Qₕ @ Kₕᵀ / √2</code> gives a 3×3 grid — how much each token wants to attend to each other token. The <code>√2</code> is <code>√(head width)</code> and is only a normaliser, keeping the numbers in a range where softmax behaves.</p>
+    <p>Then the causal mask sets everything above the diagonal to −∞, so no token sees the future, and softmax turns each row into probabilities summing to 1.</p>
+    <p><b>Look at the first row after softmax: it is always <code>1, 0, 0</code>.</b> Token 1 has no past, so it can only attend to itself. And the score grid is 3×3 — T×T — which is the O(T²) term.</p>
+  </div>
+  <div id="ob-m-head0"></div>
+  <div id="ob-m-head1"></div>
+
+  <div class="step">
+    <span class="sn">Step 9</span><h4>Mix the values, stitch the heads, project out</h4>
+    <p>Each head computes <code>P @ Vₕ</code> — a weighted blend of value rows, using the attention probabilities as the weights. The two heads' outputs are concatenated back to width 4, then passed through a fourth matrix <code>W_O</code>.</p>
+  </div>
+  <div id="ob-m-out"></div>
+
+  <div class="note">
+    <b class="h">The whole block, counted</b>
+    Attention: four 4×4 matrices = <strong>64 parameters</strong>, which is <code>4d²</code>. Feed-forward: <strong>64</strong>, which is <code>8d²</code> at this reduced width (<code>2d</code> instead of <code>4d</code>). At real proportions the FFN is twice the attention, giving <code>12d²</code> per block.<br><br>
+    Every number in <code>Q</code>, <code>K</code>, <code>V</code>, the score grids and the outputs is an <strong>activation</strong> — gone after the backward pass. Only the four matrices persist.
+  </div>
+</section>
+</div></div><div class="sh-in"><div class="sh-bridge"><b>Where this continues.</b> LoRA is applied to this same <code>W_Q</code> matrix, number by number, in the <b>Memory Workshop</b> under &ldquo;LoRA on a real matrix&rdquo;.</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="anatomy">Next: count the parameters &rarr;</button></div></div>
+<div class="sh-pane" data-pane="anatomy" hidden>
+<div class="sc-anatomy"><div class="wrap">
+<header class="mast">
+  <div class="kicker">DA5013 · Week 3</div>
+  <h1>Transformer Anatomy</h1>
+  <p class="sub">Where every parameter in a transformer physically lives, and how to count them without memorising anything. Change the dimensions below and watch the model's size assemble itself. Four past-paper questions are solved at the bottom, then you're quizzed.</p>
+</header>
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>A transformer keeps its parameters in three places</h2></div>
+  <p class="lede">That is the whole idea. Every parameter-counting question in this course is just asking you to add up three buckets. Before the formulas: <em>parameter</em> means one learnable number — a single cell inside a matrix. When a model is called "7B", that is a count of these cells.</p>
+
+  <div class="places">
+    <div class="place" style="--c:var(--emb)">
+      <span class="pn">Place 1 · once per model</span>
+      <h4>The lookup tables</h4>
+      <div class="pf">V·d + ctx·d</div>
+      <p>One row per vocabulary entry, so the model can turn a token id into a vector. Plus one row per position, so it knows where in the sentence each token sits. Both rows are d numbers wide.</p>
+    </div>
+    <div class="place" style="--c:var(--att)">
+      <span class="pn">Place 2 · once per block</span>
+      <h4>Attention projections</h4>
+      <div class="pf">4 · d²</div>
+      <p>Four square matrices, each d×d: query, key, value, and the output projection that mixes the heads back together. Four squares, hence 4d².</p>
+    </div>
+    <div class="place" style="--c:var(--ffn)">
+      <span class="pn">Place 3 · once per block</span>
+      <h4>Feed-forward network</h4>
+      <div class="pf">2 · d · 4d = 8 · d²</div>
+      <p>Widens each vector from d to 4d, then squeezes it back to d. Two matrices of d×4d. Twice the size of the attention beside it.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>The sentence that replaces the formulas</b>
+    <strong>"Attention is four, feed-forward is eight, so twelve per block."</strong> Add the two lookup tables once, and you can rebuild any model's size from its config. That is the entire skill.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Build one and watch it add up</h2></div>
+  <p class="lede">Start with the GPT-1 preset. It lands on 116,414,976 — and the lecture's own table says 116,461,056. The gap is exactly 46,080, which is precisely the feed-forward bias vectors the lecture counted and the three buckets do not: 12 blocks × (3072 + 768). That reconciliation to the digit is your proof the three buckets really are the whole story. Then move the sliders and see which ones actually matter.</p>
+
+  <div class="panel">
+    <div class="ctrls">
+      <div class="ctrl">
+        <label for="an-cV">Vocabulary · V <b id="an-vV">40,478</b></label>
+        <input type="range" id="an-cV" min="1000" max="128000" step="1" value="40478">
+        <span class="hint">how many distinct tokens exist</span>
+      </div>
+      <div class="ctrl">
+        <label for="an-cD">Dimension · d <b id="an-vD">768</b></label>
+        <input type="range" id="an-cD" min="128" max="4096" step="64" value="768">
+        <span class="hint">width of one token's vector</span>
+      </div>
+      <div class="ctrl">
+        <label for="an-cL">Layers · L <b id="an-vL">12</b></label>
+        <input type="range" id="an-cL" min="1" max="96" step="1" value="12">
+        <span class="hint">how many blocks are stacked</span>
+      </div>
+      <div class="ctrl">
+        <label for="an-cC">Context · ctx <b id="an-vC">512</b></label>
+        <input type="range" id="an-cC" min="128" max="8192" step="128" value="512">
+        <span class="hint">longest input accepted</span>
+      </div>
+      <div class="ctrl">
+        <label for="an-cH">Heads · h <b id="an-vH">12</b></label>
+        <input type="range" id="an-cH" min="1" max="64" step="1" value="12">
+        <span class="hint">watch: this changes nothing</span>
+      </div>
+    </div>
+    <label class="switch"><input type="checkbox" id="an-cPos" checked> Positional embeddings are <strong>learned</strong> (uncheck for sinusoidal, which cost no parameters)</label>
+
+    <div class="presets">
+      <button class="preset" data-p="40478,768,12,512,12,1">GPT-1 · 117M</button>
+      <button class="preset" data-p="50257,768,12,1024,12,1">GPT-2 small · 124M</button>
+      <button class="preset" data-p="32000,1024,24,2048,16,1">T1 Q20 config</button>
+      <button class="preset" data-p="65000,1536,24,4096,16,1">T2 Q15 config</button>
+      <button class="preset" data-p="30522,768,12,512,12,1">BERT base · 110M</button>
+    </div>
+
+    <div class="readout">
+      <div>
+        <div class="total"><span id="an-tot">0</span> <span>learnable parameters</span></div>
+      </div>
+      <div class="bar" id="an-bar" role="img" aria-label="Parameter breakdown by location">
+        <div class="seg e" id="an-sE"></div><div class="seg a" id="an-sA"></div><div class="seg f" id="an-sF"></div>
+      </div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--emb)"></i> lookup tables</span>
+        <span><i class="dot" style="background:var(--att)"></i> attention · all blocks</span>
+        <span><i class="dot" style="background:var(--ffn)"></i> feed-forward · all blocks</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="block">The arithmetic, written out</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Where</th><th>Formula</th><th class="num">Parameters</th><th class="num">Share</th></tr></thead>
+      <tbody>
+        <tr><td>Token embeddings</td><td class="sym" id="an-fTok">V × d</td><td class="num" id="an-nTok">0</td><td class="num" id="an-pTok">0%</td></tr>
+        <tr><td>Position embeddings</td><td class="sym" id="an-fPos">ctx × d</td><td class="num" id="an-nPos">0</td><td class="num" id="an-pPos">0%</td></tr>
+        <tr><td>Attention · per block</td><td class="sym" id="an-fAtt1">4d²</td><td class="num" id="an-nAtt1">0</td><td class="num">—</td></tr>
+        <tr><td>FFN · per block</td><td class="sym" id="an-fFfn1">8d²</td><td class="num" id="an-nFfn1">0</td><td class="num">—</td></tr>
+        <tr><td>One whole block</td><td class="sym" id="an-fBlk">12d²</td><td class="num" id="an-nBlk">0</td><td class="num">—</td></tr>
+        <tr><td>All blocks</td><td class="sym" id="an-fAll">L × 12d²</td><td class="num" id="an-nAll">0</td><td class="num" id="an-pAll">0%</td></tr>
+        <tr class="sum"><td>Total</td><td class="sym">sum</td><td class="num" id="an-nTot">0</td><td class="num">100%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>Why the exam accepts a range instead of an exact number</b>
+    This count ignores bias vectors and layer-normalisation parameters. On GPT-1 those come to 46,080 out of 116.4M — four hundredths of one percent. That is why past papers ask for "2.3 to 2.5" rather than an exact figure, and why the lecture's GPT-1 total is quoted as both 116.46M and "around 117 million" on consecutive slides. Count the three buckets and you will always land inside the accepted band, so never spend exam time hunting for biases.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Three decoys the paper plants</h2></div>
+  <p class="lede">Each of these appears in a question specifically to be used, and in every case the right move is to ignore it. Verify each one on the panel above.</p>
+
+  <div class="trap">
+    <b>Decoy 1 · the number of heads</b>
+    Drag the heads slider from 1 to 64. The total does not move. Heads <em>split</em> the existing d×d matrices into h slices of width d/h — they do not add matrices. Twelve heads of width 64 is exactly 12 × 64 = 768 numbers wide, which is the same single d×d matrix. <br><br>T1 Q19 gave you "12 attention heads" and the answer was 4d², using d alone.
+  </div>
+
+  <div class="trap">
+    <b>Decoy 2 · the sequence length T</b>
+    T is how many tokens are in <em>this particular input</em>. Parameters are the model's permanent furniture; they exist before any input arrives and do not change when a different sentence shows up. T affects how much <em>activation memory</em> a forward pass needs, and it drives the O(T²) cost of attention — but it never appears in a parameter count.<br><br>T1 Q19 opened with "a very short sequence of only 3 tokens". It was irrelevant.
+  </div>
+
+  <div class="trap">
+    <b>Decoy 3 · the context length</b>
+    This one is subtler, because ctx <em>does</em> appear — but only in the smallest bucket. Set d to 2048 and drag ctx from 2048 to 8192: the total barely moves, because you are only adding rows to the position table while the blocks stay untouched.<br><br>GA4 asked how the memory to load a 7B model changes when context goes 2048 → 8000. Answer: by about 12.2M parameters, roughly 0.05 GB on a 28 GB model. It stays 28 GB.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Now solve the real questions</h2></div>
+  <p class="lede">Every parameter-counting question from both past Quiz-1 papers and the graded assignments. Read the question, work it on paper, then open the steps.</p>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q19 · 4 marks</span>
+      <p class="qt">A GPT-style transformer block has an embedding dimension of 768 and uses 12 attention heads. Consider a processing task with a very short sequence of only 3 tokens (T = 3). Compute the total number of weight parameters (ignore biases) in the self-attention module — specifically the Query, Key, Value and Output projection matrices. Report in millions, to one decimal place.</p>
+      <button class="wbtn" data-sol="w1">Show the steps</button>
+    </div>
+    <div class="wsol" id="an-w1" hidden>
+      <div class="step"><i>1</i><div>Spot the decoys first. Heads = 12 and T = 3 are both named, and neither belongs in a parameter count. Cross them out before computing anything.</div></div>
+      <div class="step"><i>2</i><div>Four named matrices — Query, Key, Value, Output — each d × d.</div></div>
+      <div class="step"><i>3</i><div>4 × 768² = 4 × 589,824 = 2,359,296.</div></div>
+      <div class="step"><i>4</i><div>In millions: 2.359 → <strong>2.4</strong>. The accepted band was 2.3 to 2.5.</div></div>
+      <div class="wans">4d² = 4 × 768² = 2.36M</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q20 · 4 marks</span>
+      <p class="qt">You are training a decoder-only language model with a vocabulary of 32,000, maximum context length 2048 and embedding dimension 1024. The model uses learned positional embeddings. Calculate the total number of parameters in the embedding layer (token + positional). Report in millions, to one decimal place.</p>
+      <button class="wbtn" data-sol="w2">Show the steps</button>
+    </div>
+    <div class="wsol" id="an-w2" hidden>
+      <div class="step"><i>1</i><div>"Learned positional embeddings" is the licence to count the second table. Had it said sinusoidal, that term would be zero.</div></div>
+      <div class="step"><i>2</i><div>Token table: 32,000 × 1024 = 32,768,000.</div></div>
+      <div class="step"><i>3</i><div>Position table: 2048 × 1024 = 2,097,152.</div></div>
+      <div class="step"><i>4</i><div>Sum: 34,865,152 → <strong>34.9</strong>. Accepted band 34.7 to 35.1.</div></div>
+      <div class="wans">V·d + ctx·d = 32.77M + 2.10M = 34.9M</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T2 · Q15 and Q16 · 4 marks each</span>
+      <p class="qt">A GPT-style model has vocabulary 65,000, context length 4096 and embedding dimension 1536, with learned positional embeddings. <strong>(a)</strong> Total embedding parameters, in millions. <strong>(b)</strong> For a transformer block with d_model = 1536, the total parameters in standard self-attention — Query, Key, Value and Output projections, ignoring biases — in millions.</p>
+      <button class="wbtn" data-sol="w3">Show the steps</button>
+    </div>
+    <div class="wsol" id="an-w3" hidden>
+      <div class="step"><i>1</i><div>(a) Token table: 65,000 × 1536 = 99,840,000.</div></div>
+      <div class="step"><i>2</i><div>Position table: 4096 × 1536 = 6,291,456.</div></div>
+      <div class="step"><i>3</i><div>Sum 106,131,456 → <strong>106.1</strong>. Band 105.5 to 106.5.</div></div>
+      <div class="step"><i>4</i><div>(b) Same four matrices as before: 4 × 1536² = 4 × 2,359,296 = 9,437,184 → <strong>9.4</strong>. Band 9 to 10.</div></div>
+      <div class="wans">(a) 99.84M + 6.29M = 106.1M &nbsp;·&nbsp; (b) 4 × 1536² = 9.44M</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">GA3 · Week 3 · and GA4 · Week 4</span>
+      <p class="qt"><strong>(a)</strong> Take default BERT (d = 768) and double the context length from 512 to 1024 in the config. Enter the change in parameter count, in millions. <strong>(b)</strong> A 7B model has context 2048 and embedding dimension 2048. If context rises to 8000, how much memory in GB is needed to load it in fp32?</p>
+      <button class="wbtn" data-sol="w4">Show the steps</button>
+    </div>
+    <div class="wsol" id="an-w4" hidden>
+      <div class="step"><i>1</i><div>(a) Only the position table changes. Nothing else in the model knows the context got longer.</div></div>
+      <div class="step"><i>2</i><div>Δ = Δctx × d = (1024 − 512) × 768 = 512 × 768 = 393,216 → <strong>0.393M</strong>. Band 0.38 to 0.41.</div></div>
+      <div class="step"><i>3</i><div>(b) Same reasoning, bigger numbers: Δ = (8000 − 2048) × 2048 = 12,189,696 extra parameters.</div></div>
+      <div class="step"><i>4</i><div>In fp32 that is 12.19M × 4 bytes ≈ 0.049 GB — on a model that already weighs 7e9 × 4 = 28 GB.</div></div>
+      <div class="step"><i>5</i><div>So the answer stays <strong>28 GB</strong>. The accepted band was 26 to 30, deliberately wide enough that the tiny increase cannot change your answer. The question is testing whether you know context length is nearly free.</div></div>
+      <div class="wans">Δparams = Δctx × d &nbsp;·&nbsp; (a) 0.393M &nbsp;·&nbsp; (b) still 28 GB</div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Quiz yourself</h2></div>
+  <p class="lede">Six questions, in the same shape the paper uses. No peeking at the panel — the point is whether you can rebuild the count from the sentence in section 01.</p>
+  <div class="quiz" id="an-quiz"></div>
+  <p class="score" id="an-score">0 of 6 answered</p>
+</section>
+</div></div>
+<div class="sh-in"><button class="sh-next" data-pane="arch">Next: the three architectures &rarr;</button></div></div>
+<div class="sh-pane" data-pane="arch" hidden>
+<div class="sc-architectures"><div class="wrap">
+<header class="mast">
+  <div class="kicker">DA5013 · Weeks 1 &amp; 3</div>
+  <h1>The Three Architectures</h1>
+  <p class="sub">BERT, GPT and T5 are not three designs. They are one diagram with different parts switched off. Pick a family below and watch the course's own flowchart lose the pieces that family does not own — then check what that does to the attention mask.</p>
+</header>
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>One diagram, three readings</h2></div>
+  <p class="lede">This is the flowchart from the week-1 and week-2 decks, with the deck's own labels. Choose a family, then click any block to find out what it does and whether this family keeps it.</p>
+
+  <div class="modebar" role="group" aria-label="Architecture family">
+    <button class="mode" data-mode="encdec" aria-pressed="true">Encoder–Decoder · T5, BART</button>
+    <button class="mode" data-mode="enc" aria-pressed="false">Encoder-only · BERT</button>
+    <button class="mode" data-mode="dec" aria-pressed="false">Decoder-only · GPT</button>
+  </div>
+
+  <div class="diagram">
+    <svg class="flow" id="ar-flow" viewBox="0 0 600 470" role="img" aria-labelledby="ar-flowTitle">
+      <title id="ar-flowTitle">Transformer flowchart with encoder and decoder stacks</title>
+      <defs>
+        <marker id="ar-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g id="ar-edges" color="var(--ink-soft)"></g>
+      <g id="ar-blocks"></g>
+      <g id="ar-labels"></g>
+    </svg>
+    <div class="detail" id="ar-detail">
+      <h4>Click a block</h4>
+      <p>Each block's explanation, its parameter cost, and whether the family you have selected keeps it will appear here.</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>The single most useful sentence about decoder-only models</b>
+    A decoder-only model is not "half a transformer". It is the decoder <em>with the cross-attention layer removed</em>, because cross-attention exists only to read an encoder's output and there is no encoder to read. That is why GPT's block has two sublayers — masked attention and feed-forward — while the full decoder has three. Select Decoder-only above and the cross-attention block is the one that greys out inside an otherwise intact column.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>What actually changes: the mask</h2></div>
+  <p class="lede">The families share their machinery almost exactly. What really separates them is which cells of the attention matrix are allowed. A cell holds 0 where attention is permitted and −∞ where it is blocked, because −∞ becomes 0 after softmax and so contributes nothing.</p>
+
+  <div class="maskpanel">
+    <div class="maskctl">
+      <label>Mask
+        <select id="ar-mkind">
+          <option value="bi">bidirectional · encoder-only</option>
+          <option value="causal" selected>causal · decoder-only</option>
+        </select>
+      </label>
+      <label>torch.triu diagonal =
+        <select id="ar-mdiag">
+          <option value="1" selected>1 · correct</option>
+          <option value="0">0 · the bug</option>
+        </select>
+      </label>
+      <label>seq_len
+        <select id="ar-mlen">
+          <option>4</option><option selected>5</option><option>6</option><option>7</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid" id="ar-grid"></div>
+    <div class="rowflag" id="ar-rowflag"></div>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin-top:11px">Rows are queries — the token doing the looking. Columns are keys — the token being looked at. Cell <code>(i,j)</code> asks: may token <em>i</em> attend to token <em>j</em>?</p>
+  </div>
+
+  <div class="trap">
+    <b>The off-by-one that 2026 T2 made a 3-mark question</b>
+    <pre>causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=<b>0</b>).bool()
+masked_scores = scores.masked_fill(causal_mask, float("-inf"))
+attn_weights  = F.softmax(masked_scores, dim=-1)</pre>
+    <p style="margin-top:9px"><code>diagonal=0</code> includes the main diagonal, so every token is forbidden from attending to <em>itself</em>. Row 0 then has nothing left to look at — it is entirely −∞ — and softmax over a row of all −∞ gives NaN. Set the selector above to 0 and watch the first row turn solid red. The fix is <code>diagonal=1</code>, which blocks only what is strictly above the diagonal.</p>
+  </div>
+
+  <div class="note">
+    <b>Why the course calls the mask "strictly upper triangular"</b>
+    The blocked cells — the −∞ entries — sit strictly above the main diagonal. The deck writes it out as a 4×4 matrix with zeros on and below the diagonal and −∞ above. A past paper marked "the attention mask is strictly upper triangular" as a correct statement, so the wording matters.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Side by side</h2></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th></th><th>Encoder-only</th><th>Decoder-only</th><th>Encoder–Decoder</th></tr></thead>
+      <tbody>
+        <tr><td><b>Example</b></td><td>BERT</td><td>GPT</td><td>T5, BART</td></tr>
+        <tr><td><b>Trained with</b></td><td class="m">MLM</td><td class="m">CLM</td><td>sequence-to-sequence</td></tr>
+        <tr><td><b>Each token sees</b></td><td>both directions</td><td>the past only</td><td>both, then the past</td></tr>
+        <tr><td><b>Mask</b></td><td>none</td><td>strictly upper triangular</td><td>none in the encoder, causal in the decoder</td></tr>
+        <tr><td><b>Cross-attention</b></td><td>no</td><td><b>no</b> — nothing to read from</td><td>yes</td></tr>
+        <tr><td><b>Sublayers per block</b></td><td>2</td><td>2</td><td>2 encoder, 3 decoder</td></tr>
+        <tr><td><b>Good at</b></td><td>understanding a complete text: classification, NER</td><td>generating text one token at a time</td><td>turning one whole sequence into another: translation, summarisation</td></tr>
+        <tr><td><b>Head on top</b></td><td>MLM head, or a classification head after fine-tuning</td><td>LM head over the vocabulary</td><td>LM head over the target vocabulary</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b>Memory hook</b>
+    <strong>Read · Write · Translate.</strong> The encoder <em>reads</em> — it sees everything at once, which is why it is good at judging a text but cannot produce one. The decoder <em>writes</em> — it only ever sees what it has already written, which is exactly the condition of writing. The pair together <em>translates</em> — read one thing completely, then write another.
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Now solve the real questions</h2></div>
+  <p class="lede">Every architecture and masking question from both past Quiz-1 papers.</p>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T2 · Q9 · 3 marks</span>
+      <p>The following code is intended to implement causal masking for self-attention, where each token can attend only to itself and previous tokens. <code>seq_len = 4</code>, <code>causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=0).bool()</code>, then <code>masked_fill(causal_mask, float("-inf"))</code> and a softmax over the last dimension. What is the effect of running this code as written?</p>
+      <button class="wbtn" data-sol="a1">Show the steps</button>
+    </div>
+    <div class="wsol" id="ar-a1" hidden>
+      <div class="step"><i>1</i><div><code>torch.triu(M, diagonal=k)</code> keeps the upper triangle starting <em>k</em> positions from the main diagonal. At <code>k=0</code> the main diagonal is included.</div></div>
+      <div class="step"><i>2</i><div>Those kept entries are what gets filled with −∞. So cell (i,i) — a token attending to itself — is blocked, which is not what causal masking means. Causal allows self-attention; it blocks only the future.</div></div>
+      <div class="step"><i>3</i><div>Row 0 has no past at all, and now loses itself too, so every cell in row 0 is −∞.</div></div>
+      <div class="step"><i>4</i><div>Softmax over a row of all −∞ divides zero by zero and produces NaN. Switch the panel above to <code>diagonal=0</code> to see the row turn solid red.</div></div>
+      <div class="step"><i>5</i><div>Reject the two tempting distractors: it raises no RuntimeError — <code>triu</code> and <code>masked_fill</code> compose perfectly legally — and the weights do not "sum to more than 1", because softmax always normalises to 1 wherever it is defined at all.</div></div>
+      <div class="wans">The current token is masked too; row 0 becomes entirely −∞, which can yield NaN weights</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q14 · 3 marks · multiple select</span>
+      <p>Which statements correctly distinguish different Transformer architectures and their typical training objectives? (a) Encoder-only models are commonly trained with Masked Language Modelling objectives. (b) Decoder-only models rely on causal masking and autoregressive inference. (c) Encoder-decoder models are well suited for sequence-to-sequence tasks. (d) All Transformer architectures use identical attention masks.</p>
+      <button class="wbtn" data-sol="a2">Show the steps</button>
+    </div>
+    <div class="wsol" id="ar-a2" hidden>
+      <div class="step"><i>1</i><div>(a), (b) and (c) are each the textbook pairing of a family with its objective. All three correct.</div></div>
+      <div class="step"><i>2</i><div>(d) is the odd one out, and it is false for the exact reason this page exists: the mask is the one thing that genuinely differs. An encoder has none; a decoder has a strictly upper triangular one.</div></div>
+      <div class="step"><i>3</i><div>Pattern worth noting: in a four-option multiple-select on this paper, three options were correct and the fourth contained the word "identical". Absolutes stay a reliable tell.</div></div>
+      <div class="wans">(a), (b), (c) — not (d)</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q16 · 3 marks · multiple select</span>
+      <p>A model is trained using the Causal Language Modelling objective with a standard cross-entropy loss. Which statements correctly describe the training dynamics? (a) The loss at position t depends only on tokens before t. (b) The attention mask is strictly upper triangular. (c) Future tokens contribute gradients to earlier positions. (d) The joint probability of the sequence is factorised autoregressively.</p>
+      <button class="wbtn" data-sol="a3">Show the steps</button>
+    </div>
+    <div class="wsol" id="ar-a3" hidden>
+      <div class="step"><i>1</i><div>(a) True. That is the definition of causal: the prediction at t is conditioned on x₁…x₍t₋₁₎ and nothing later.</div></div>
+      <div class="step"><i>2</i><div>(b) True, in the deck's own words — the −∞ entries lie strictly above the diagonal.</div></div>
+      <div class="step"><i>3</i><div>(c) False, and this is the one that catches people. Gradients flow backwards through the computation graph, but the mask severed the forward connection from future tokens to earlier positions. No forward path means no gradient path. A token that was never read cannot be blamed for the error.</div></div>
+      <div class="step"><i>4</i><div>(d) True: P(x₁…x_T) = ∏ P(x_t | x₁…x₍t₋₁₎), the chain rule written out, which is the whole content of the CLM objective.</div></div>
+      <div class="wans">(a), (b), (d) — not (c)</div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <div class="wq">
+      <span class="wsrc">2026 T1 · Q6 and Q7 · 2 marks each</span>
+      <p><strong>(a)</strong> A loop builds <code>AutoModelForMaskedLM.from_pretrained("bert-base-uncased")</code> and calls it with <code>labels=batch_ids</code> on a large domain corpus with no labelled task targets, then backpropagates. What is the most precise interpretation? <strong>(b)</strong> In the standard Transformer, which component scales quadratically, O(N²), with input sequence length N?</p>
+      <button class="wbtn" data-sol="a4">Show the steps</button>
+    </div>
+    <div class="wsol" id="ar-a4" hidden>
+      <div class="step"><i>1</i><div>(a) Three signals decide it. The class is <code>ForMaskedLM</code>, so the objective is MLM. The corpus is unlabelled and domain-specific. The weights start from a pretrained checkpoint rather than random.</div></div>
+      <div class="step"><i>2</i><div>Pretrained start + original objective + new domain = <strong>continual pre-training</strong>. Passing <code>labels=input_ids</code> is not supervision; it is how the MLM collator scores the model on reconstructing its own masked input.</div></div>
+      <div class="step"><i>3</i><div>So it is not instruction tuning — there are no instructions — and no classifier head is being trained.</div></div>
+      <div class="step"><i>4</i><div>(b) The attention score matrix QKᵀ is N×N, one entry per pair of positions, so it grows with the square of the length. Embedding lookups are O(N), residual additions are O(N), and the feed-forward layers act position by position, also O(N).</div></div>
+      <div class="step"><i>5</i><div>Note this is the one place sequence length matters. It drives compute and activation memory — never the parameter count.</div></div>
+      <div class="wans">(a) continual pre-training with the MLM objective &nbsp;·&nbsp; (b) the attention score matrix QKᵀ</div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Quiz yourself</h2></div>
+  <div class="quiz" id="ar-quiz"></div>
+  <p class="score" id="ar-score">0 of 7 answered</p>
+</section>
+</div></div>
+</div>
+<div class="sh-in"><div class="sh-foot">Week 3 of the Quiz 1 set. Notes and formulas live in the <b>Quiz 1 Cheatsheet</b>; Week 2 is the <b>Tokenizer Lab</b>; Week 4 is the <b>Memory Workshop</b>; then the <b>Mock Papers</b>.</div></div>
+<script>
+function scopedDoc(cls, ns){
+  var D = window.document;
+  function inScope(el){ return !!el.closest('.' + cls); }
+  return {
+    getElementById: function(id){ return D.getElementById(ns + id) || D.createElement('div'); },
+    querySelectorAll: function(s){ return Array.prototype.filter.call(D.querySelectorAll(s), inScope); },
+    querySelector: function(s){ var a = this.querySelectorAll(s); return a.length ? a[0] : null; },
+    createElement: function(t){ return D.createElement(t); },
+    createElementNS: function(n, t){ return D.createElementNS(n, t); }
+  };
+}
+(function(){
+  var tabs = document.querySelectorAll('.sh-tab'), panes = document.querySelectorAll('.sh-pane');
+  function show(name){
+    tabs.forEach(function(t){ t.setAttribute('aria-pressed', t.dataset.pane === name ? 'true' : 'false'); });
+    panes.forEach(function(p){ p.hidden = (p.dataset.pane !== name); });
+    window.scrollTo(0, 0);
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.pane); }); });
+  document.querySelectorAll('.sh-next').forEach(function(b){
+    b.addEventListener('click', function(){ show(b.dataset.pane); });
+  });
+})();
+</script>
+<script>
+(function(document){
+
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var KIND = { w:{c:'var(--accent)', bg:'var(--accent-soft)'},
+               a:{c:'var(--signal)', bg:'var(--signal-soft)'},
+               g:{c:'var(--alert)',  bg:'var(--alert-soft)'} };
+
+  function mat(name, data, kind, note, marks){
+    var k = KIND[kind], rows = data.length, cols = data[0].length;
+    var html = '<div class="mat" style="--c:' + k.c + '">' +
+      '<div class="cap"><b>' + name + '</b><i>' + rows + ' x ' + cols + '</i>' +
+      (note ? '<i>' + note + '</i>' : '') + '</div>' +
+      '<div class="grid" style="grid-template-columns:repeat(' + cols + ',auto)">';
+    data.forEach(function(r, ri){
+      r.forEach(function(v, ci){
+        var cls = 'cell';
+        if (marks && marks[ri] === ci) cls += (v < 0 ? ' neg' : ' hl');
+        html += '<div class="' + cls + '" style="--bg:' + k.bg + '">' + v.toFixed(2) + '</div>';
+      });
+    });
+    return html + '</div></div>';
+  }
+  function op(s){ return '<div class="op">' + s + '</div>'; }
+  function row(h){ return '<div class="mrow">' + h + '</div>'; }
+
+  // ---------- computed data ----------
+  var VOCAB = ['_','a','at_','cat_','m','n','o','r','s','the_'];
+  var IDS   = [9,3,8,2];
+  var TOKS  = ['the_','cat_','s','at_'];
+  var TGT   = [3,8,2,0];
+
+  var E = [[-0.50,-0.80,-0.10,0.30],[0.70,0.10,-0.30,-0.50],[0.40,1.00,0.20,-0.70],
+           [-0.60,1.00,0.10,-1.00],[-0.10,-0.70,-0.40,-0.30],[-0.40,0.30,-0.00,-0.40],
+           [0.20,0.50,-1.00,-0.20],[-0.60,-0.10,-0.80,0.00],[-0.00,-0.20,-0.60,-0.20],
+           [-0.70,-0.80,0.10,-0.70]];
+  var X = [[-0.70,-0.80,0.10,-0.70],[-0.60,1.00,0.10,-1.00],[-0.00,-0.20,-0.60,-0.20],[0.40,1.00,0.20,-0.70]];
+  var BLK = [[0.70,0.40,-1.20,0.20],[-0.70,0.00,0.00,-1.20],[-0.10,-0.20,0.60,-0.70],[0.40,-0.70,-0.20,-0.50]];
+  var LOGITS = [[1.13,0.89,0.36,0.33,0.84,1.18,-0.47,0.32,1.19,-0.76],
+                [0.23,0.03,-0.84,0.03,-0.28,-1.12,0.57,0.72,0.59,0.26],
+                [-0.03,-0.25,0.12,0.03,-0.32,-0.91,0.34,0.20,0.12,0.39],
+                [0.63,0.34,0.17,0.40,0.33,-0.14,-0.08,0.68,0.57,0.33]];
+  var PROBS = [[0.16,0.12,0.07,0.07,0.12,0.17,0.03,0.07,0.17,0.02],
+               [0.11,0.09,0.04,0.09,0.06,0.03,0.15,0.17,0.15,0.11],
+               [0.09,0.08,0.11,0.10,0.07,0.04,0.14,0.12,0.11,0.14],
+               [0.13,0.10,0.08,0.10,0.10,0.06,0.06,0.14,0.12,0.10]];
+  var DLOG = [[0.04,0.03,0.02,-0.23,0.03,0.04,0.01,0.02,0.04,0.01],
+              [0.03,0.02,0.01,0.02,0.02,0.01,0.04,0.04,-0.21,0.03],
+              [0.02,0.02,-0.22,0.03,0.02,0.01,0.03,0.03,0.03,0.04],
+              [-0.22,0.02,0.02,0.03,0.02,0.02,0.02,0.03,0.03,0.02]];
+  var EXACT = [0.071,0.153,0.110,0.132];
+
+  // vocabulary chips
+  $('vocab').innerHTML = VOCAB.map(function(t,i){
+    return '<span class="vc"><b>' + i + '</b> &nbsp;' + t + '</span>';
+  }).join('');
+
+  // token chips
+  $('toks').innerHTML = TOKS.map(function(t,i){
+    return '<span class="tk">' + t + '<small>id ' + IDS[i] + '</small></span>';
+  }).join('');
+
+  // embedding table, highlighting the four rows selected
+  var marks = {};
+  $('m-E').innerHTML = row(mat('E  the embedding table', E, 'w', 'V x d = 40 parameters')) +
+    '<div class="shapes">ids [9, 3, 8, 2] pick out rows <b>9, 3, 8, 2</b> of this table</div>';
+
+  $('m-X').innerHTML = row(mat('X', X, 'a', 'the four rows, stacked')) +
+    '<div class="shapes">T x d = <b>4 x 4</b> &mdash; this is the input to the block</div>';
+
+  $('m-blk').innerHTML = row(mat('X', X, 'a') + op('→ block →') + mat('block output', BLK, 'a'));
+
+  $('m-logits').innerHTML = row(mat('block output', BLK, 'a') + op('@ W_lm =') + mat('logits', LOGITS, 'a', 'one score per vocabulary entry')) +
+    '<div class="shapes">(4 x 4) @ (<b>4 x 10</b>) = (4 x 10) &mdash; width d becomes width V</div>';
+
+  var tgtMark = {}; TGT.forEach(function(t,i){ tgtMark[i] = t; });
+  $('m-probs').innerHTML = row(mat('probabilities', PROBS, 'a', 'rows sum to 1', tgtMark)) +
+    '<div class="shapes">outlined cell in each row = the token that actually came next</div>';
+
+  $('m-dlog').innerHTML = row(mat('dLogits', DLOG, 'g', 'P minus one-hot, over T', tgtMark)) +
+    '<div class="shapes">exactly one negative per row &mdash; the target. everything else positive.</div>';
+
+  // loss table
+  $('losstab').innerHTML = IDS.map(function(id,i){
+    return '<tr><td class="num">' + i + '</td>' +
+      '<td class="m">' + VOCAB[id] + ' <span style="color:var(--ink-soft)">(id ' + id + ')</span></td>' +
+      '<td class="m">' + VOCAB[TGT[i]] + ' <span style="color:var(--ink-soft)">(id ' + TGT[i] + ')</span></td>' +
+      '<td class="num">' + EXACT[i].toFixed(3) + '</td>' +
+      '<td class="num">' + (-Math.log(EXACT[i])).toFixed(3) + '</td></tr>';
+  }).join('');
+})();
+
+})(scopedDoc("sc-corpus", "co-"));
+</script>
+<script>
+(function(document){
+
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = null;
+
+  var KIND = { w:{c:'var(--accent)', bg:'var(--accent-soft)'},
+               a:{c:'var(--signal)', bg:'var(--signal-soft)'},
+               g:{c:'var(--alert)',  bg:'var(--alert-soft)'},
+               f:{c:'var(--frozen)', bg:'var(--frozen-soft)'},
+               t:{c:'var(--win)',    bg:'var(--win-soft)'} };
+
+  function mat(name, data, kind, note){
+    var k = KIND[kind], rows = data.length, cols = data[0].length;
+    var html = '<div class="mat" style="--c:' + k.c + '">' +
+      '<div class="cap"><b>' + name + '</b><i>' + rows + ' x ' + cols + ' = ' + (rows*cols) + ' numbers</i>' +
+      (note ? '<i>' + note + '</i>' : '') + '</div>' +
+      '<div class="grid" style="grid-template-columns:repeat(' + cols + ',auto)">';
+    data.forEach(function(r){
+      r.forEach(function(v){
+        var z = (v === 0) ? ' zero' : '';
+        var txt = (v === -Infinity) ? '-inf' : v.toFixed(2);
+        html += '<div class="cell' + z + '" style="--bg:' + k.bg + '">' + txt + '</div>';
+      });
+    });
+    return html + '</div></div>';
+  }
+  function op(sym){ return '<div class="op">' + sym + '</div>'; }
+  function row(html){ return '<div class="mrow">' + html + '</div>'; }
+
+  // ---------- the data, all computed ----------
+  var X  = [[1,0,1,0],[0,2,0,1],[1,1,0,0]];
+  var W1 = [[-0.00,0.20,0.10,0.10,0.20,0.00,0.30,0.10],
+            [0.40,-0.20,-0.00,-0.30,-0.70,-1.00,0.20,-0.30],
+            [-0.20,-0.10,0.40,0.40,0.50,0.60,1.60,0.30],
+            [0.20,-0.90,-0.70,1.20,1.50,0.40,0.10,0.40]];
+  var H  = [[-0.20,0.10,0.50,0.50,0.70,0.60,1.90,0.40],
+            [1.00,-1.30,-0.70,0.60,0.10,-1.60,0.50,-0.20],
+            [0.40,0.00,0.10,-0.20,-0.50,-1.00,0.50,-0.20]];
+  var A  = [[0,0.10,0.50,0.50,0.70,0.60,1.90,0.40],
+            [1.00,0,0,0.60,0.10,0,0.50,0],
+            [0.40,0,0.10,0,0,0,0.50,0]];
+  var W2 = [[-1.00,-0.30,-0.20,0.90],[-0.50,0.20,0.40,0.50],[-0.20,-0.30,-1.10,0.60],
+            [0.60,-0.20,0.10,-0.70],[-0.10,0.40,-0.20,0.00],[0.50,0.30,-0.30,0.80],
+            [0.90,0.50,0.30,0.40],[0.40,-0.60,0.50,-0.40]];
+  var Y  = [[2.25,0.94,-0.01,1.08],[-0.20,-0.13,-0.01,0.68],[0.03,0.10,-0.04,0.62]];
+  var dY = [[0.10,-0.10,0.30,1.10],[0.30,-0.10,0.40,0.10],[-1.00,-1.10,-0.30,1.20]];
+  var dW2= [[-0.10,-0.54,0.28,0.58],[0.01,-0.01,0.03,0.11],[-0.05,-0.16,0.12,0.67],
+            [0.23,-0.11,0.39,0.61],[0.10,-0.08,0.25,0.78],[0.06,-0.06,0.18,0.66],
+            [-0.16,-0.79,0.62,2.74],[0.04,-0.04,0.12,0.44]];
+  var dW1= [[2.47,0.60,1.92,-0.66,-0.11,0.81,-0.49,-0.19],
+            [1.95,0,1.58,0.34,-0.30,0,-0.30,0],
+            [0,0.60,0.34,-0.66,-0.11,0.81,0.57,-0.19],
+            [-0.26,0,0,0.17,-0.15,0,0.38,0]];
+
+  var WQ = [[0.00,0.80,0.70,-0.30],[-0.20,-0.30,0.30,-0.00],[0.40,-1.10,0.90,-0.10],[0.40,-0.10,-0.20,0.30]];
+  var WK = [[0.50,-0.10,-0.10,0.40],[-0.50,-0.90,0.20,-0.40],[-1.20,-0.50,-0.30,-0.70],[-0.90,0.00,0.50,-0.10]];
+  var WV = [[-0.40,0.20,0.40,-0.20],[0.30,0.60,-0.10,-0.50],[0.20,0.10,0.70,-0.80],[-0.40,-0.50,-1.00,0.10]];
+  var WO = [[0.30,-0.40,0.80,0.50],[0.40,0.20,0.60,-0.80],[0.40,0.40,-1.10,0.20],[-0.20,0.50,-0.30,-0.00]];
+  var Q  = [[0.40,-0.30,1.60,-0.40],[0.00,-0.70,0.40,0.30],[-0.20,0.50,1.00,-0.30]];
+  var K  = [[-0.70,-0.60,-0.40,-0.30],[-1.90,-1.80,0.90,-0.90],[0.00,-1.00,0.10,0.00]];
+  var V  = [[-0.20,0.30,1.10,-1.00],[0.20,0.70,-1.20,-0.90],[-0.10,0.80,0.30,-0.70]];
+  var S0 = [[-0.07,-Infinity,-Infinity],[0.30,0.89,-Infinity],[-0.11,-0.37,-0.35]];
+  var P0 = [[1.00,0,0],[0.36,0.64,0],[0.39,0.30,0.31]];
+  var O0 = [[-0.20,0.30],[0.06,0.56],[-0.05,0.57]];
+  var S1 = [[-0.37,-Infinity,-Infinity],[-0.18,0.06,-Infinity],[-0.22,0.83,0.07]];
+  var P1 = [[1.00,0,0],[0.44,0.56,0],[0.19,0.55,0.26]];
+  var O1 = [[1.10,-1.00],[-0.19,-0.94],[-0.37,-0.87]];
+  var C  = [[-0.20,0.30,1.10,-1.00],[0.06,0.56,-0.19,-0.94],[-0.05,0.57,-0.37,-0.87]];
+  var OUT= [[0.70,0.08,-0.89,-0.12],[0.35,-0.46,0.87,-0.45],[0.24,-0.45,0.97,-0.56]];
+
+  var LA = [[0.10],[-0.40],[0.20],[-0.00]];
+  var LB0= [[0,0,0,0]];
+  var LD0= [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  var LB1= [[0.30,-0.20,0.00,0.10]];
+  var LD1= [[0.03,-0.02,0.00,0.01],[-0.12,0.08,0.00,-0.04],[0.06,-0.04,0.00,0.02],[0,0,0,0]];
+  var WQe= [[0.03,0.78,0.70,-0.29],[-0.32,-0.22,0.30,-0.04],[0.46,-1.14,0.90,-0.08],[0.40,-0.10,-0.20,0.30]];
+
+  // ---------- render ----------
+  $('m-X').innerHTML = row(mat('X', X, 'a', 'one row per token'));
+
+  $('m-ffn1').innerHTML = row(mat('X', X, 'a') + op('@') + mat('W1', W1, 'w') + op('=') + mat('H', H, 'a')) +
+    '<div class="shapes">(3 x 4) @ (<b>4 x 8</b>) = (3 x 8) &nbsp;-&nbsp; the inner 4s cancel; the token count 3 passes straight through</div>';
+
+  $('m-ffn2').innerHTML = row(mat('H', H, 'a') + op('→') + mat('A = ReLU(H)', A, 'a', 'negatives became 0'));
+
+  $('m-ffn3').innerHTML = row(mat('A', A, 'a') + op('@') + mat('W2', W2, 'w') + op('=') + mat('Y', Y, 'a')) +
+    '<div class="shapes">(3 x 8) @ (<b>8 x 4</b>) = (3 x 4) &nbsp;-&nbsp; same shape as X, which is what lets blocks stack</div>';
+
+  $('m-dY').innerHTML = row(mat('dY', dY, 'g', 'how wrong each entry of Y was'));
+
+  $('m-dW2').innerHTML = row(mat('Aᵀ', A, 'a', 'needed!') + op('@') + mat('dY', dY, 'g') + op('=') + mat('dW2', dW2, 'g')) +
+    '<div class="shapes">W2 is <b>8 x 4</b> and dW2 is <b>8 x 4</b> &nbsp;-&nbsp; identical shape, always</div>';
+
+  $('m-dW1').innerHTML = row(mat('W1', W1, 'w') + op('vs') + mat('dW1', dW1, 'g')) +
+    '<div class="shapes">Compare the zeros in dW1 with the zeros in A &nbsp;-&nbsp; a unit switched off in the forward pass gets no gradient</div>';
+
+  $('m-qkv').innerHTML =
+    row(mat('X', X, 'a') + op('@') + mat('W_Q', WQ, 'w') + op('=') + mat('Q', Q, 'a')) +
+    row(mat('X', X, 'a') + op('@') + mat('W_K', WK, 'w') + op('=') + mat('K', K, 'a')) +
+    row(mat('X', X, 'a') + op('@') + mat('W_V', WV, 'w') + op('=') + mat('V', V, 'a'));
+
+  $('m-head0').innerHTML = '<div class="shapes" style="margin-top:14px"><b>Head 0</b> &nbsp;-&nbsp; columns 0 and 1 of Q, K, V</div>' +
+    row(mat('scores', S0, 'a', 'after mask') + op('→') + mat('softmax', P0, 'a', 'rows sum to 1') + op('@Vₕ =') + mat('head 0 out', O0, 'a'));
+
+  $('m-head1').innerHTML = '<div class="shapes" style="margin-top:14px"><b>Head 1</b> &nbsp;-&nbsp; columns 2 and 3 of Q, K, V</div>' +
+    row(mat('scores', S1, 'a', 'after mask') + op('→') + mat('softmax', P1, 'a', 'rows sum to 1') + op('@Vₕ =') + mat('head 1 out', O1, 'a'));
+
+  $('m-out').innerHTML = row(mat('concat', C, 'a', 'two heads stitched') + op('@') + mat('W_O', WO, 'w') + op('=') + mat('output', OUT, 'a')) +
+    '<div class="shapes">(3 x 4) again &nbsp;-&nbsp; attention preserves shape exactly like the FFN did</div>';
+
+  $('m-lora1').innerHTML =
+    row(mat('W_Q  FROZEN', WQ, 'f', 'no gradient, ever') + op('+') +
+        mat('A', LA, 't', 'trainable') + op('@') + mat('B', LB0, 't', 'trainable, starts at 0') +
+        op('=') + mat('A@B', LD0, 't')) +
+    '<div class="shapes">(4 x <b>1</b>) @ (<b>1</b> x 4) = (4 x 4) &nbsp;-&nbsp; the bold 1 is the rank r. 8 trainable numbers against 16 frozen.</div>';
+
+  $('m-lora2').innerHTML =
+    row(mat('A', LA, 't') + op('@') + mat('B now', LB1, 't') + op('=') + mat('A@B', LD1, 't')) +
+    row(mat('W_Q  FROZEN', WQ, 'f') + op('+') + mat('A@B', LD1, 't') + op('=') + mat('W_Q effective', WQe, 'w', 'what the model uses')) +
+    '<div class="shapes">W_Q itself never changed. The correction lives entirely in those 8 numbers.</div>';
+
+  // ---------- LoRA calculator ----------
+  function calc(){
+    var d = +$('cD').value, r = +$('cR').value, m = +$('cM').value, L = +$('cL').value;
+    $('vD').textContent = d.toLocaleString('en-US');
+    $('vR').textContent = r;
+    $('vL').textContent = L;
+
+    var ratio = 2*r/d;
+    var per = 2*d*r, full = d*d;
+    $('ratio').textContent = (100*ratio).toFixed(2) + '%';
+
+    var tPct = Math.min(100, 100*ratio);
+    $('barF').style.flexBasis = (100 - tPct) + '%'; $('barF').style.flexGrow = '0';
+    $('barT').style.flexBasis = tPct + '%';         $('barT').style.flexGrow = '0';
+    $('barF').textContent = tPct < 88 ? 'frozen' : '';
+    $('barT').textContent = tPct > 16 ? 'trainable' : '';
+
+    var tot = per * m * L, totFull = full * m * L;
+    var fmt = function(n){
+      if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+      return n.toLocaleString('en-US');
+    };
+    $('totals').innerHTML =
+      'One matrix: <b>' + fmt(per) + '</b> trainable vs <b>' + fmt(full) + '</b> frozen.<br>' +
+      'Across ' + m + ' matrices x ' + L + ' layers: <b>' + fmt(tot) + '</b> trainable, ' +
+      'replacing <b>' + fmt(totFull) + '</b>.' +
+      (ratio >= 1 ? '<br><span style="color:var(--alert)">At this rank LoRA costs more than the matrix it replaces. Keep r well below d/2.</span>' : '');
+  }
+  ['cD','cR','cM','cL'].forEach(function(id){ $(id).addEventListener('input', calc); });
+  calc();
+})();
+
+})(scopedDoc("sc-oneblock", "ob-"));
+</script>
+<script>
+(function(document){
+
+(function(){
+  var fmt = function(n){ return n.toLocaleString('en-US'); };
+  var mil = function(n){ return (n/1e6).toFixed(n/1e6 < 10 ? 2 : 1) + 'M'; };
+
+  var el = function(id){ return document.getElementById(id); };
+  var cV=el('cV'), cD=el('cD'), cL=el('cL'), cC=el('cC'), cH=el('cH'), cPos=el('cPos');
+
+  function calc(){
+    var V=+cV.value, d=+cD.value, L=+cL.value, ctx=+cC.value, h=+cH.value;
+    var learned = cPos.checked;
+
+    var tok = V*d;
+    var pos = learned ? ctx*d : 0;
+    var att1 = 4*d*d;
+    var ffn1 = 8*d*d;
+    var blk  = att1+ffn1;
+    var attAll = L*att1, ffnAll = L*ffn1, all = L*blk;
+    var emb = tok+pos;
+    var total = emb+all;
+
+    el('vV').textContent = fmt(V);
+    el('vD').textContent = fmt(d);
+    el('vL').textContent = L;
+    el('vC').textContent = fmt(ctx);
+    el('vH').textContent = h;
+
+    el('tot').textContent = fmt(total);
+    el('nTok').textContent = fmt(tok);
+    el('nPos').textContent = learned ? fmt(pos) : '0  (sinusoidal)';
+    el('nAtt1').textContent = fmt(att1);
+    el('nFfn1').textContent = fmt(ffn1);
+    el('nBlk').textContent = fmt(blk);
+    el('nAll').textContent = fmt(all);
+    el('nTot').textContent = fmt(total);
+
+    el('fTok').textContent = fmt(V)+' × '+d;
+    el('fPos').textContent = learned ? fmt(ctx)+' × '+d : 'not learned';
+    el('fAtt1').textContent = '4 × '+d+'²';
+    el('fFfn1').textContent = '8 × '+d+'²';
+    el('fBlk').textContent = '12 × '+d+'²';
+    el('fAll').textContent = L+' × 12 × '+d+'²';
+
+    var pc = function(x){ return total ? (100*x/total).toFixed(1)+'%' : '0%'; };
+    el('pTok').textContent = pc(tok);
+    el('pPos').textContent = pc(pos);
+    el('pAll').textContent = pc(all);
+
+    var segs = [['sE',emb],['sA',attAll],['sF',ffnAll]];
+    segs.forEach(function(s){
+      var node = el(s[0]);
+      var share = total ? 100*s[1]/total : 0;
+      node.style.flexBasis = share + '%';
+      node.style.flexGrow = '0';
+      node.textContent = share > 11 ? mil(s[1]) : '';
+    });
+  }
+
+  [cV,cD,cL,cC,cH].forEach(function(c){ c.addEventListener('input', calc); });
+  cPos.addEventListener('change', calc);
+
+  document.querySelectorAll('.preset').forEach(function(b){
+    b.addEventListener('click', function(){
+      var p = b.dataset.p.split(',');
+      cV.value=p[0]; cD.value=p[1]; cL.value=p[2]; cC.value=p[3]; cH.value=p[4];
+      cPos.checked = p[5]==='1';
+      calc();
+    });
+  });
+
+  // worked-solution toggles
+  document.querySelectorAll('.wbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var s = document.getElementById(b.dataset.sol);
+      if (!s) return;
+      s.hidden = !s.hidden;
+      b.textContent = s.hidden ? 'Show the steps' : 'Hide the steps';
+    });
+  });
+
+  // ---- quiz ----
+  var QS = [
+    { p:'A model has d_model = 1024. How many parameters are in one block’s self-attention projections (Q, K, V, O), ignoring biases?',
+      o:['1,048,576','4,194,304','12,582,912','Depends on the number of heads'], c:1,
+      e:'4d² = 4 × 1024² = 4 × 1,048,576 = 4,194,304 ≈ 4.19M. Head count never enters a parameter count.' },
+
+    { p:'Keeping d fixed at 768, you change the number of attention heads from 12 to 24. What happens to the model’s parameter count?',
+      o:['It doubles','It halves','It does not change','It grows by 768 × 24'], c:2,
+      e:'Heads slice the same d×d matrices into narrower pieces — 24 heads of width 32 instead of 12 of width 64. Same total width, same matrices, same parameters.' },
+
+    { p:'Vocabulary 50,000, embedding dimension 1280, context 1024, learned positional embeddings. Total embedding-layer parameters?',
+      o:['64.0M','65.3M','51.3M','1.31M'], c:1,
+      e:'50,000 × 1280 = 64,000,000 plus 1024 × 1280 = 1,310,720, giving 65,310,720 ≈ 65.3M. Forgetting the position table is the classic way to land on 64.0M.' },
+
+    { p:'For a model with d_model = 2048, how many parameters live in one complete transformer block (attention plus feed-forward)?',
+      o:['16.8M','33.6M','50.3M','4.2M'], c:2,
+      e:'12d² = 12 × 2048² = 12 × 4,194,304 = 50,331,648 ≈ 50.3M. Attention contributes 16.8M of it and the FFN the other 33.6M.' },
+
+    { p:'Within a single block, which holds more parameters?',
+      o:['Attention, by roughly 2×','The feed-forward network, by roughly 2×','They are equal','It depends on the sequence length'], c:1,
+      e:'Attention is 4d², the FFN is 8d². The feed-forward network is twice the size, which surprises people who assume attention dominates. Attention dominates the *compute* at long sequences, not the parameter count.' },
+
+    { p:'A model has L = 24, d = 1024, V = 32,000, ctx = 2048, learned positions. Approximately how many parameters in total?',
+      o:['302M','337M','35M','168M'], c:1,
+      e:'Embeddings: 32,000×1024 + 2048×1024 = 34.9M. Blocks: 24 × 12 × 1024² = 302.0M. Total ≈ 336.9M. Answering 302M means you forgot the lookup tables; answering 35M means you counted only them.' }
+  ];
+
+  var quiz = document.getElementById('quiz');
+  var answered = 0, right = 0;
+
+  QS.forEach(function(q, i){
+    var card = document.createElement('div');
+    card.className = 'q';
+    var n = document.createElement('span'); n.className='qn'; n.textContent='Question '+(i+1); card.appendChild(n);
+    var p = document.createElement('p'); p.className='qp'; p.textContent=q.p; card.appendChild(p);
+    var opts = document.createElement('div'); opts.className='opts';
+    var expl = document.createElement('div'); expl.className='expl'; expl.textContent=q.e; expl.hidden=true;
+
+    q.o.forEach(function(text, j){
+      var b = document.createElement('button');
+      b.className='opt'; b.type='button'; b.textContent=text;
+      b.addEventListener('click', function(){
+        if (card.dataset.done) return;
+        card.dataset.done='1';
+        answered++; if (j===q.c) right++;
+        opts.querySelectorAll('.opt').forEach(function(o,k){
+          o.classList.add('done');
+          if (k===q.c) o.classList.add('right');
+          else if (k===j) o.classList.add('wrong');
+        });
+        expl.hidden=false;
+        document.getElementById('score').textContent =
+          answered+' of '+QS.length+' answered · '+right+' correct';
+      });
+      opts.appendChild(b);
+    });
+
+    card.appendChild(opts);
+    card.appendChild(expl);
+    quiz.appendChild(card);
+  });
+
+  // GPT-1 on load
+  cV.value=40478; cD.value=768; cL.value=12; cC.value=512; cH.value=12; cPos.checked=true;
+  calc();
+})();
+
+})(scopedDoc("sc-anatomy", "an-"));
+</script>
+<script>
+(function(document){
+
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+
+  // col: enc|dec ; row counts from the bottom
+  var BLOCKS = [
+    {id:'src',  col:'enc', row:0, label:'Source Input Sequence', kind:'io'},
+    {id:'eatt', col:'enc', row:1, label:'Multi-Head Attention',  kind:'att'},
+    {id:'ean1', col:'enc', row:2, label:'Add&Norm',              kind:'norm'},
+    {id:'effn', col:'enc', row:3, label:'Feed forward NN',       kind:'ffn'},
+    {id:'ean2', col:'enc', row:4, label:'Add&Norm',              kind:'norm'},
+
+    {id:'tgt',  col:'dec', row:0, label:'Target Input Sequence',      kind:'io'},
+    {id:'datt', col:'dec', row:1, label:'Multi-Head Masked Attention',kind:'att'},
+    {id:'dan1', col:'dec', row:2, label:'Add&Norm',                   kind:'norm'},
+    {id:'xatt', col:'dec', row:3, label:'Multi-Head cross Attention', kind:'att'},
+    {id:'dan2', col:'dec', row:4, label:'Add&Norm',                   kind:'norm'},
+    {id:'dffn', col:'dec', row:5, label:'Feed forward NN',            kind:'ffn'},
+    {id:'dan3', col:'dec', row:6, label:'Add&Norm',                   kind:'norm'},
+    {id:'out',  col:'dec', row:7, label:'Predicted Output Sequence',  kind:'io'}
+  ];
+
+  var INFO = {
+    src:{t:'Source Input Sequence',m:'embedding lookup · V·d + ctx·d',
+      d:'The text being read, converted to token ids and then to vectors. In an encoder-only model this is the whole input, with some positions replaced by [MASK].'},
+    tgt:{t:'Target Input Sequence',m:'embedding lookup · V·d + ctx·d',
+      d:'What the model has produced so far, shifted one step right and started with a go token. During training the true previous tokens are fed in rather than the model’s own guesses.'},
+    eatt:{t:'Multi-Head Attention',m:'4d² parameters · no mask',
+      d:'Every token attends to every other token in both directions. Nothing is hidden, which is why an encoder understands a text deeply but cannot generate one — at generation time the right-hand side does not exist yet.'},
+    datt:{t:'Multi-Head Masked Attention',m:'4d² parameters · causal mask',
+      d:'The same four matrices as ordinary attention, plus a mask that sets every future position to minus infinity. The mask holds no parameters; it is a fixed triangle of zeros and minus infinities added to the scores.'},
+    xatt:{t:'Multi-Head cross Attention',m:'4d² parameters · reads the encoder',
+      d:'The only place the two stacks meet. Queries come from the decoder — what am I looking for? — while keys and values come from the encoder’s finished output — here is what the source said. Remove the encoder and this layer has nothing to read, which is exactly why decoder-only models drop it.'},
+    ean1:{t:'Add&Norm',m:'~2d parameters · negligible',
+      d:'Two operations in one label. Add is the residual connection: the sublayer’s input is added back to its output, so the sublayer only has to learn the change. Norm is layer normalisation, which rescales each vector to keep the numbers in a workable range. Its scale and shift are the only learnable parts, and they are too small to matter in a parameter count.'},
+    effn:{t:'Feed forward NN',m:'8d² parameters',
+      d:'Two linear layers applied to each position independently: widen from d to 4d, apply GELU, squeeze back to d. Attention moves information between positions; this layer does the thinking within a position. It holds twice as many parameters as the attention beside it.'},
+    out:{t:'Predicted Output Sequence',m:'softmax over V',
+      d:'Raw scores for every vocabulary entry at every position, turned into probabilities. In most implementations this layer reuses the token embedding matrix rather than learning its own, which is why it often costs nothing extra.'}
+  };
+  INFO.dan1 = INFO.ean1; INFO.dan2 = INFO.ean1; INFO.dan3 = INFO.ean1; INFO.ean2 = INFO.ean1;
+  INFO.dffn = INFO.effn;
+
+  var MODES = {
+    encdec:{ hide:[], srcLabel:'Source Input Sequence', tgtLabel:'Target Input Sequence', outLabel:'Predicted Output Sequence', encOn:true },
+    enc:   { hide:['tgt','datt','dan1','xatt','dan2','dffn','dan3','out'], srcLabel:'x₁, <mask>, …, x_T', encOn:true },
+    dec:   { hide:['src','eatt','ean1','effn','ean2','xatt'], tgtLabel:'x₁, x₂, …, xᵢ₋₁', outLabel:'P(xᵢ)', encOn:false }
+  };
+
+  var W = 600, BW = 212, BH = 36, GAP = 14, BOT = 424;
+  var COLX = { enc: 28, dec: 332 };
+  function y(row){ return BOT - row*(BH+GAP); }
+  function kindColor(k){ return { att:'var(--att)', ffn:'var(--ffn)', norm:'var(--norm)', io:'var(--io)' }[k]; }
+
+  var mode = 'encdec', selected = null;
+
+  function render(){
+    var cfg = MODES[mode];
+    var gB = $('blocks'), gE = $('edges'), gL = $('labels');
+    gB.innerHTML = ''; gE.innerHTML = ''; gL.innerHTML = '';
+
+    // column headers
+    [['enc','Encoder',cfg.encOn],['dec','Decoder',true]].forEach(function(c){
+      if (c[0]==='dec' && mode==='enc') return;
+      if (c[0]==='enc' && mode==='dec') return;
+      var t = document.createElementNS(NS,'text');
+      t.setAttribute('x', COLX[c[0]] + BW/2); t.setAttribute('y', 26);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('class','colhdr');
+      t.textContent = c[1]; gL.appendChild(t);
+    });
+
+    // N x marker on encoder
+    if (mode !== 'dec'){
+      var nx = document.createElementNS(NS,'text');
+      nx.setAttribute('x', COLX.enc - 6); nx.setAttribute('y', y(3));
+      nx.setAttribute('text-anchor','end'); nx.setAttribute('class','nx');
+      nx.textContent = 'N×'; gL.appendChild(nx);
+    }
+
+    // vertical edges within each column
+    BLOCKS.forEach(function(b){
+      var above = BLOCKS.filter(function(o){ return o.col===b.col && o.row===b.row+1; })[0];
+      if (!above) return;
+      var off = cfg.hide.indexOf(b.id) >= 0 || cfg.hide.indexOf(above.id) >= 0;
+      var p = document.createElementNS(NS,'line');
+      p.setAttribute('x1', COLX[b.col]+BW/2); p.setAttribute('y1', y(b.row));
+      p.setAttribute('x2', COLX[b.col]+BW/2); p.setAttribute('y2', y(above.row)+BH);
+      p.setAttribute('class','edge' + (off?' off':''));
+      gE.appendChild(p);
+    });
+
+    // encoder -> cross attention
+    if (mode === 'encdec'){
+      var path = document.createElementNS(NS,'path');
+      var sx = COLX.enc+BW, sy = y(4)+BH/2, ex = COLX.dec, ey = y(3)+BH/2;
+      path.setAttribute('d','M '+sx+' '+sy+' C '+(sx+46)+' '+sy+', '+(ex-46)+' '+ey+', '+ex+' '+ey);
+      path.setAttribute('class','edge');
+      gE.appendChild(path);
+    }
+
+    BLOCKS.forEach(function(b){
+      var off = cfg.hide.indexOf(b.id) >= 0;
+      var g = document.createElementNS(NS,'g');
+      g.setAttribute('class','blk' + (off?' off':'') + (selected===b.id?' sel':''));
+      g.setAttribute('tabindex','0'); g.setAttribute('role','button');
+
+      var r = document.createElementNS(NS,'rect');
+      r.setAttribute('x', COLX[b.col]); r.setAttribute('y', y(b.row));
+      r.setAttribute('width', BW); r.setAttribute('height', BH);
+      r.setAttribute('rx','3');
+      r.setAttribute('fill', b.kind==='norm' ? 'var(--surface-2)' : 'var(--accent-soft)');
+      r.setAttribute('stroke', kindColor(b.kind)); r.setAttribute('stroke-width','1.6');
+      g.appendChild(r);
+
+      var label = b.label;
+      if (b.id==='src' && cfg.srcLabel) label = cfg.srcLabel;
+      if (b.id==='tgt' && cfg.tgtLabel) label = cfg.tgtLabel;
+      if (b.id==='out' && cfg.outLabel) label = cfg.outLabel;
+
+      var t = document.createElementNS(NS,'text');
+      t.setAttribute('x', COLX[b.col]+BW/2); t.setAttribute('y', y(b.row)+BH/2+4);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('fill','var(--ink)');
+      t.textContent = label;
+      g.appendChild(t);
+
+      var pick = function(){ selected = b.id; render(); showDetail(b, off); };
+      g.addEventListener('click', pick);
+      g.addEventListener('keydown', function(e){ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
+      gB.appendChild(g);
+    });
+  }
+
+  function showDetail(b, off){
+    var i = INFO[b.id];
+    if (!i) return;
+    $('detail').innerHTML =
+      '<h4>' + i.t + '</h4><div class="meta">' + i.m + '</div><p>' + i.d + '</p>' +
+      (off ? '<span class="absent">not present in this family</span>' : '');
+  }
+
+  document.querySelectorAll('.mode').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.mode').forEach(function(b){ b.setAttribute('aria-pressed','false'); });
+      btn.setAttribute('aria-pressed','true');
+      mode = btn.dataset.mode; selected = null;
+      render();
+      $('detail').innerHTML = '<h4>Click a block</h4><p>Each block’s explanation, its parameter cost, and whether the family you have selected keeps it will appear here.</p>';
+    });
+  });
+
+  // ---------- mask grid ----------
+  function renderMask(){
+    var n = +$('mlen').value, kind = $('mkind').value, diag = +$('mdiag').value;
+    var g = $('grid');
+    g.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+    var html = '', deadRows = [];
+    for (var i=0; i<n; i++){
+      var alive = 0;
+      for (var j=0; j<n; j++){
+        var blocked = (kind === 'causal') && (diag === 1 ? j > i : j >= i);
+        if (!blocked) alive++;
+        html += '<div class="cell ' + (blocked?'no':'ok') + '" title="query ' + i + ' → key ' + j + '">' +
+                (blocked ? '−∞' : '0') + '</div>';
+      }
+      if (alive === 0) deadRows.push(i);
+    }
+    g.innerHTML = html;
+    var f = $('rowflag');
+    if (deadRows.length){
+      f.className = 'rowflag bad';
+      f.textContent = 'Row ' + deadRows.join(', ') + ' is entirely −∞ → softmax produces NaN';
+    } else {
+      f.className = 'rowflag good';
+      f.textContent = kind === 'causal'
+        ? 'Every row keeps at least one visible key. Token i sees tokens 0…i.'
+        : 'No cell is blocked. Every token sees every other token, in both directions.';
+    }
+    $('mdiag').disabled = (kind !== 'causal');
+  }
+  ['mlen','mkind','mdiag'].forEach(function(id){ $(id).addEventListener('change', renderMask); });
+
+  // ---------- worked ----------
+  document.querySelectorAll('.wbtn').forEach(function(b){
+    b.addEventListener('click', function(){
+      var s = $(b.dataset.sol); if (!s) return;
+      s.hidden = !s.hidden;
+      b.textContent = s.hidden ? 'Show the steps' : 'Hide the steps';
+    });
+  });
+
+  // ---------- quiz ----------
+  var QS = [
+    { p:'Why does a decoder-only model such as GPT have no cross-attention layer?',
+      o:['Cross-attention is too expensive at scale','There is no encoder output for it to read keys and values from','Causal masking already performs cross-attention','It is present but always initialised to zero'], c:1,
+      e:'Cross-attention takes its queries from the decoder and its keys and values from the encoder’s output. With no encoder, those keys and values do not exist, so the layer is simply removed. A decoder-only block therefore has two sublayers, not three.' },
+
+    { p:'In causal language modelling, do future tokens contribute gradients to earlier positions?',
+      o:['Yes, through backpropagation','No — the mask removes the forward path, so there is no gradient path','Only during the first epoch','Only if the mask uses diagonal=1'], c:1,
+      e:'Gradients can only travel back along connections that carried information forward. The causal mask severed those connections, so a future token never influenced an earlier position and cannot receive blame for its error. This was a distractor in 2026 T1 Q16.' },
+
+    { p:'Which component of a standard Transformer scales as O(N²) with sequence length N?',
+      o:['The token and positional embedding lookup','The residual connections','The attention score matrix QKᵀ','The feed-forward network'], c:2,
+      e:'QKᵀ holds one score per pair of positions, so it is N×N. Embeddings, residual additions and the feed-forward layers all act position by position and are O(N). Note this is about compute and activation memory, never parameters.' },
+
+    { p:'A model is built with AutoModelForMaskedLM from a pretrained checkpoint and trained on a large unlabelled domain corpus with labels=input_ids. What is this?',
+      o:['Supervised fine-tuning with noisy labels','Instruction tuning, because labels are present','Continual pre-training with the MLM objective','Training a classifier head implicitly'], c:2,
+      e:'Pretrained start, original objective, new domain. Passing labels=input_ids is how MLM scores reconstruction of the model’s own masked input — it is not supervision, and there are no instructions anywhere.' },
+
+    { p:'What does torch.triu(torch.ones(n,n), diagonal=0) mask out, and why is that wrong for causal attention?',
+      o:['Only the future; nothing is wrong','The future plus the current token, so row 0 becomes all −∞','Only the past, inverting the mask','The diagonal only, leaving the future visible'], c:1,
+      e:'diagonal=0 includes the main diagonal, so each token is blocked from attending to itself. Row 0 has no past and now loses itself, leaving every cell −∞ and producing NaN after softmax. diagonal=1 is the fix.' },
+
+    { p:'Which architecture would you reach for to classify the sentiment of a complete review?',
+      o:['Decoder-only, because it generates','Encoder-only, because every token sees the whole text in both directions','Encoder–decoder, because classification is sequence-to-sequence','Any of them perform identically'], c:1,
+      e:'Classification judges a finished text, so there is no reason to hide the right-hand side. Bidirectional attention gives every token the full context. This is what BERT and MLM pretraining are built for.' },
+
+    { p:'In a full encoder–decoder block, where do cross-attention’s queries, keys and values come from?',
+      o:['All three from the encoder','All three from the decoder','Queries from the decoder; keys and values from the encoder','Queries from the encoder; keys and values from the decoder'], c:2,
+      e:'The decoder asks the question — what am I looking for next — so the query is its own. The encoder supplies what is available to be found, as keys and values. Reversing it would mean the source text asking questions of the half-finished translation.' }
+  ];
+
+  var quiz = $('quiz'); var answered = 0, right = 0;
+  QS.forEach(function(q,i){
+    var card = document.createElement('div'); card.className='q';
+    var n = document.createElement('span'); n.className='qn'; n.textContent='Question '+(i+1); card.appendChild(n);
+    var p = document.createElement('p'); p.textContent=q.p; card.appendChild(p);
+    var opts = document.createElement('div'); opts.className='opts';
+    var expl = document.createElement('div'); expl.className='expl'; expl.textContent=q.e; expl.hidden=true;
+    q.o.forEach(function(text,j){
+      var b = document.createElement('button'); b.className='opt'; b.type='button'; b.textContent=text;
+      b.addEventListener('click', function(){
+        if (card.dataset.done) return;
+        card.dataset.done='1'; answered++; if (j===q.c) right++;
+        opts.querySelectorAll('.opt').forEach(function(o,k){
+          o.classList.add('done');
+          if (k===q.c) o.classList.add('right'); else if (k===j) o.classList.add('wrong');
+        });
+        expl.hidden=false;
+        $('score').textContent = answered+' of '+QS.length+' answered · '+right+' correct';
+      });
+      opts.appendChild(b);
+    });
+    card.appendChild(opts); card.appendChild(expl); quiz.appendChild(card);
+  });
+
+  render();
+  renderMask();
+})();
+
+})(scopedDoc("sc-architectures", "ar-"));
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

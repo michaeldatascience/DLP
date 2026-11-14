@@ -1,50 +1,33 @@
-# DLP — Deep Learning Practice (DA5013)
+# DLP — Deep Learning Practice (DA5013) · Quiz 1 study set
 
-Interactive study material for the NLP half of the IIT Madras BS course **Deep Learning Practice**, weeks 1–4.
+Study material for weeks 1–4 of the IIT Madras BS course **Deep Learning Practice**: datasets, tokenization, transformers and GPT, fine-tuning and memory.
 
 **→ [Open the site](https://michaeldatascience.github.io/DLP/)**
 
-Each page explains a mechanism, works through the real past-paper questions on it, then quizzes you. Definitions are hidden by default where it helps, so pages double as recall practice rather than just reference.
-
 ## Contents
 
-| Page | Covers | What's interactive |
+| Page | Covers | What it is |
 |---|---|---|
-| [The DLP Spine](https://michaeldatascience.github.io/DLP/spine.html) | Weeks 1–4 overview | Glossary with click-to-reveal definitions, searchable |
-| [From Corpus to Loss](https://michaeldatascience.github.io/DLP/corpus.html) | Weeks 1-4 - the whole pipeline | Tiny corpus followed to a loss and a gradient |
-| [One Block, End to End](https://michaeldatascience.github.io/DLP/oneblock.html) | Weeks 3 & 4 - the mechanism | Every matrix shown; LoRA rank calculator |
-| [Transformer Anatomy](https://michaeldatascience.github.io/DLP/anatomy.html) | Week 3 — parameter counting | Live counter; set V, d, L, ctx and watch the model assemble |
-| [Tokenizer Lab](https://michaeldatascience.github.io/DLP/tokenizers.html) | Week 2 — BPE, WordPiece, Unigram | Step through merges on an editable corpus; Viterbi lattice |
-| [The Three Architectures](https://michaeldatascience.github.io/DLP/architectures.html) | Weeks 1 & 3 — encoder/decoder families | Clickable flowchart; attention-mask grid |
-| [The Memory Ledger](https://michaeldatascience.github.io/DLP/memory.html) | Week 4 — training memory and PEFT | Memory calculator with togglable levers |
-| [Quiz 1 Mock Papers](https://michaeldatascience.github.io/DLP/mocks.html) | Assessment | Two 50-mark papers, timer, auto-marking, full solutions |
-| [`notebooks/01_tokenizers_from_scratch.ipynb`](notebooks/01_tokenizers_from_scratch.ipynb) | Week 2 implementation | BPE, WordPiece and Viterbi in pure stdlib Python |
+| [Quiz 1 Cheatsheet](https://michaeldatascience.github.io/DLP/cheatsheet.html) | Weeks 1–4 | The one notes page: every definition, formula and trap, a randomised formula drill, 52 rapid-fire questions |
+| [Tokenizer Lab](https://michaeldatascience.github.io/DLP/tokenizers.html) | Week 2 | Step through BPE, WordPiece and Unigram on the lecture corpus |
+| [Transformer Workshop](https://michaeldatascience.github.io/DLP/transformer.html) | Week 3 | Corpus to loss · one block with every number · parameter counter · three architectures and the causal mask |
+| [Memory Workshop](https://michaeldatascience.github.io/DLP/memory.html) | Week 4 | The four copies · five memory techniques · LoRA on a real matrix · stacking them · exam questions |
+| [Mock Papers](https://michaeldatascience.github.io/DLP/mocks.html) | Assessment | Two 50-mark papers with timer, auto-marking and solutions |
+| [`notebooks/01_tokenizers_from_scratch.ipynb`](notebooks/01_tokenizers_from_scratch.ipynb) | Week 2 code | BPE, WordPiece and Viterbi in plain Python, asserted against the lecture slides |
 
-## The notebook
-
-No `pip install` required — `collections` and `math` only.
-
-```bash
-jupyter notebook notebooks/01_tokenizers_from_scratch.ipynb
-```
-
-33 cells. Every section ends with an `assert` against a figure printed on the lecture slides: the 22-symbol starting vocabulary, `(i,n)` winning at count 7, the WordPiece scores to three decimals, `whereby → where|by` at −15.55 with all four lattice intermediates, and `63/336/768` over 4096. Part 6 adds `transformer_params()` and `training_memory_gb()`, checked against all sixteen published past-paper answers.
-
-A clean run means your implementation agrees with the course. Three exercises are left open.
+Earlier single-topic pages (Spine, Transformer Anatomy, Three Architectures, Memory Ledger, One Block, From Corpus to Loss, Five Levers) are now tabs inside the two workshops.
 
 ## Two errors found in the course material
 
-- The week-2 deck's final Viterbi lattice node reads **−15.51** for `whereby`. The correct sum is −8.21 + −7.34 = **−15.55**. Every intermediate value on the slide matches this computation, so it is a typo in the last node, not a different method.
-- The deck's WordPiece score table lists only the pairs already shown for BPE, among which `(a,d)` at 0.167 wins. Over *every* pair in the corpus the real winner is `(r,y)` at 0.333, because `y` occurs once and `r` three times. Both illustrate the same rule — rare halves beat common halves at equal pair count.
+- The week-2 deck's last Viterbi node reads **−15.51** for `whereby`. The correct sum is −8.21 + −7.34 = **−15.55**.
+- The deck's WordPiece score table lists only the pairs shown for BPE, among which `(a,d)` at 0.167 wins. Over every pair in the corpus the real winner is `(r,y)` at 0.333.
 
 ## Technical notes
 
-Every page is a single self-contained HTML file. No build step, no dependencies, no framework. The only external request is to Google Fonts. Both light and dark themes are supported and follow the system setting.
-
-Pages were written as Claude artifacts and wrapped with a standard HTML skeleton for standalone hosting.
+Every page is one self-contained HTML file. No build step, no dependencies. The only external request is to Google Fonts; without internet the pages fall back to system fonts and still work. Light and dark themes follow the system setting. `.nojekyll` tells GitHub Pages to serve the files as they are.
 
 ## Sources
 
-Built from the week 1–4 lecture decks, both 2026 past Quiz-1 papers with their answer keys, and graded assignments 1–4. Numeric answers were computed and verified against the official accepted ranges.
+Built from the week 1–4 lecture decks, both 2026 past Quiz 1 papers with their answer keys, and graded assignments 1–4. Numeric answers were checked against the official accepted ranges.
 
-Course material belongs to IIT Madras. Everything in this repository is independent study work.
+Course material belongs to IIT Madras. Everything here is independent study work.
