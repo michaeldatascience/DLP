@@ -11,6 +11,8 @@ Each page explains a mechanism, works through the real past-paper questions on i
 | Page | Covers | What's interactive |
 |---|---|---|
 | [The DLP Spine](https://michaeldatascience.github.io/DLP/spine.html) | Weeks 1–4 overview | Glossary with click-to-reveal definitions, searchable |
+| [From Corpus to Loss](https://michaeldatascience.github.io/DLP/corpus.html) | Weeks 1-4 - the whole pipeline | Tiny corpus followed to a loss and a gradient |
+| [One Block, End to End](https://michaeldatascience.github.io/DLP/oneblock.html) | Weeks 3 & 4 - the mechanism | Every matrix shown; LoRA rank calculator |
 | [Transformer Anatomy](https://michaeldatascience.github.io/DLP/anatomy.html) | Week 3 — parameter counting | Live counter; set V, d, L, ctx and watch the model assemble |
 | [Tokenizer Lab](https://michaeldatascience.github.io/DLP/tokenizers.html) | Week 2 — BPE, WordPiece, Unigram | Step through merges on an editable corpus; Viterbi lattice |
 | [The Three Architectures](https://michaeldatascience.github.io/DLP/architectures.html) | Weeks 1 & 3 — encoder/decoder families | Clickable flowchart; attention-mask grid |

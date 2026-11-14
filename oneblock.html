@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>One Block, End to End</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: a single worked example, read top to bottom, never jumping
+   abstraction level. Three tokens enter at the top and the same three tokens
+   are still there at the bottom. Colour carries the one lesson: what persists,
+   what is temporary, and what mirrors what. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --frozen:#64748B; --frozen-soft:#E7EBF0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --frozen:#8A99AD; --frozen-soft:#1E2733;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --frozen:#8A99AD; --frozen-soft:#1E2733;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 76px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+p{margin:0}
+
+.mast{padding-block:40px 24px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.mast h1{font-size:clamp(1.9rem,5.5vw,2.9rem);font-weight:700;letter-spacing:-.025em}
+.mast .sub{margin-top:13px;max-width:62ch;color:var(--ink-soft);font-size:1.01rem}
+
+section{margin-block:44px}
+.sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:18px}
+.sec-num{font-family:var(--f-mono);font-size:.76rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sec-head h2{font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:700;letter-spacing:-.015em}
+.lede{max-width:68ch;color:var(--ink-soft);margin-bottom:16px}
+
+/* ---- the colour key, the spine of the page ---- */
+.key{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));margin-block:16px}
+.kitem{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--c);padding:11px 13px}
+.kitem b{font-family:var(--f-display);font-size:.78rem;font-weight:700;color:var(--c);display:block;margin-bottom:3px}
+.kitem span{font-size:.88rem;color:var(--ink-soft)}
+
+/* ---- matrices ---- */
+.mrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-block:14px}
+.mat{display:inline-grid;gap:6px;min-width:0}
+.mat .cap{font-family:var(--f-mono);font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.mat .cap b{color:var(--c)}
+.mat .cap i{font-style:normal;font-size:.72rem;color:var(--ink-soft);font-weight:400}
+.grid{display:grid;gap:2px;overflow-x:auto;padding-bottom:2px}
+.cell{font-family:var(--f-mono);font-size:.76rem;font-variant-numeric:tabular-nums;
+      padding:5px 6px;text-align:right;border-radius:2px;min-width:44px;
+      background:var(--bg);color:var(--ink);border:1px solid transparent}
+.cell.zero{opacity:.38}
+.op{font-family:var(--f-mono);font-size:1.3rem;color:var(--ink-soft);align-self:center;padding-top:20px}
+.shapes{font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);margin-top:7px}
+.shapes b{color:var(--ink)}
+
+.step{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;margin-block:13px}
+.step .sn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+.step h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.step p{font-size:.94rem;color:var(--ink-soft)}
+.step p + p{margin-top:7px}
+.step p b{color:var(--ink)}
+
+.trap,.note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.trap{border-left:3px solid var(--alert)}
+.note{border-left:3px solid var(--accent)}
+.trap b.h,.note b.h{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.trap b.h{color:var(--alert)} .note b.h{color:var(--accent)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-block:14px}
+table{border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.m{font-family:var(--f-mono)}
+td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+
+/* ---- lora calculator ---- */
+.calc{background:var(--surface);border:1px solid var(--rule);padding:16px}
+.cc{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:14px}
+.cc label{font-family:var(--f-display);font-size:.71rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:5px}
+.cc label b{font-family:var(--f-mono);font-size:.88rem;color:var(--accent);letter-spacing:0;text-transform:none}
+.cc input[type=range]{width:100%;accent-color:var(--accent)}
+.cc select{font-family:var(--f-mono);font-size:.85rem;padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--surface-2);color:var(--ink);width:100%}
+.bigratio{font-family:var(--f-mono);font-size:clamp(1.5rem,5vw,2.1rem);font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.bigratio small{font-size:.8rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+.lbar{display:flex;height:30px;border:1px solid var(--rule);overflow:hidden;background:var(--frozen-soft);margin-block:11px}
+.lbar .f{background:var(--frozen)} .lbar .t{background:var(--win)}
+.lbar div{display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:.7rem;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+
+footer{margin-top:48px;padding-top:19px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Concept 05 · Weeks 3 &amp; 4</div>
+  <h1>One Block, End to End</h1>
+  <p class="sub">Three tokens, four dimensions, every number visible. The same three tokens go through the feed-forward network, back through it, then through attention with two heads — and then LoRA is applied to one of the matrices you have just watched work. Nothing is abstract and nothing is skipped.</p>
+</header>
+
+<!-- ===== 00 SETUP ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">00</span><h2>The setup, and the colour code</h2></div>
+  <p class="lede">A real transformer has <code>d = 768</code> or more. This one has <code>d = 4</code>, so every matrix fits on screen. The <em>structure</em> is identical — only the numbers are small. Three tokens, four dimensions each.</p>
+
+  <div id="m-X"></div>
+
+  <p class="lede" style="margin-top:16px">Three kinds of thing appear on this page, and telling them apart is the whole lesson. The colours never change meaning.</p>
+  <div class="key">
+    <div class="kitem" style="--c:var(--accent)"><b>WEIGHT</b><span>Learned. Persists forever. One entry per parameter. These are what "7B parameters" counts.</span></div>
+    <div class="kitem" style="--c:var(--signal)"><b>ACTIVATION</b><span>Computed fresh each forward pass, thrown away after the backward pass. One entry per token per dimension.</span></div>
+    <div class="kitem" style="--c:var(--alert)"><b>GRADIENT</b><span>Produced by the backward pass. Always the <em>same shape as the weight it belongs to</em>. Discarded after the update.</span></div>
+  </div>
+
+  <div class="note">
+    <b class="h">The one question that classifies everything</b>
+    Does this thing have one number <strong>per parameter</strong>, or one number <strong>per token</strong>? Weights and gradients are per parameter. Activations are per token. That single distinction explains why activations grow when you raise the batch size and why the model's memory does not.
+  </div>
+</section>
+
+<!-- ===== 01 FFN FORWARD ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Feed-forward, going forwards</h2></div>
+  <p class="lede">The feed-forward network widens each token's vector, applies a non-linearity, and squeezes it back. Here it widens 4 → 8. A real one widens 4× (768 → 3072); I use 2× so the matrices fit. Each token is processed <em>independently</em> — no token looks at any other in this part.</p>
+
+  <div class="step">
+    <span class="sn">Step 1</span><h4>Widen: multiply by the first weight matrix</h4>
+    <p>Each of the 3 token rows is multiplied by <code>W1</code>. A row of 4 numbers meets a 4×8 matrix and comes out as 8 numbers.</p>
+  </div>
+  <div id="m-ffn1"></div>
+
+  <div class="step">
+    <span class="sn">Step 2</span><h4>Non-linearity: ReLU keeps the positives</h4>
+    <p><code>ReLU(x) = max(0, x)</code>. Negative entries become zero. This is where the network gains the ability to express something other than a straight line. Real GPT uses GELU, a smoothed version of exactly this shape.</p>
+    <p><b>Notice the zeros.</b> They matter in a moment — a zero here blocks a gradient later.</p>
+  </div>
+  <div id="m-ffn2"></div>
+
+  <div class="step">
+    <span class="sn">Step 3</span><h4>Squeeze: back down to width 4</h4>
+    <p><code>W2</code> takes the 8 numbers back to 4, so the block's output has the same shape as its input. That is what lets you stack blocks.</p>
+  </div>
+  <div id="m-ffn3"></div>
+
+  <div class="note">
+    <b class="h">Count what is on screen</b>
+    Weights: <code>W1</code> is 4×8 = 32 and <code>W2</code> is 8×4 = 32, so <strong>64 parameters</strong>. In the general case that is <code>2 · d · 4d = 8d²</code> — the "feed-forward is eight" from Transformer Anatomy.<br><br>
+    Activations: <code>X</code> 12, <code>H</code> 24, <code>A</code> 24 = <strong>60 numbers</strong>. Add a fourth token and the weights do not change at all, but the activations grow to 80.
+  </div>
+</section>
+
+<!-- ===== 02 FFN BACKWARD ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Feed-forward, going backwards</h2></div>
+  <p class="lede">Something upstream tells us how wrong <code>Y</code> was. That arrives as <code>dY</code>, one number per entry of <code>Y</code> — "nudge this entry down, that one up". The job now is to turn that into a correction for every weight.</p>
+
+  <div id="m-dY"></div>
+
+  <div class="step">
+    <span class="sn">Step 4</span><h4>The gradient of W2 — and why A had to be kept</h4>
+    <p><code>dW2 = Aᵀ @ dY</code>. Read that carefully: computing how to correct <code>W2</code> <b>requires A</b>, the activation from step 2.</p>
+    <p><b>This is the entire reason activations cost memory.</b> They are not stored because someone chose to cache them. They are stored because the backward pass cannot run without them. Throw <code>A</code> away and <code>dW2</code> is uncomputable.</p>
+  </div>
+  <div id="m-dW2"></div>
+
+  <div class="step">
+    <span class="sn">Step 5</span><h4>Push the signal back through, then the gradient of W1</h4>
+    <p>Three small steps: <code>dA = dY @ W2ᵀ</code> sends the signal back across <code>W2</code>; <code>dH = dA ⊙ (H &gt; 0)</code> passes it through the ReLU, <b>zeroing wherever the forward pass zeroed</b>; then <code>dW1 = Xᵀ @ dH</code>.</p>
+    <p>That middle step is why the zeros mattered. A unit switched off in the forward pass receives no gradient in the backward pass.</p>
+  </div>
+  <div id="m-dW1"></div>
+
+  <div class="note">
+    <b class="h">The shape fact to carry away</b>
+    <code>W1</code> is 4×8 and <code>dW1</code> is 4×8. <code>W2</code> is 8×4 and <code>dW2</code> is 8×4. <strong>A gradient always has exactly the shape of the weight it corrects.</strong><br><br>
+    So "gradients cost the same as weights" is not a coincidence or an approximation — it is forced by the arithmetic. And momentum and variance are also one-per-parameter, because they are running averages <em>of these gradients</em>. That is where sixteen bytes per parameter comes from, and you have now watched it happen.
+  </div>
+</section>
+
+<!-- ===== 03 ATTENTION ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Attention, on the same three tokens</h2></div>
+  <p class="lede">The feed-forward network never let tokens see each other. Attention is the part that does. Same <code>X</code> as before, same four dimensions.</p>
+
+  <div class="step">
+    <span class="sn">Step 6</span><h4>Three projections of the same input</h4>
+    <p><code>X</code> is multiplied by three separate weight matrices to produce three different views of the same tokens. The names are a filing-cabinet metaphor: <b>Query</b> is what this token is looking for, <b>Key</b> is what each token advertises about itself, <b>Value</b> is what it actually hands over if chosen.</p>
+    <p>All three are 4×4 here, so <code>Q</code>, <code>K</code> and <code>V</code> each come out 3×4 — one row per token, exactly like <code>X</code>.</p>
+  </div>
+  <div id="m-qkv"></div>
+
+  <div class="step">
+    <span class="sn">Step 7</span><h4>Split into two heads — and notice no parameters are added</h4>
+    <p>Two heads means: cut each of <code>Q</code>, <code>K</code>, <code>V</code> down the middle. Head 0 takes columns 0–1, head 1 takes columns 2–3. Each head gets width <code>d/h = 2</code>.</p>
+    <p><b>Nothing new is created.</b> The same 4×4 matrices are being read in two halves. This is why the heads count is a decoy in parameter questions — doubling the heads just slices the same numbers more finely.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">Step 8</span><h4>Each head: score, mask, softmax</h4>
+    <p><code>scores = Qₕ @ Kₕᵀ / √2</code> gives a 3×3 grid — how much each token wants to attend to each other token. The <code>√2</code> is <code>√(head width)</code> and is only a normaliser, keeping the numbers in a range where softmax behaves.</p>
+    <p>Then the causal mask sets everything above the diagonal to −∞, so no token sees the future, and softmax turns each row into probabilities summing to 1.</p>
+    <p><b>Look at the first row after softmax: it is always <code>1, 0, 0</code>.</b> Token 1 has no past, so it can only attend to itself. And the score grid is 3×3 — T×T — which is the O(T²) term.</p>
+  </div>
+  <div id="m-head0"></div>
+  <div id="m-head1"></div>
+
+  <div class="step">
+    <span class="sn">Step 9</span><h4>Mix the values, stitch the heads, project out</h4>
+    <p>Each head computes <code>P @ Vₕ</code> — a weighted blend of value rows, using the attention probabilities as the weights. The two heads' outputs are concatenated back to width 4, then passed through a fourth matrix <code>W_O</code>.</p>
+  </div>
+  <div id="m-out"></div>
+
+  <div class="note">
+    <b class="h">The whole block, counted</b>
+    Attention: four 4×4 matrices = <strong>64 parameters</strong>, which is <code>4d²</code>. Feed-forward: <strong>64</strong>, which is <code>8d²</code> at this reduced width (<code>2d</code> instead of <code>4d</code>). At real proportions the FFN is twice the attention, giving <code>12d²</code> per block.<br><br>
+    Every number in <code>Q</code>, <code>K</code>, <code>V</code>, the score grids and the outputs is an <strong>activation</strong> — gone after the backward pass. Only the four matrices persist.
+  </div>
+</section>
+
+<!-- ===== 04 LORA ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Now LoRA, on <code>W_Q</code></h2></div>
+  <p class="lede">You have just watched <code>W_Q</code> do its job in step 6. Fine-tuning normally means computing a gradient for all 16 of its numbers and keeping momentum and variance for each. LoRA says: don't.</p>
+
+  <div class="step">
+    <span class="sn">Step 10</span><h4>Freeze the matrix; learn a correction beside it</h4>
+    <p><code>W_Q</code> is frozen — it still runs in every forward pass, it still sits in GPU memory, but <b>no gradient is ever computed for it</b>. Instead two thin matrices are added: <code>A</code> of shape 4×1 and <code>B</code> of shape 1×4. Their product <code>A @ B</code> is 4×4 — the same shape as <code>W_Q</code>.</p>
+    <p>The model now uses <code>W_Q + A@B</code> wherever it used <code>W_Q</code>. The <b>1</b> in those shapes is the rank <code>r</code>.</p>
+  </div>
+  <div id="m-lora1"></div>
+
+  <div class="note">
+    <b class="h">Why B starts at zero</b>
+    <code>A@B</code> is all zeros at step 0, so <code>W_Q + A@B</code> equals <code>W_Q</code> exactly. The adapted model starts out <em>identical</em> to the pretrained one and departs from it only as training proceeds. Initialising both to random would corrupt the pretrained behaviour on the very first forward pass.
+  </div>
+
+  <div class="step">
+    <span class="sn">Step 11</span><h4>After a few steps, B has moved</h4>
+    <p>Only <code>A</code> and <code>B</code> received gradients, so only they changed. Their product is now a non-zero 4×4 correction, which is added to the frozen matrix to give the effective one.</p>
+  </div>
+  <div id="m-lora2"></div>
+
+  <div class="trap">
+    <b class="h">The toy does not show the saving — the formula does</b>
+    Here: 8 trainable against 16 frozen. That is 50%, which is no saving at all. <strong>That is not a flaw in the example; it is the point.</strong> The ratio is
+    <br><br><code>2·d·r / d² = 2r / d</code><br><br>
+    At <code>d = 4, r = 1</code> that is 0.5. The win appears only when <code>d</code> is large and <code>r</code> stays small — and <code>r</code> stays small because the <em>correction</em> a fine-tune needs is simple even when the matrix is huge. Move the sliders.
+  </div>
+
+  <div class="calc">
+    <div class="cc">
+      <div>
+        <label for="cD">d_model <b id="vD">4096</b></label>
+        <input type="range" id="cD" min="64" max="8192" step="64" value="4096">
+      </div>
+      <div>
+        <label for="cR">rank r <b id="vR">8</b></label>
+        <input type="range" id="cR" min="1" max="128" step="1" value="8">
+      </div>
+      <div>
+        <label for="cM">matrices adapted</label>
+        <select id="cM">
+          <option value="2" selected>Q, V only (common default)</option>
+          <option value="4">Q, K, V, O (all four)</option>
+        </select>
+      </div>
+      <div>
+        <label for="cL">layers L <b id="vL">32</b></label>
+        <input type="range" id="cL" min="1" max="96" step="1" value="32">
+      </div>
+    </div>
+    <div class="bigratio"><span id="ratio">—</span> <small>of one matrix is trainable &nbsp;·&nbsp; 2r/d</small></div>
+    <div class="lbar"><div class="f" id="barF"></div><div class="t" id="barT"></div></div>
+    <div class="shapes" id="totals"></div>
+  </div>
+
+  <div class="note">
+    <b class="h">Head-only fine-tuning, for contrast</b>
+    LoRA touches every layer with a small correction. Head-only touches <em>one new layer</em> and freezes everything else. Its size is just <code>d × num_labels</code> — for <code>d = 2048</code> and 8 entity labels that is 16,384 parameters, roughly 0.0002% of a 7B model. Hundreds of times smaller than LoRA, and correspondingly less able to adapt: the body cannot change at all, so it only works when the pretrained features already suit your task.
+  </div>
+</section>
+
+<!-- ===== 05 THE LEDGER ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>What each method actually pays for</h2></div>
+  <p class="lede">Same block, four ways of training it. Counting only this one block's 128 parameters, in fp32 with AdamW.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Method</th><th class="num">Weights</th><th class="num">Gradients</th><th class="num">Momentum</th><th class="num">Variance</th><th class="num">Bytes</th></tr></thead>
+      <tbody>
+        <tr><td><b>Full fine-tune</b></td><td class="num">128</td><td class="num">128</td><td class="num">128</td><td class="num">128</td><td class="num">2,048</td></tr>
+        <tr><td><b>LoRA on W_Q, r=1</b></td><td class="num">128</td><td class="num">8</td><td class="num">8</td><td class="num">8</td><td class="num">608</td></tr>
+        <tr><td><b>Head-only</b> (4×2 head)</td><td class="num">128</td><td class="num">8</td><td class="num">8</td><td class="num">8</td><td class="num">608</td></tr>
+        <tr><td><b>Inference</b></td><td class="num">128</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">512</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <b class="h">Read the weights column</b>
+    It says 128 on every row. <strong>No training method reduces the weights</strong> — the frozen matrices still have to be in memory to run the forward pass. Only quantization attacks that column, by storing each of those 128 numbers in fewer bytes.<br><br>
+    Everything else — LoRA, head-only, inference — works purely by shrinking the other three columns. That is the lever grid on The Memory Ledger, and it is now just this table read sideways.
+  </div>
+</section>
+
+<footer>
+  Concept 05 of the DLP series. Every number was computed rather than invented; the three tokens at the top are the same three tokens at the bottom. Read this before the lever grid on The Memory Ledger.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var NS = null;
+
+  var KIND = { w:{c:'var(--accent)', bg:'var(--accent-soft)'},
+               a:{c:'var(--signal)', bg:'var(--signal-soft)'},
+               g:{c:'var(--alert)',  bg:'var(--alert-soft)'},
+               f:{c:'var(--frozen)', bg:'var(--frozen-soft)'},
+               t:{c:'var(--win)',    bg:'var(--win-soft)'} };
+
+  function mat(name, data, kind, note){
+    var k = KIND[kind], rows = data.length, cols = data[0].length;
+    var html = '<div class="mat" style="--c:' + k.c + '">' +
+      '<div class="cap"><b>' + name + '</b><i>' + rows + ' x ' + cols + ' = ' + (rows*cols) + ' numbers</i>' +
+      (note ? '<i>' + note + '</i>' : '') + '</div>' +
+      '<div class="grid" style="grid-template-columns:repeat(' + cols + ',auto)">';
+    data.forEach(function(r){
+      r.forEach(function(v){
+        var z = (v === 0) ? ' zero' : '';
+        var txt = (v === -Infinity) ? '-inf' : v.toFixed(2);
+        html += '<div class="cell' + z + '" style="--bg:' + k.bg + '">' + txt + '</div>';
+      });
+    });
+    return html + '</div></div>';
+  }
+  function op(sym){ return '<div class="op">' + sym + '</div>'; }
+  function row(html){ return '<div class="mrow">' + html + '</div>'; }
+
+  // ---------- the data, all computed ----------
+  var X  = [[1,0,1,0],[0,2,0,1],[1,1,0,0]];
+  var W1 = [[-0.00,0.20,0.10,0.10,0.20,0.00,0.30,0.10],
+            [0.40,-0.20,-0.00,-0.30,-0.70,-1.00,0.20,-0.30],
+            [-0.20,-0.10,0.40,0.40,0.50,0.60,1.60,0.30],
+            [0.20,-0.90,-0.70,1.20,1.50,0.40,0.10,0.40]];
+  var H  = [[-0.20,0.10,0.50,0.50,0.70,0.60,1.90,0.40],
+            [1.00,-1.30,-0.70,0.60,0.10,-1.60,0.50,-0.20],
+            [0.40,0.00,0.10,-0.20,-0.50,-1.00,0.50,-0.20]];
+  var A  = [[0,0.10,0.50,0.50,0.70,0.60,1.90,0.40],
+            [1.00,0,0,0.60,0.10,0,0.50,0],
+            [0.40,0,0.10,0,0,0,0.50,0]];
+  var W2 = [[-1.00,-0.30,-0.20,0.90],[-0.50,0.20,0.40,0.50],[-0.20,-0.30,-1.10,0.60],
+            [0.60,-0.20,0.10,-0.70],[-0.10,0.40,-0.20,0.00],[0.50,0.30,-0.30,0.80],
+            [0.90,0.50,0.30,0.40],[0.40,-0.60,0.50,-0.40]];
+  var Y  = [[2.25,0.94,-0.01,1.08],[-0.20,-0.13,-0.01,0.68],[0.03,0.10,-0.04,0.62]];
+  var dY = [[0.10,-0.10,0.30,1.10],[0.30,-0.10,0.40,0.10],[-1.00,-1.10,-0.30,1.20]];
+  var dW2= [[-0.10,-0.54,0.28,0.58],[0.01,-0.01,0.03,0.11],[-0.05,-0.16,0.12,0.67],
+            [0.23,-0.11,0.39,0.61],[0.10,-0.08,0.25,0.78],[0.06,-0.06,0.18,0.66],
+            [-0.16,-0.79,0.62,2.74],[0.04,-0.04,0.12,0.44]];
+  var dW1= [[2.47,0.60,1.92,-0.66,-0.11,0.81,-0.49,-0.19],
+            [1.95,0,1.58,0.34,-0.30,0,-0.30,0],
+            [0,0.60,0.34,-0.66,-0.11,0.81,0.57,-0.19],
+            [-0.26,0,0,0.17,-0.15,0,0.38,0]];
+
+  var WQ = [[0.00,0.80,0.70,-0.30],[-0.20,-0.30,0.30,-0.00],[0.40,-1.10,0.90,-0.10],[0.40,-0.10,-0.20,0.30]];
+  var WK = [[0.50,-0.10,-0.10,0.40],[-0.50,-0.90,0.20,-0.40],[-1.20,-0.50,-0.30,-0.70],[-0.90,0.00,0.50,-0.10]];
+  var WV = [[-0.40,0.20,0.40,-0.20],[0.30,0.60,-0.10,-0.50],[0.20,0.10,0.70,-0.80],[-0.40,-0.50,-1.00,0.10]];
+  var WO = [[0.30,-0.40,0.80,0.50],[0.40,0.20,0.60,-0.80],[0.40,0.40,-1.10,0.20],[-0.20,0.50,-0.30,-0.00]];
+  var Q  = [[0.40,-0.30,1.60,-0.40],[0.00,-0.70,0.40,0.30],[-0.20,0.50,1.00,-0.30]];
+  var K  = [[-0.70,-0.60,-0.40,-0.30],[-1.90,-1.80,0.90,-0.90],[0.00,-1.00,0.10,0.00]];
+  var V  = [[-0.20,0.30,1.10,-1.00],[0.20,0.70,-1.20,-0.90],[-0.10,0.80,0.30,-0.70]];
+  var S0 = [[-0.07,-Infinity,-Infinity],[0.30,0.89,-Infinity],[-0.11,-0.37,-0.35]];
+  var P0 = [[1.00,0,0],[0.36,0.64,0],[0.39,0.30,0.31]];
+  var O0 = [[-0.20,0.30],[0.06,0.56],[-0.05,0.57]];
+  var S1 = [[-0.37,-Infinity,-Infinity],[-0.18,0.06,-Infinity],[-0.22,0.83,0.07]];
+  var P1 = [[1.00,0,0],[0.44,0.56,0],[0.19,0.55,0.26]];
+  var O1 = [[1.10,-1.00],[-0.19,-0.94],[-0.37,-0.87]];
+  var C  = [[-0.20,0.30,1.10,-1.00],[0.06,0.56,-0.19,-0.94],[-0.05,0.57,-0.37,-0.87]];
+  var OUT= [[0.70,0.08,-0.89,-0.12],[0.35,-0.46,0.87,-0.45],[0.24,-0.45,0.97,-0.56]];
+
+  var LA = [[0.10],[-0.40],[0.20],[-0.00]];
+  var LB0= [[0,0,0,0]];
+  var LD0= [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+  var LB1= [[0.30,-0.20,0.00,0.10]];
+  var LD1= [[0.03,-0.02,0.00,0.01],[-0.12,0.08,0.00,-0.04],[0.06,-0.04,0.00,0.02],[0,0,0,0]];
+  var WQe= [[0.03,0.78,0.70,-0.29],[-0.32,-0.22,0.30,-0.04],[0.46,-1.14,0.90,-0.08],[0.40,-0.10,-0.20,0.30]];
+
+  // ---------- render ----------
+  $('m-X').innerHTML = row(mat('X', X, 'a', 'one row per token'));
+
+  $('m-ffn1').innerHTML = row(mat('X', X, 'a') + op('@') + mat('W1', W1, 'w') + op('=') + mat('H', H, 'a')) +
+    '<div class="shapes">(3 x 4) @ (<b>4 x 8</b>) = (3 x 8) &nbsp;-&nbsp; the inner 4s cancel; the token count 3 passes straight through</div>';
+
+  $('m-ffn2').innerHTML = row(mat('H', H, 'a') + op('→') + mat('A = ReLU(H)', A, 'a', 'negatives became 0'));
+
+  $('m-ffn3').innerHTML = row(mat('A', A, 'a') + op('@') + mat('W2', W2, 'w') + op('=') + mat('Y', Y, 'a')) +
+    '<div class="shapes">(3 x 8) @ (<b>8 x 4</b>) = (3 x 4) &nbsp;-&nbsp; same shape as X, which is what lets blocks stack</div>';
+
+  $('m-dY').innerHTML = row(mat('dY', dY, 'g', 'how wrong each entry of Y was'));
+
+  $('m-dW2').innerHTML = row(mat('Aᵀ', A, 'a', 'needed!') + op('@') + mat('dY', dY, 'g') + op('=') + mat('dW2', dW2, 'g')) +
+    '<div class="shapes">W2 is <b>8 x 4</b> and dW2 is <b>8 x 4</b> &nbsp;-&nbsp; identical shape, always</div>';
+
+  $('m-dW1').innerHTML = row(mat('W1', W1, 'w') + op('vs') + mat('dW1', dW1, 'g')) +
+    '<div class="shapes">Compare the zeros in dW1 with the zeros in A &nbsp;-&nbsp; a unit switched off in the forward pass gets no gradient</div>';
+
+  $('m-qkv').innerHTML =
+    row(mat('X', X, 'a') + op('@') + mat('W_Q', WQ, 'w') + op('=') + mat('Q', Q, 'a')) +
+    row(mat('X', X, 'a') + op('@') + mat('W_K', WK, 'w') + op('=') + mat('K', K, 'a')) +
+    row(mat('X', X, 'a') + op('@') + mat('W_V', WV, 'w') + op('=') + mat('V', V, 'a'));
+
+  $('m-head0').innerHTML = '<div class="shapes" style="margin-top:14px"><b>Head 0</b> &nbsp;-&nbsp; columns 0 and 1 of Q, K, V</div>' +
+    row(mat('scores', S0, 'a', 'after mask') + op('→') + mat('softmax', P0, 'a', 'rows sum to 1') + op('@Vₕ =') + mat('head 0 out', O0, 'a'));
+
+  $('m-head1').innerHTML = '<div class="shapes" style="margin-top:14px"><b>Head 1</b> &nbsp;-&nbsp; columns 2 and 3 of Q, K, V</div>' +
+    row(mat('scores', S1, 'a', 'after mask') + op('→') + mat('softmax', P1, 'a', 'rows sum to 1') + op('@Vₕ =') + mat('head 1 out', O1, 'a'));
+
+  $('m-out').innerHTML = row(mat('concat', C, 'a', 'two heads stitched') + op('@') + mat('W_O', WO, 'w') + op('=') + mat('output', OUT, 'a')) +
+    '<div class="shapes">(3 x 4) again &nbsp;-&nbsp; attention preserves shape exactly like the FFN did</div>';
+
+  $('m-lora1').innerHTML =
+    row(mat('W_Q  FROZEN', WQ, 'f', 'no gradient, ever') + op('+') +
+        mat('A', LA, 't', 'trainable') + op('@') + mat('B', LB0, 't', 'trainable, starts at 0') +
+        op('=') + mat('A@B', LD0, 't')) +
+    '<div class="shapes">(4 x <b>1</b>) @ (<b>1</b> x 4) = (4 x 4) &nbsp;-&nbsp; the bold 1 is the rank r. 8 trainable numbers against 16 frozen.</div>';
+
+  $('m-lora2').innerHTML =
+    row(mat('A', LA, 't') + op('@') + mat('B now', LB1, 't') + op('=') + mat('A@B', LD1, 't')) +
+    row(mat('W_Q  FROZEN', WQ, 'f') + op('+') + mat('A@B', LD1, 't') + op('=') + mat('W_Q effective', WQe, 'w', 'what the model uses')) +
+    '<div class="shapes">W_Q itself never changed. The correction lives entirely in those 8 numbers.</div>';
+
+  // ---------- LoRA calculator ----------
+  function calc(){
+    var d = +$('cD').value, r = +$('cR').value, m = +$('cM').value, L = +$('cL').value;
+    $('vD').textContent = d.toLocaleString('en-US');
+    $('vR').textContent = r;
+    $('vL').textContent = L;
+
+    var ratio = 2*r/d;
+    var per = 2*d*r, full = d*d;
+    $('ratio').textContent = (100*ratio).toFixed(2) + '%';
+
+    var tPct = Math.min(100, 100*ratio);
+    $('barF').style.flexBasis = (100 - tPct) + '%'; $('barF').style.flexGrow = '0';
+    $('barT').style.flexBasis = tPct + '%';         $('barT').style.flexGrow = '0';
+    $('barF').textContent = tPct < 88 ? 'frozen' : '';
+    $('barT').textContent = tPct > 16 ? 'trainable' : '';
+
+    var tot = per * m * L, totFull = full * m * L;
+    var fmt = function(n){
+      if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+      return n.toLocaleString('en-US');
+    };
+    $('totals').innerHTML =
+      'One matrix: <b>' + fmt(per) + '</b> trainable vs <b>' + fmt(full) + '</b> frozen.<br>' +
+      'Across ' + m + ' matrices x ' + L + ' layers: <b>' + fmt(tot) + '</b> trainable, ' +
+      'replacing <b>' + fmt(totFull) + '</b>.' +
+      (ratio >= 1 ? '<br><span style="color:var(--alert)">At this rank LoRA costs more than the matrix it replaces. Keep r well below d/2.</span>' : '');
+  }
+  ['cD','cR','cM','cL'].forEach(function(id){ $(id).addEventListener('input', calc); });
+  calc();
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

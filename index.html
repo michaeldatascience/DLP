@@ -93,7 +93,7 @@ a{color:var(--accent)}
   <h1>Deep Learning Practice</h1>
   <p class="sub">Interactive study material for the NLP half of the course: Hugging Face datasets, tokenization, language modelling and GPT, and adapting pretrained models. Each page explains the mechanism, works through the real past-paper questions on it, and then quizzes you.</p>
   <div class="facts">
-    <span>6 interactive pages</span>
+    <span>8 interactive pages</span>
     <span>1 from-scratch notebook</span>
     <span>2 full mock papers</span>
     <span>every figure checked against the slides</span>
@@ -106,6 +106,22 @@ a{color:var(--accent)}
     <div class="top"><span class="n">00</span><h3>The DLP Spine</h3><span class="wk">Weeks 1–4</span></div>
     <p>Every term, module and formula from the four weeks placed on the one pipeline they belong to: Dataset → Tokenizer → Model → Adaptation. Definitions are hidden until you click them, so the same page works as reference and as recall practice.</p>
     <div class="has"><i>glossary</i><i>symbols table</i><i>all 7 formulas</i><i>recall mode</i></div>
+  </a>
+</div>
+
+<h2 class="sec">The mechanics</h2>
+<p style="color:var(--ink-soft);font-size:.95rem;max-width:66ch;margin-bottom:14px">Built from first principles with every number visible. Read these two if anything below feels abstract &mdash; they carry one example the whole way without changing it.</p>
+<div class="cards">
+  <a class="card" href="./corpus.html">
+    <div class="top"><span class="n">06</span><h3>From Corpus to Loss</h3><span class="wk">Weeks 1&ndash;4</span></div>
+    <p>One sentence of raw text followed to a loss number and then to the gradient that starts backpropagation. Answers where X comes from (an embedding lookup) and how the model knows it was wrong (the next token is the answer key). Untrained loss lands at 2.190 against a chance baseline of ln(10) = 2.303.</p>
+    <div class="has"><i>BPE on a real corpus</i><i>embedding lookup</i><i>softmax + cross-entropy</i><i>dLogits</i></div>
+  </a>
+
+  <a class="card" href="./oneblock.html">
+    <div class="top"><span class="n">05</span><h3>One Block, End to End</h3><span class="wk">Weeks 3 &amp; 4</span></div>
+    <p>Three tokens, d = 4, every matrix on screen. Forward through the feed-forward network, back through it, then attention with two heads &mdash; and LoRA applied to a matrix you just watched work. Shows why activations cost memory and why a gradient always mirrors its weight.</p>
+    <div class="has"><i>full matrices</i><i>backprop by hand</i><i>heads as column slices</i><i>LoRA calculator</i></div>
   </a>
 </div>
 

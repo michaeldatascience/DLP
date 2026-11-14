@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>From Corpus to Loss</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: the two ends of the sandwich. One Block showed the middle;
+   this shows how raw text becomes X at the front, and how the model's error
+   becomes a gradient at the back. One corpus, carried the whole way. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --frozen:#64748B; --frozen-soft:#E7EBF0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    --frozen:#8A99AD; --frozen-soft:#1E2733;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  --frozen:#8A99AD; --frozen-soft:#1E2733;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 76px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:2px}
+p{margin:0}
+
+.mast{padding-block:40px 24px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--f-display);font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:11px}
+.mast h1{font-size:clamp(1.9rem,5.5vw,2.9rem);font-weight:700;letter-spacing:-.025em}
+.mast .sub{margin-top:13px;max-width:62ch;color:var(--ink-soft);font-size:1.01rem}
+
+section{margin-block:44px}
+.sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:18px}
+.sec-num{font-family:var(--f-mono);font-size:.76rem;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:2px}
+.sec-head h2{font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:700;letter-spacing:-.015em}
+.lede{max-width:68ch;color:var(--ink-soft);margin-bottom:16px}
+
+/* chain map */
+.chain{display:grid;gap:0;margin-block:18px}
+.link{display:grid;grid-template-columns:34px 1fr;gap:13px;align-items:start;
+      padding:11px 13px;background:var(--surface);border:1px solid var(--rule);border-bottom:none}
+.link:last-child{border-bottom:1px solid var(--rule)}
+.link.done{background:var(--surface-2)}
+.link .ln{font-family:var(--f-mono);font-size:.74rem;font-weight:600;color:var(--accent);
+          background:var(--accent-soft);border-radius:2px;padding:3px 0;text-align:center}
+.link.done .ln{color:var(--frozen);background:var(--frozen-soft)}
+.link b{font-family:var(--f-display);font-size:.95rem;display:block}
+.link span{font-size:.89rem;color:var(--ink-soft)}
+.link .tag{font-family:var(--f-display);font-size:.64rem;font-weight:600;letter-spacing:.08em;
+           text-transform:uppercase;color:var(--frozen);border:1px solid var(--rule);
+           padding:2px 7px;border-radius:2px;margin-left:7px}
+
+/* matrices */
+.mrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-block:14px}
+.mat{display:inline-grid;gap:6px;min-width:0}
+.mat .cap{font-family:var(--f-mono);font-size:.8rem;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.mat .cap b{color:var(--c)}
+.mat .cap i{font-style:normal;font-size:.72rem;color:var(--ink-soft);font-weight:400}
+.grid{display:grid;gap:2px;overflow-x:auto;padding-bottom:2px}
+.cell{font-family:var(--f-mono);font-size:.74rem;font-variant-numeric:tabular-nums;
+      padding:5px 6px;text-align:right;border-radius:2px;min-width:42px;
+      background:var(--bg);color:var(--ink);border:1px solid transparent}
+.cell.hl{outline:2px solid var(--win);font-weight:600}
+.cell.neg{outline:2px solid var(--alert);font-weight:600}
+.op{font-family:var(--f-mono);font-size:1.3rem;color:var(--ink-soft);align-self:center;padding-top:20px}
+.shapes{font-family:var(--f-mono);font-size:.82rem;color:var(--ink-soft);margin-top:7px}
+.shapes b{color:var(--ink)}
+
+.step{background:var(--surface);border:1px solid var(--rule);padding:15px 16px;margin-block:13px}
+.step .sn{font-family:var(--f-display);font-size:.66rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:6px}
+.step h4{font-size:1rem;font-weight:600;margin-bottom:6px}
+.step p{font-size:.94rem;color:var(--ink-soft)}
+.step p + p{margin-top:7px}
+.step p b{color:var(--ink)}
+
+.toks{display:flex;flex-wrap:wrap;gap:6px;margin-block:11px}
+.tk{font-family:var(--f-mono);font-size:.84rem;background:var(--signal-soft);border:1px solid var(--signal);
+    color:var(--ink);padding:5px 9px;border-radius:2px}
+.tk small{color:var(--ink-soft);font-size:.72rem;display:block;text-align:center}
+.vocab{display:flex;flex-wrap:wrap;gap:5px;margin-block:11px}
+.vc{font-family:var(--f-mono);font-size:.8rem;background:var(--surface-2);border:1px solid var(--rule);padding:4px 8px;border-radius:2px}
+.vc b{color:var(--accent)}
+
+.trap,.note{border:1px solid var(--rule);padding:13px 15px;margin-block:15px;font-size:.95rem;background:var(--surface)}
+.trap{border-left:3px solid var(--alert)}
+.note{border-left:3px solid var(--accent)}
+.trap b.h,.note b.h{font-family:var(--f-display);font-size:.7rem;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:5px}
+.trap b.h{color:var(--alert)} .note b.h{color:var(--accent)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-block:14px}
+table{border-collapse:collapse;width:100%;min-width:420px;font-size:.9rem}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.67rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.m{font-family:var(--f-mono)}
+td.num,th.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+
+.loss{font-family:var(--f-mono);font-size:clamp(1.5rem,5vw,2.1rem);font-weight:600;
+      font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-block:10px}
+.loss small{font-size:.8rem;color:var(--ink-soft);font-family:var(--f-body);font-weight:400;letter-spacing:0}
+
+footer{margin-top:48px;padding-top:19px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.87rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Concept 06 · Weeks 1–4</div>
+  <h1>From Corpus to Loss</h1>
+  <p class="sub">One sentence of raw text, followed all the way to a number that says how wrong the model was — and then to the gradient that starts backpropagation. This is the front and back of the sandwich. <em>One Block</em> already showed the filling.</p>
+</header>
+
+<!-- ===== 00 THE CHAIN ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">00</span><h2>The whole chain, once</h2></div>
+  <p class="lede">Seven stages. Stage 4 is the transformer block you have already walked through number by number; everything else is on this page.</p>
+
+  <div class="chain">
+    <div class="link"><span class="ln">1</span><div><b>Raw text corpus</b><span>Plain text. No numbers anywhere yet.</span></div></div>
+    <div class="link"><span class="ln">2</span><div><b>Train a tokenizer on it<span class="tag">week 2</span></b><span>BPE learns merge rules from this corpus, producing a fixed vocabulary.</span></div></div>
+    <div class="link"><span class="ln">3</span><div><b>Text &rarr; tokens &rarr; integer ids</b><span>Replay the merges, then look each piece up in the vocabulary.</span></div></div>
+    <div class="link"><span class="ln">4</span><div><b>ids &rarr; vectors, by table lookup</b><span>The embedding table turns each id into a row of <code>d</code> numbers. <b style="color:var(--accent)">This produces X.</b></span></div></div>
+    <div class="link done"><span class="ln">5</span><div><b>The transformer block<span class="tag">covered in One Block</span></b><span>Attention, then feed-forward. Shape goes in T&times;d, comes out T&times;d.</span></div></div>
+    <div class="link"><span class="ln">6</span><div><b>Vectors &rarr; a score for every vocabulary entry</b><span>The LM head projects width <code>d</code> back out to width <code>V</code>.</span></div></div>
+    <div class="link"><span class="ln">7</span><div><b>Scores &rarr; probabilities &rarr; loss &rarr; gradient</b><span>Compare against the token that actually came next. <b style="color:var(--alert)">This produces dY.</b></span></div></div>
+  </div>
+
+  <div class="note">
+    <b class="h">Answering two questions directly</b>
+    <b>Where does X come from?</b> Stage 4 — a lookup in the embedding table, not the output of pretraining.<br>
+    <b>How do we know how bad Y is?</b> Stage 7 — the next token in the text is the answer key, and it is free, because the corpus already contains it.
+  </div>
+</section>
+
+<!-- ===== 01 CORPUS AND TOKENIZER ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>Stages 1–2 · a corpus, and a tokenizer learned from it</h2></div>
+  <p class="lede">Everything downstream is determined by this text. The tokenizer is not given to you — it is <em>trained</em> on the corpus before any model training starts.</p>
+
+  <div class="step">
+    <span class="sn">The corpus</span>
+    <p style="font-family:var(--f-mono);font-size:.95rem;color:var(--ink)">the cat sat on the mat the cat ran the mat sat on the cat</p>
+    <p style="margin-top:9px">Absurdly small, so every number stays visible. A real one is billions of words. <code>_</code> marks a word boundary.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">Six BPE merges later</span><h4>The merge rules it discovered</h4>
+    <p style="font-family:var(--f-mono);font-size:.9rem;color:var(--ink);margin-bottom:8px">a+t &rarr; at &nbsp;|&nbsp; at+_ &rarr; at_ &nbsp;|&nbsp; t+h &rarr; th &nbsp;|&nbsp; th+e &rarr; the &nbsp;|&nbsp; the+_ &rarr; the_ &nbsp;|&nbsp; c+at_ &rarr; cat_</p>
+    <p>Watch what it learned: <code>the_</code> and <code>cat_</code> became <b>single tokens</b>, because they appear often. But <code>ran</code> appears once, so it stayed as loose characters. <b>Frequency alone decided this</b> — the algorithm has no idea what a word is.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">The vocabulary</span><h4>V = 10 tokens, each with a fixed integer id</h4>
+    <div class="vocab" id="vocab"></div>
+    <p style="margin-top:9px">This list is now <b>frozen for the life of the model</b>. Every piece of text it will ever see must be expressible in these 10 tokens. That is why a tokenizer trained on English shatters when it meets chemistry, and why the fix is to retrain the tokenizer rather than tune the model.</p>
+  </div>
+</section>
+
+<!-- ===== 02 TEXT TO IDS ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Stage 3 · one sentence becomes integers</h2></div>
+  <p class="lede">Take <code>"the cat sat"</code>. Replay the six merge rules in order, then look up each resulting piece.</p>
+  <div class="toks" id="toks"></div>
+  <div class="shapes">4 tokens from 3 words &mdash; <b>"sat" split into two pieces</b> because "sat_" was never merged, while "the_" and "cat_" survived whole.</div>
+  <div class="note">
+    <b class="h">This is the only place text exists</b>
+    After this line there is no text anywhere in the system. <code>[9, 3, 8, 2]</code> is all the model ever sees. The words are gone.
+  </div>
+</section>
+
+<!-- ===== 03 IDS TO X ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Stage 4 · integers become vectors — this is where X comes from</h2></div>
+  <p class="lede">An integer carries no meaning: id 9 is not "bigger" than id 3. So each id is used as a <b>row number</b> into a table of learned vectors.</p>
+
+  <div id="m-E"></div>
+
+  <div class="step">
+    <span class="sn">The lookup</span><h4>ids [9, 3, 8, 2] select four rows</h4>
+    <p>Row 9, row 3, row 8, row 2. Stack them, and you have a 4&times;4 matrix: one row per token, <code>d = 4</code> numbers wide.</p>
+    <p><b>That matrix is the X that One Block starts with.</b> It was never computed by a network — it was looked up.</p>
+  </div>
+  <div id="m-X"></div>
+
+  <div class="note">
+    <b class="h">The embedding table is itself parameters</b>
+    <code>E</code> is 10&times;4 = <b>40 learnable numbers</b>, and they are trained exactly like every other weight. Initially the rows are random, so "cat_" and "mat_" mean nothing and sit nowhere in particular. Pretraining is what drags similar tokens near each other.<br><br>
+    In general that table is <code>V &times; d</code> — the formula from Transformer Anatomy, now with a reason attached.
+  </div>
+
+  <div class="trap">
+    <b class="h">X being square here is an accident — do not read anything into it</b>
+    This sentence happens to tokenize into 4 pieces, and I happened to choose <code>d = 4</code>. <b>T and d are completely unrelated quantities.</b> T is how many tokens are in <em>this particular input</em>; d is a fixed property of the model. Real shapes look like 512&times;768 or 2048&times;4096.<br><br>
+    Two more things X is not. It is <b>not a subset of E</b> — it is a selection <em>with repetition</em>. Tokenize "the the the" and X is 3&times;d holding row 9 three times over. And T can exceed V: a thousand-token passage drawn from a ten-token vocabulary gives a 1000&times;4 X.
+  </div>
+</section>
+
+<!-- ===== 04 THE BLOCK ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Stage 5 · the block<span style="font-family:var(--f-body);font-size:.85rem;font-weight:400;color:var(--ink-soft);margin-left:auto">already covered</span></h2></div>
+  <p class="lede">X goes in, attention lets the tokens see each other, the feed-forward network thinks about each position, and a 4&times;4 matrix comes out. Every number of this is in <em>One Block, End to End</em> — nothing new here.</p>
+  <div id="m-blk"></div>
+  <div class="shapes">In <b>4 x 4</b>, out <b>4 x 4</b>. Stack 32 of these and you have a 7B model.</div>
+</section>
+
+<!-- ===== 05 LM HEAD ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Stage 6 · from width 4 back out to the whole vocabulary</h2></div>
+  <p class="lede">Here is the exact problem. After the block, each token is described by <b>4 numbers</b>. But the question is "which of the <b>10</b> vocabulary entries comes next?" — so we need 10 answers, one per candidate. Four numbers have to become ten scores.</p>
+
+  <div class="step">
+    <span class="sn">The idea</span><h4>Give every vocabulary entry its own detector</h4>
+    <p><code>W_lm</code> has shape <code>d &times; V</code> = 4&times;10. Read it <b>by column</b>: there are ten columns, one per vocabulary entry, and each column is a list of 4 numbers.</p>
+    <p>The score for token <em>j</em> is the <b>dot product</b> of the block's output vector with column <em>j</em>. Column <em>j</em> acts as a detector that asks: <em>does this output vector look like the kind of thing that comes before token j?</em> Ten columns, ten questions, ten scores.</p>
+  </div>
+
+  <div class="tablewrap">
+    <table style="min-width:560px">
+      <thead><tr><th>W_lm</th><th class="num">_</th><th class="num">a</th><th class="num">at_</th><th class="num">cat_</th><th class="num">m</th><th class="num">n</th><th class="num">o</th><th class="num">r</th><th class="num">s</th><th class="num">the_</th></tr></thead>
+      <tbody>
+        <tr><td class="m">row 0</td><td class="num">0.70</td><td class="num">0.30</td><td class="num">1.20</td><td class="num">0.30</td><td class="num">0.40</td><td class="num">0.40</td><td class="num">-0.30</td><td class="num">0.00</td><td class="num">0.70</td><td class="num">-0.20</td></tr>
+        <tr><td class="m">row 1</td><td class="num">0.10</td><td class="num">0.00</td><td class="num">0.30</td><td class="num">-0.20</td><td class="num">-0.10</td><td class="num">0.10</td><td class="num">0.10</td><td class="num">-0.40</td><td class="num">0.40</td><td class="num">-0.60</td></tr>
+        <tr><td class="m">row 2</td><td class="num">-0.60</td><td class="num">-0.60</td><td class="num">0.50</td><td class="num">-0.20</td><td class="num">-0.50</td><td class="num">-0.60</td><td class="num">0.20</td><td class="num">-0.50</td><td class="num">-0.60</td><td class="num">0.30</td></tr>
+        <tr><td class="m">row 3</td><td class="num">-0.60</td><td class="num">-0.20</td><td class="num">0.00</td><td class="num">-0.20</td><td class="num">0.00</td><td class="num">0.70</td><td class="num">-0.30</td><td class="num">-0.60</td><td class="num">-0.90</td><td class="num">-0.10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="shapes">40 parameters. Each <b>column</b> belongs to one vocabulary entry.</div>
+
+  <div class="step">
+    <span class="sn">Worked, for position 0</span><h4>The block output there is <code>[0.70, 0.40, &minus;1.20, 0.20]</code></h4>
+    <p>Multiply it against each column in turn. Every line below is four multiplications and three additions — nothing more.</p>
+  </div>
+
+  <div class="tablewrap">
+    <table style="min-width:540px">
+      <thead><tr><th>Candidate</th><th>Its column</th><th>Dot product</th><th class="num">Logit</th></tr></thead>
+      <tbody>
+        <tr><td class="m">_</td><td class="m">[0.7, 0.1, &minus;0.6, &minus;0.6]</td><td class="m">(0.7&times;0.7)+(0.4&times;0.1)+(&minus;1.2&times;&minus;0.6)+(0.2&times;&minus;0.6)</td><td class="num">1.13</td></tr>
+        <tr><td class="m">a</td><td class="m">[0.3, 0.0, &minus;0.6, &minus;0.2]</td><td class="m">(0.7&times;0.3)+(0.4&times;0.0)+(&minus;1.2&times;&minus;0.6)+(0.2&times;&minus;0.2)</td><td class="num">0.89</td></tr>
+        <tr><td class="m">at_</td><td class="m">[1.2, 0.3, 0.5, 0.0]</td><td class="m">(0.7&times;1.2)+(0.4&times;0.3)+(&minus;1.2&times;0.5)+(0.2&times;0.0)</td><td class="num">0.36</td></tr>
+        <tr><td class="m">cat_</td><td class="m">[0.3, &minus;0.2, &minus;0.2, &minus;0.2]</td><td class="m">(0.7&times;0.3)+(0.4&times;&minus;0.2)+(&minus;1.2&times;&minus;0.2)+(0.2&times;&minus;0.2)</td><td class="num">0.33</td></tr>
+        <tr><td class="m">n</td><td class="m">[0.4, 0.1, &minus;0.6, 0.7]</td><td class="m">(0.7&times;0.4)+(0.4&times;0.1)+(&minus;1.2&times;&minus;0.6)+(0.2&times;0.7)</td><td class="num">1.18</td></tr>
+        <tr><td class="m">s</td><td class="m">[0.7, 0.4, &minus;0.6, &minus;0.9]</td><td class="m">(0.7&times;0.7)+(0.4&times;0.4)+(&minus;1.2&times;&minus;0.6)+(0.2&times;&minus;0.9)</td><td class="num">1.19</td></tr>
+        <tr><td class="m">the_</td><td class="m">[&minus;0.2, &minus;0.6, 0.3, &minus;0.1]</td><td class="m">(0.7&times;&minus;0.2)+(0.4&times;&minus;0.6)+(&minus;1.2&times;0.3)+(0.2&times;&minus;0.1)</td><td class="num">&minus;0.76</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="shapes">Those ten numbers <b>are</b> row 0 of the logits matrix below. Four rows of this = the whole thing.</div>
+
+  <div id="m-logits"></div>
+
+  <div class="step">
+    <span class="sn">Logits</span><h4>One raw score per vocabulary entry, per position</h4>
+    <p><b>Logits</b> are unnormalised scores — any real number, positive or negative, with no requirement to sum to anything. Row 0 is the model's opinion about what follows token 0. Here <code>s</code> scores highest at 1.19 and <code>the_</code> lowest at &minus;0.76, but the weights are random, so this is noise, not knowledge.</p>
+  </div>
+
+  <div class="step">
+    <span class="sn">Softmax</span><h4>Scores become probabilities</h4>
+    <p>Exponentiate everything, then divide by the row's total. Now every entry is between 0 and 1 and <b>each row sums to exactly 1</b>.</p>
+  </div>
+  <div id="m-probs"></div>
+
+  <div class="note">
+    <b class="h">Weight tying — and the intuition it hands you</b>
+    <code>W_lm</code> is 4&times;10 and the embedding table <code>E</code> is 10&times;4. Same shape, transposed. Many models simply <em>reuse E</em> as the output layer, which is called weight tying, and it is why GPT-2's 124M needs no separate output matrix.<br><br>
+    When they are tied, the score for token <em>j</em> becomes <code>dot(output vector, E[j])</code> — literally <strong>"which token's embedding does my output vector most resemble?"</strong> The model answers by pointing its output in the direction of the token it wants, and the scores fall out as similarities. That is the cleanest way to hold Stage 6 in your head, even for models that do not tie.
+  </div>
+</section>
+
+<!-- ===== 06 LOSS ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Stage 7 · how wrong was it?</h2></div>
+  <p class="lede">Here is the idea that makes pretraining possible without a single human label: <b>the answer key is the text itself</b>. At each position, the correct next token is simply the token that actually came next.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th class="num">Position</th><th>Input token</th><th>Must predict</th><th class="num">Probability it gave</th><th class="num">Loss = &minus;ln(p)</th></tr></thead>
+      <tbody id="losstab"></tbody>
+    </table>
+  </div>
+
+  <div class="loss">2.190 <small>mean loss across the four positions</small></div>
+
+  <div class="trap">
+    <b class="h">Check this number against chance</b>
+    With V = 10 tokens and no knowledge at all, the model would spread probability evenly — 0.1 each — giving a loss of <code>&minus;ln(0.1) = 2.303</code>.<br><br>
+    We got <b>2.190</b>. The weights are random, so that is pure luck, and it tells you the model knows <b>nothing</b>. <strong>An untrained model's loss is always about ln(V).</strong> That is the baseline every training run starts from, and watching the loss fall below it is watching the model learn.
+  </div>
+
+  <div class="step">
+    <span class="sn">Why the logarithm</span><h4>&minus;ln(p) turns "probability" into "surprise"</h4>
+    <p>If the model gave the right token probability 1, the loss is <code>&minus;ln(1) = 0</code> — no surprise, no error. As p falls toward 0, <code>&minus;ln(p)</code> climbs without limit. Confident and wrong is punished far harder than uncertain and wrong.</p>
+  </div>
+</section>
+
+<!-- ===== 07 GRADIENT ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>The gradient that starts everything</h2></div>
+  <p class="lede">Now differentiate the loss with respect to the logits. For softmax with cross-entropy this collapses to something startlingly simple.</p>
+
+  <div class="shapes" style="font-size:1rem;margin-block:14px"><b>dLogits = (probabilities &minus; one-hot target) / T</b></div>
+
+  <div id="m-dlog"></div>
+
+  <div class="step">
+    <span class="sn">Read the signs</span><h4>One negative per row, everything else positive</h4>
+    <p>At the <b style="color:var(--alert)">target</b> column the value is <code>(p &minus; 1)</code>, which is negative — gradient descent subtracts it, so that logit goes <b>up</b>.</p>
+    <p>At every other column the value is <code>(p &minus; 0)</code>, positive — those logits go <b>down</b>.</p>
+    <p>Each step nudges the right answer up and all 9 wrong answers down, by exactly how much probability they were each wrongly given. Do that a few trillion times and you have a pretrained model.</p>
+  </div>
+
+  <div class="note">
+    <b class="h">This is the dY from One Block</b>
+    In <em>One Block</em>, step 4 began with "<code>dY</code> arrives from above". <strong>This is where it arrives from.</strong> The matrix above travels back through <code>W_lm</code>, then through the block, producing <code>dW2</code> and <code>dW1</code> and all the rest exactly as you watched.<br><br>
+    The chain is now closed in both directions: corpus &rarr; tokenizer &rarr; ids &rarr; X &rarr; block &rarr; logits &rarr; loss, and then the gradient all the way back.
+  </div>
+</section>
+
+<!-- ===== 08 WHAT PRETRAINING IS ===== -->
+<section>
+  <div class="sec-head"><span class="sec-num">08</span><h2>So what is pretraining, exactly?</h2></div>
+  <p class="lede">Everything above, for one sentence, is <b>one training step</b>. Pretraining is that loop run until the loss stops falling.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Done how often</th><th>Produces</th></tr></thead>
+      <tbody>
+        <tr><td><b>Train the tokenizer</b></td><td>Once, before anything</td><td>Merge rules and a frozen vocabulary</td></tr>
+        <tr><td><b>Tokenize the corpus</b></td><td>Once</td><td>One long stream of integer ids</td></tr>
+        <tr><td><b>Pretraining loop</b></td><td>Millions of steps</td><td>Trained weights: E, the blocks, W_lm</td></tr>
+        <tr><td><b>Continued pre-training</b></td><td>Optional, after</td><td>Same loop, same loss, new domain corpus</td></tr>
+        <tr><td><b>Instruction tuning</b></td><td>Optional, after</td><td>Same machinery, but the corpus is instruction-response pairs and the loss is concentrated on the responses</td></tr>
+        <tr><td><b>LoRA / head-only</b></td><td>Optional, after</td><td>The same loop with almost everything frozen</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b class="h">Why they are all "the same thing with a different corpus"</b>
+    Nothing about the machinery changes between pretraining and continued pre-training — same next-token loss, same backward pass, different text. Instruction tuning changes <em>what the loss is computed over</em>, not how. And LoRA changes only <em>which weights receive the gradient</em>.<br><br>
+    This is why the exam asks whether continued pre-training and instruction tuning share an objective. They share the <b>mechanism</b>, which is why it feels like yes. They differ in the <b>objective</b>, because one scores every token of plain text and the other scores only the response to an instruction.
+  </div>
+</section>
+
+<footer>
+  Concept 06 of the DLP series. Every figure computed from the corpus shown at the top &mdash; the BPE merges, the vocabulary, the lookup, the softmax, the loss of 2.190 against a chance baseline of ln(10) = 2.303. Read <em>One Block, End to End</em> for stage 5.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var KIND = { w:{c:'var(--accent)', bg:'var(--accent-soft)'},
+               a:{c:'var(--signal)', bg:'var(--signal-soft)'},
+               g:{c:'var(--alert)',  bg:'var(--alert-soft)'} };
+
+  function mat(name, data, kind, note, marks){
+    var k = KIND[kind], rows = data.length, cols = data[0].length;
+    var html = '<div class="mat" style="--c:' + k.c + '">' +
+      '<div class="cap"><b>' + name + '</b><i>' + rows + ' x ' + cols + '</i>' +
+      (note ? '<i>' + note + '</i>' : '') + '</div>' +
+      '<div class="grid" style="grid-template-columns:repeat(' + cols + ',auto)">';
+    data.forEach(function(r, ri){
+      r.forEach(function(v, ci){
+        var cls = 'cell';
+        if (marks && marks[ri] === ci) cls += (v < 0 ? ' neg' : ' hl');
+        html += '<div class="' + cls + '" style="--bg:' + k.bg + '">' + v.toFixed(2) + '</div>';
+      });
+    });
+    return html + '</div></div>';
+  }
+  function op(s){ return '<div class="op">' + s + '</div>'; }
+  function row(h){ return '<div class="mrow">' + h + '</div>'; }
+
+  // ---------- computed data ----------
+  var VOCAB = ['_','a','at_','cat_','m','n','o','r','s','the_'];
+  var IDS   = [9,3,8,2];
+  var TOKS  = ['the_','cat_','s','at_'];
+  var TGT   = [3,8,2,0];
+
+  var E = [[-0.50,-0.80,-0.10,0.30],[0.70,0.10,-0.30,-0.50],[0.40,1.00,0.20,-0.70],
+           [-0.60,1.00,0.10,-1.00],[-0.10,-0.70,-0.40,-0.30],[-0.40,0.30,-0.00,-0.40],
+           [0.20,0.50,-1.00,-0.20],[-0.60,-0.10,-0.80,0.00],[-0.00,-0.20,-0.60,-0.20],
+           [-0.70,-0.80,0.10,-0.70]];
+  var X = [[-0.70,-0.80,0.10,-0.70],[-0.60,1.00,0.10,-1.00],[-0.00,-0.20,-0.60,-0.20],[0.40,1.00,0.20,-0.70]];
+  var BLK = [[0.70,0.40,-1.20,0.20],[-0.70,0.00,0.00,-1.20],[-0.10,-0.20,0.60,-0.70],[0.40,-0.70,-0.20,-0.50]];
+  var LOGITS = [[1.13,0.89,0.36,0.33,0.84,1.18,-0.47,0.32,1.19,-0.76],
+                [0.23,0.03,-0.84,0.03,-0.28,-1.12,0.57,0.72,0.59,0.26],
+                [-0.03,-0.25,0.12,0.03,-0.32,-0.91,0.34,0.20,0.12,0.39],
+                [0.63,0.34,0.17,0.40,0.33,-0.14,-0.08,0.68,0.57,0.33]];
+  var PROBS = [[0.16,0.12,0.07,0.07,0.12,0.17,0.03,0.07,0.17,0.02],
+               [0.11,0.09,0.04,0.09,0.06,0.03,0.15,0.17,0.15,0.11],
+               [0.09,0.08,0.11,0.10,0.07,0.04,0.14,0.12,0.11,0.14],
+               [0.13,0.10,0.08,0.10,0.10,0.06,0.06,0.14,0.12,0.10]];
+  var DLOG = [[0.04,0.03,0.02,-0.23,0.03,0.04,0.01,0.02,0.04,0.01],
+              [0.03,0.02,0.01,0.02,0.02,0.01,0.04,0.04,-0.21,0.03],
+              [0.02,0.02,-0.22,0.03,0.02,0.01,0.03,0.03,0.03,0.04],
+              [-0.22,0.02,0.02,0.03,0.02,0.02,0.02,0.03,0.03,0.02]];
+  var EXACT = [0.071,0.153,0.110,0.132];
+
+  // vocabulary chips
+  $('vocab').innerHTML = VOCAB.map(function(t,i){
+    return '<span class="vc"><b>' + i + '</b> &nbsp;' + t + '</span>';
+  }).join('');
+
+  // token chips
+  $('toks').innerHTML = TOKS.map(function(t,i){
+    return '<span class="tk">' + t + '<small>id ' + IDS[i] + '</small></span>';
+  }).join('');
+
+  // embedding table, highlighting the four rows selected
+  var marks = {};
+  $('m-E').innerHTML = row(mat('E  the embedding table', E, 'w', 'V x d = 40 parameters')) +
+    '<div class="shapes">ids [9, 3, 8, 2] pick out rows <b>9, 3, 8, 2</b> of this table</div>';
+
+  $('m-X').innerHTML = row(mat('X', X, 'a', 'the four rows, stacked')) +
+    '<div class="shapes">T x d = <b>4 x 4</b> &mdash; this is the input to the block</div>';
+
+  $('m-blk').innerHTML = row(mat('X', X, 'a') + op('→ block →') + mat('block output', BLK, 'a'));
+
+  $('m-logits').innerHTML = row(mat('block output', BLK, 'a') + op('@ W_lm =') + mat('logits', LOGITS, 'a', 'one score per vocabulary entry')) +
+    '<div class="shapes">(4 x 4) @ (<b>4 x 10</b>) = (4 x 10) &mdash; width d becomes width V</div>';
+
+  var tgtMark = {}; TGT.forEach(function(t,i){ tgtMark[i] = t; });
+  $('m-probs').innerHTML = row(mat('probabilities', PROBS, 'a', 'rows sum to 1', tgtMark)) +
+    '<div class="shapes">outlined cell in each row = the token that actually came next</div>';
+
+  $('m-dlog').innerHTML = row(mat('dLogits', DLOG, 'g', 'P minus one-hot, over T', tgtMark)) +
+    '<div class="shapes">exactly one negative per row &mdash; the target. everything else positive.</div>';
+
+  // loss table
+  $('losstab').innerHTML = IDS.map(function(id,i){
+    return '<tr><td class="num">' + i + '</td>' +
+      '<td class="m">' + VOCAB[id] + ' <span style="color:var(--ink-soft)">(id ' + id + ')</span></td>' +
+      '<td class="m">' + VOCAB[TGT[i]] + ' <span style="color:var(--ink-soft)">(id ' + TGT[i] + ')</span></td>' +
+      '<td class="num">' + EXACT[i].toFixed(3) + '</td>' +
+      '<td class="num">' + (-Math.log(EXACT[i])).toFixed(3) + '</td></tr>';
+  }).join('');
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>
