@@ -184,10 +184,11 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
 <div class="blk" id="start">
   <h2>Start here</h2>
   <div class="card key">
-    <span class="lab">The whole set is five things</span>
-    <p>This page holds <b>all the notes</b>. The other four are for doing: three hands-on pages, one per week of real content, and the mock papers.</p>
+    <span class="lab">The whole set is six things</span>
+    <p>This page holds <b>all the notes</b>. The other five are for seeing and doing: an overview of the whole cycle, three hands-on pages, and the mock papers.</p>
   </div>
   <div class="res">
+    <a href="./cycle.html" target="_blank" rel="noopener"><i>Overview · read first</i><b>The Whole Cycle</b><span>Raw text to a usable model in three parts: tokenizer, transformer, inference. Shapes and numbers for a toy, GPT-1 or GPT-2.</span></a>
     <a href="./tokenizers.html" target="_blank" rel="noopener"><i>Week 2 · hands-on</i><b>Tokenizer Lab</b><span>Run BPE, WordPiece and Unigram step by step on the lecture corpus.</span></a>
     <a href="./transformer.html" target="_blank" rel="noopener"><i>Week 3 · hands-on</i><b>Transformer Workshop</b><span>Corpus to loss · one block with every number · parameter counter · three architectures and the mask.</span></a>
     <a href="./memory.html" target="_blank" rel="noopener"><i>Week 4 · hands-on</i><b>Memory Workshop</b><span>The four copies · the five levers · LoRA on a real matrix · lever stacker · exam questions.</span></a>
@@ -218,13 +219,27 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
   </div>
   <div class="card">
     <ul>
-      <li>The <b>tokenizer is trained first</b>, once, on the corpus (often a sample of it). Its vocabulary is then frozen.</li>
+      <li>The <b>tokenizer is trained first</b>, once, on the corpus (often a sample of it). <b>You set the target vocabulary size V</b> (for example 32,000) and the algorithm stops merging or pruning when it reaches it. The corpus decides <i>which</i> tokens; you decide <i>how many</i>. The vocabulary is then frozen. (If you reuse a pretrained model, V is whatever its tokenizer came with.)</li>
       <li>The <b>whole corpus is tokenized</b> into one long stream of ids and cut into blocks of the context length.</li>
       <li><b>Pre-training</b> is one loop repeated millions of times: predict the next token, measure the loss, backpropagate, update. The <b>answer key is the text itself</b>, so no labels are needed.</li>
       <li>The <b>embedding table E</b> starts random and is learned like any other weight. X is just rows looked up from E.</li>
       <li>An untrained model's loss is about <b>ln(V)</b>, because it spreads probability evenly over V tokens.</li>
     </ul>
   </div>
+  <h3 class="sub">Who learns what</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Part</th><th>Learned how</th><th>When</th><th>Size</th></tr></thead><tbody>
+    <tr><td><b>Tokenizer</b></td><td>counting on the corpus. <b>No gradients.</b></td><td>once, before the model</td><td class="m">V tokens</td></tr>
+    <tr><td><b>Token embeddings</b></td><td>backprop from the loss</td><td>model training</td><td class="m">V &times; d</td></tr>
+    <tr><td><b>Position embeddings</b></td><td>backprop from the loss</td><td>model training</td><td class="m">context &times; d</td></tr>
+    <tr><td><b>Blocks</b> (attention + FFN)</td><td>backprop from the loss</td><td>model training</td><td class="m">12d&sup2; each</td></tr>
+    <tr><td><b>LM head</b> (scores for all V tokens)</td><td>backprop from the loss</td><td>model training</td><td class="m">d &times; V, often shared with the token table</td></tr>
+  </tbody></table></div>
+  <div class="card"><ul>
+    <li><b>The tokenizer and the embedding table are two different things.</b> The tokenizer decides the V tokens. The embedding table gives each of those V tokens a vector of d numbers, starting random and improved by training.</li>
+    <li>The training loop, repeated millions of times: take a block of tokens &rarr; look up vectors &rarr; run the blocks &rarr; score all V tokens &rarr; loss &rarr; backprop &rarr; the optimizer updates every weight.</li>
+  </ul></div>
+  <div class="go"><b>The same story with shapes</b><a href="./cycle.html" target="_blank" rel="noopener">The Whole Cycle</a> &mdash; tokenizer, transformer and inference, step by step.</div>
   <div class="go"><b>See it with numbers</b><a href="./transformer.html" target="_blank" rel="noopener">Transformer Workshop</a> &rarr; tab 1, &ldquo;From corpus to loss&rdquo;.</div>
 </div>
 
@@ -334,7 +349,7 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
   <div class="tablewrap"><table>
     <thead><tr><th>Output</th><th>Meaning</th></tr></thead><tbody>
     <tr><td class="m">input_ids</td><td>one integer per token</td></tr>
-    <tr><td class="m">attention_mask</td><td>1 = real token, <b>0 = padding</b></td></tr>
+    <tr><td class="m">attention_mask</td><td>1 = real token, <b>0 = padding</b>. <b>Written by the tokenizer</b> because only it knows where it padded. <b>Used later by the model</b>: attention gives padded positions &minus;&infin; so they get zero weight.</td></tr>
     <tr><td class="m">token_type_ids</td><td>which of two sentences a token belongs to</td></tr>
     <tr><td class="m">offset_mapping</td><td>each token's character span in the original text</td></tr>
     <tr><td class="m">hidden_states</td><td><b class="n">not from the tokenizer</b> &mdash; the model produces these</td></tr>
@@ -363,6 +378,7 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
     <span class="lab">Solved · 2026 T2 Q18 · 4 marks</span>
     <p>Batch <code>["Hi", "Hello beautiful world"]</code> through a BERT tokenizer with <code>padding=True</code>. How many zeros in the first attention mask?</p>
     <p>&ldquo;Hi&rdquo; &rarr; [CLS] hi [SEP] = 3 tokens. The other &rarr; [CLS] hello beautiful world [SEP] = 5 tokens. Pad the first to 5: mask = 1 1 1 0 0. <b>Answer: 2.</b></p>
+    <p>The tokenizer only records where the padding is. Attention happens later, in the model.</p>
   </div>
   <div class="go"><b>Do it by hand</b><a href="./tokenizers.html" target="_blank" rel="noopener">Tokenizer Lab</a> &mdash; step the merges yourself and watch BPE and WordPiece pick different pairs.</div>
 </div>
@@ -374,10 +390,10 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
 
   <div class="tablewrap"><table>
     <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead><tbody>
-    <tr><td class="m">V</td><td>vocabulary size</td></tr>
+    <tr><td class="m">V</td><td>vocabulary size: how many tokens the tokenizer knows. <b>You choose it before tokenizer training and it is frozen</b> before the model is trained. It does not grow while the model trains.</td></tr>
     <tr><td class="m">d (d_model)</td><td>length of the vector for one token &mdash; <b>one number you choose</b></td></tr>
-    <tr><td class="m">T</td><td>number of tokens in this input</td></tr>
-    <tr><td class="m">context length</td><td>the largest T the model accepts</td></tr>
+    <tr><td class="m">T</td><td>how many tokens <b>this one input</b> has after tokenizing, special tokens included. &ldquo;the cat sat&rdquo; &rarr; T = 4. In BERT, &ldquo;Hi&rdquo; &rarr; [CLS] hi [SEP] &rarr; T = 3. It changes with every input.</td></tr>
+    <tr><td class="m">context length</td><td>the <b>fixed upper limit</b> on T, set when the model is built (GPT-1: 512). The position table has exactly this many rows, so there is no row for token 513. T can be smaller, never larger.</td></tr>
     <tr><td class="m">L, h</td><td>number of blocks, number of attention heads</td></tr>
     <tr><td class="m">N (&ldquo;7B&rdquo;)</td><td>the <b>count of all learnable numbers</b> in the model. Not the same as d.</td></tr>
   </tbody></table></div>
@@ -386,6 +402,8 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
     <span class="lab">Where the parameters are</span>
     <div class="eq">embeddings = V&times;d + context&times;d &nbsp;&nbsp;|&nbsp;&nbsp; attention = 4d&sup2; &nbsp;&nbsp;|&nbsp;&nbsp; FFN = 8d&sup2; &nbsp;&nbsp;|&nbsp;&nbsp; one block = 12d&sup2;</div>
     <ul>
+      <li><b>Why two tables?</b> The first, V&times;d, has one row per vocabulary token: <i>which</i> token is this. The second, context&times;d, has one row per position: <i>where</i> in the input is it. A token's input vector is its token row <b>plus</b> its position row, added number by number. Without positions, &ldquo;dog bites man&rdquo; and &ldquo;man bites dog&rdquo; look the same to attention. Think of a name tag plus a seat number.</li>
+      <li>Cue in a question: <b>&ldquo;learned positional embeddings&rdquo;</b> means include context&times;d. If the question gives no position table, use V&times;d alone.</li>
       <li>Attention has four d&times;d matrices: <b>Q, K, V, O</b>.</li>
       <li>The FFN goes d &rarr; 4d &rarr; d: two matrices of d&times;4d. It is <b>twice the size</b> of attention.</li>
       <li><b>Heads add no parameters.</b> Two heads means splitting the columns of Q, K, V into two halves.</li>
@@ -672,7 +690,7 @@ footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:v
 </div>
 
 <footer>
-  One of five: this Cheatsheet, the Tokenizer Lab, the Transformer Workshop, the Memory Workshop and the Mock Papers. Earlier single-topic pages are now tabs inside the two workshops.
+  One of six: this Cheatsheet, The Whole Cycle, the Tokenizer Lab, the Transformer Workshop, the Memory Workshop and the Mock Papers. Earlier single-topic pages are now tabs inside the two workshops.
 </footer>
 </div>
 

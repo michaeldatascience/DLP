@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>The Whole Cycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Layout concept: the cycle is three parts, so the page is three tabs plus an overview.
+   Every step shows its shape in and out; pick a model size once and every number updates. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#EFF2F6;
+  --ink:#16202E; --ink-soft:#55637A; --rule:#DCE2EA;
+  --accent:#0E7490; --accent-soft:#CFF0F5;
+  --signal:#A15C07; --signal-soft:#FBEBD2;
+  --alert:#9F1239; --alert-soft:#FBE0E6;
+  --win:#15803D; --win-soft:#D6F2E0;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+    --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+    --accent:#2DD4E8; --accent-soft:#113640;
+    --signal:#F0B429; --signal-soft:#3A2C0D;
+    --alert:#FB7185; --alert-soft:#3D1420;
+    --win:#4ADE80; --win-soft:#0F3522;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D131C; --surface:#141C27; --surface-2:#1B2531;
+  --ink:#E7ECF3; --ink-soft:#93A1B5; --rule:#26313F;
+  --accent:#2DD4E8; --accent-soft:#113640;
+  --signal:#F0B429; --signal-soft:#3A2C0D;
+  --alert:#FB7185; --alert-soft:#3D1420;
+  --win:#4ADE80; --win-soft:#0F3522;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15.5px;line-height:1.58;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 80px}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:2px;overflow-wrap:anywhere}
+p{margin:0}
+a{color:var(--accent)}
+[hidden]{display:none!important}
+
+.mast{padding-block:32px 16px}
+.kicker{font-family:var(--f-display);font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+.mast h1{font-size:clamp(1.7rem,5vw,2.5rem);font-weight:700;letter-spacing:-.025em}
+.mast .sub{margin-top:10px;max-width:64ch;color:var(--ink-soft);font-size:.97rem}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);padding-block:10px 9px;border-bottom:2px solid var(--ink);margin-bottom:22px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--paper)}
+.tabs{display:flex;gap:5px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;font-family:var(--f-display);font-size:.78rem;font-weight:600;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-family:var(--f-mono);font-size:.74rem;color:var(--ink-soft)}
+.seg{display:inline-flex}
+.seg button{font-family:var(--f-mono);font-size:.74rem;background:var(--surface);color:var(--ink-soft);border:1px solid var(--rule);padding:4px 9px;cursor:pointer;margin-left:-1px}
+.seg button:first-child{margin-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent);position:relative}
+.ctl label{display:inline-flex;gap:5px;align-items:center}
+.ctl input{width:64px;font-family:var(--f-mono);font-size:.78rem;padding:3px 6px;border:1px solid var(--rule);border-radius:2px;background:var(--surface);color:var(--ink)}
+.warn{color:var(--alert);font-weight:600}
+
+h3.sub{font-size:.71rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-block:24px 10px}
+h2.pt{font-size:1.3rem;font-weight:700;letter-spacing:-.015em;padding-bottom:8px;border-bottom:1px solid var(--ink);margin-bottom:14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+h2.pt small{font-family:var(--f-mono);font-size:.72rem;font-weight:500;color:var(--signal);margin-left:auto}
+.gist{background:var(--ink);color:var(--paper);padding:13px 16px;margin-bottom:12px;font-size:1rem;line-height:1.5}
+.gist b{font-family:var(--f-display);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;display:block;opacity:.7;margin-bottom:4px;font-weight:600}
+.go{font-size:.9rem;color:var(--ink-soft);margin-top:10px;padding:10px 13px;border:1px dashed var(--rule);background:var(--surface)}
+.go b{font-family:var(--f-display);font-size:.64rem;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-right:6px}
+
+.card{background:var(--surface);border:1px solid var(--rule);padding:12px 14px;margin-bottom:9px}
+.card.hot{border-left:3px solid var(--alert)}
+.card.key{border-left:3px solid var(--accent)}
+.card .lab{font-family:var(--f-display);font-size:.62rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;display:block;margin-bottom:4px}
+.card.hot .lab{color:var(--alert)} .card.key .lab{color:var(--accent)}
+.card p{font-size:.92rem;color:var(--ink-soft)}
+.card p + p{margin-top:6px}
+.card b{color:var(--ink)}
+.card ul{margin:6px 0 0;padding-left:19px;font-size:.92rem;color:var(--ink-soft)}
+.card li{margin-bottom:3px}
+.eq{font-family:var(--f-mono);font-size:.84rem;font-weight:600;background:var(--signal-soft);color:var(--ink);padding:7px 10px;border-radius:2px;margin:7px 0;overflow-x:auto}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface);margin-bottom:9px}
+table{border-collapse:collapse;width:100%;min-width:430px;font-size:.88rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-display);font-size:.64rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.m{font-family:var(--f-mono);font-size:.8rem}
+.y{color:var(--win);font-weight:600} .n{color:var(--alert);font-weight:600}
+
+/* flow strip on the overview */
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.fbox{background:var(--surface);border:1px solid var(--rule);border-top:3px solid var(--accent);padding:12px 13px;cursor:pointer;text-align:left;color:var(--ink);font:inherit}
+.fbox:hover{border-color:var(--accent)}
+.fbox i{font-style:normal;font-family:var(--f-display);font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);display:block}
+.fbox b{font-family:var(--f-display);font-size:1rem;display:block;margin-block:3px}
+.fbox span{font-size:.84rem;color:var(--ink-soft);display:block}
+.fbox .io2{font-family:var(--f-mono);font-size:.74rem;margin-top:6px;color:var(--accent)}
+@media (max-width:700px){.flow{grid-template-columns:1fr}}
+
+/* steps */
+.steps{display:grid;gap:8px;margin-bottom:10px}
+.step{display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 12px;background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent);padding:12px 14px}
+.step .no{font-family:var(--f-mono);font-weight:600;color:var(--accent);font-size:1.02rem;line-height:1.3}
+.step h4{font-size:.98rem;font-weight:600;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.step p{font-size:.91rem;color:var(--ink-soft);margin-top:4px}
+.step p b{color:var(--ink)}
+.step .body{min-width:0}
+.badge{font-family:var(--f-mono);font-size:.64rem;font-weight:600;letter-spacing:.03em;padding:2px 6px;border-radius:2px;white-space:nowrap}
+.b-count{background:var(--signal-soft);color:var(--signal)}
+.b-learn{background:var(--accent-soft);color:var(--accent)}
+.b-frozen{background:var(--surface-2);color:var(--ink-soft)}
+.b-none{background:var(--win-soft);color:var(--win)}
+.io{display:flex;flex-wrap:wrap;gap:5px 7px;align-items:center;margin-top:8px}
+.io .arrow{color:var(--ink-soft);font-size:.85rem}
+.shp{font-family:var(--f-mono);font-size:.72rem;background:var(--surface-2);border:1px solid var(--rule);padding:2px 7px;border-radius:2px;overflow-wrap:anywhere}
+.shp .sym{color:var(--ink-soft)}
+.shp b{color:var(--accent);font-weight:600}
+td .shp{white-space:nowrap}
+.ex{font-family:var(--f-mono);font-size:.8rem;background:var(--surface-2);padding:6px 9px;border-radius:2px;margin-top:7px;overflow-x:auto;white-space:pre;color:var(--ink)}
+
+.btn{font-family:var(--f-display);font-size:.77rem;font-weight:600;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:2px;padding:8px 13px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ghost:hover{background:var(--accent-soft)}
+.nextrow{display:flex;justify-content:space-between;gap:8px;margin-top:22px;flex-wrap:wrap}
+
+.qa{background:var(--surface);border:1px solid var(--rule);margin-bottom:6px}
+.qa > button{width:100%;text-align:left;background:transparent;border:0;padding:10px 13px;cursor:pointer;font-family:var(--f-body);font-size:.93rem;color:var(--ink)}
+.qa > button:hover{background:var(--surface-2)}
+.qa .ans{padding:0 13px 12px;font-size:.91rem;color:var(--ink-soft)}
+.qa .ans b{color:var(--ink)}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--rule);color:var(--ink-soft);font-size:.85rem;max-width:66ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="kicker">DA5013 · Quiz 1 · Overview</div>
+  <h1>The Whole Cycle</h1>
+  <p class="sub">From raw text to a model you can use, in three parts: the tokenizer, the transformer, and inference. Pick a model size below and every shape and number on the page updates to match.</p>
+</header>
+
+<div class="bar">
+  <div class="tabs" role="group" aria-label="Parts">
+    <button class="tab" type="button" data-pane="over" aria-pressed="true">Overview</button>
+    <button class="tab" type="button" data-pane="tok" aria-pressed="false">1 · Tokenizer</button>
+    <button class="tab" type="button" data-pane="trf" aria-pressed="false">2 · Transformer</button>
+    <button class="tab" type="button" data-pane="inf" aria-pressed="false">3 · Inference</button>
+  </div>
+  <div class="ctl">
+    <span>model</span>
+    <span class="seg" id="presets" role="group" aria-label="Model size">
+      <button type="button" data-p="toy" aria-pressed="true">Toy</button>
+      <button type="button" data-p="gpt1" aria-pressed="false">GPT-1</button>
+      <button type="button" data-p="gpt2" aria-pressed="false">GPT-2</button>
+    </span>
+    <label>B <input id="inB" type="number" min="1" step="1" inputmode="numeric" aria-label="Batch size B"></label>
+    <label>T <input id="inT" type="number" min="1" step="1" inputmode="numeric" aria-label="Tokens per input T"></label>
+    <span class="warn" id="warn" hidden></span>
+  </div>
+</div>
+
+<!-- =============================== OVERVIEW =============================== -->
+<section class="pane" data-pane="over">
+  <div class="gist"><b>The whole cycle in one line</b>Text becomes ids. Ids go through a transformer that scores every possible next token. During training the scores are corrected; during inference the best one is picked and the loop runs again.</div>
+
+  <div class="flow">
+    <button class="fbox" type="button" data-to="tok"><i>Part 1 · weeks 1&ndash;2</i><b>The tokenizer</b><span>Collect text, clean it, learn the vocabulary, turn text into ids.</span><span class="io2">text &rarr; ids</span></button>
+    <button class="fbox" type="button" data-to="trf"><i>Part 2 · weeks 3&ndash;4</i><b>The transformer</b><span>Build it, train it on the next-token task, then adapt it to your job.</span><span class="io2">ids &rarr; scores for every token</span></button>
+    <button class="fbox" type="button" data-to="inf"><i>Part 3 · using it</i><b>Inference</b><span>Load the weights, feed a prompt, pick a token, repeat, turn ids back to text.</span><span class="io2">prompt &rarr; text</span></button>
+  </div>
+
+  <h3 class="sub">Words used on this page, with the live values for the model you picked</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Symbol</th><th>Meaning</th><th>Now</th></tr></thead><tbody>
+    <tr><td class="m">B</td><td>batch size: how many inputs are processed together</td><td class="m"><span data-n="B"></span></td></tr>
+    <tr><td class="m">T</td><td>tokens in <b>one</b> input. Changes with every input. Never above the context length.</td><td class="m"><span data-n="T"></span></td></tr>
+    <tr><td class="m">context</td><td>the fixed upper limit on T. Also the number of rows in the position table.</td><td class="m"><span data-n="ctx"></span></td></tr>
+    <tr><td class="m">V</td><td>vocabulary size. You set it when training the tokenizer; frozen afterwards.</td><td class="m"><span data-n="V"></span></td></tr>
+    <tr><td class="m">d</td><td>length of the vector that stands for one token</td><td class="m"><span data-n="d"></span></td></tr>
+    <tr><td class="m">L</td><td>number of blocks stacked</td><td class="m"><span data-n="L"></span></td></tr>
+    <tr><td class="m">h, d/h</td><td>attention heads, and the width each head gets</td><td class="m"><span data-n="h"></span> heads &times; <span data-n="dh"></span></td></tr>
+    <tr><td class="m">ff</td><td>width inside the feed-forward network (real models: 4d; the toy uses 2d to stay small)</td><td class="m"><span data-n="ff"></span></td></tr>
+    <tr><td class="m">N</td><td>all learnable numbers in the model (the &ldquo;7B&rdquo; in a 7B model)</td><td class="m"><span data-n="total"></span></td></tr>
+  </tbody></table></div>
+
+  <h3 class="sub">What is used, and what changes, at each point in the cycle</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Part</th><th>Pre-training</th><th>Full fine-tuning</th><th>LoRA / head-only</th><th>Inference</th></tr></thead><tbody>
+    <tr><td><b>Tokenizer</b></td><td>trained first, then frozen</td><td>frozen</td><td>frozen</td><td>frozen: the <b>same</b> one</td></tr>
+    <tr><td><b>Embedding tables</b></td><td>learned</td><td>updated</td><td>frozen</td><td>used</td></tr>
+    <tr><td><b>Blocks</b></td><td>learned</td><td>updated</td><td>frozen (LoRA adds small side matrices)</td><td>used</td></tr>
+    <tr><td><b>Last layer</b></td><td>learned (often shares the token table)</td><td>updated</td><td>head-only: a new head is trained</td><td>used</td></tr>
+    <tr><td><b>Loss, backprop, optimizer</b></td><td>yes</td><td>yes</td><td>yes, on the small trainable part only</td><td class="n">not used</td></tr>
+    <tr><td><b>Memory per number</b></td><td class="m">16 bytes</td><td class="m">16 bytes</td><td class="m">4 bytes for frozen; 16 for trainable</td><td class="m">4 bytes (fp32)</td></tr>
+  </tbody></table></div>
+
+  <div class="card key">
+    <span class="lab">Three things that tie the parts together</span>
+    <ul>
+      <li>The <b>same frozen tokenizer</b> is used in training and inference. A new tokenizer would give different ids, and the learned embedding rows would no longer match.</li>
+      <li><b>V appears twice</b>: as the rows of the token table at the input, and as the number of scores at the output.</li>
+      <li>The <b>text itself is the answer key</b> in pre-training. The next token is always right there in the corpus, so no one labels anything.</li>
+    </ul>
+  </div>
+  <div class="nextrow"><span></span><button class="btn" type="button" data-to="tok">Part 1 &middot; The tokenizer &rarr;</button></div>
+</section>
+
+<!-- =============================== PART 1 =============================== -->
+<section class="pane" data-pane="tok" hidden>
+  <h2 class="pt">Part 1 &middot; The tokenizer <small>weeks 1&ndash;2</small></h2>
+  <div class="gist"><b>The job</b>Turn text into a list of integers, in a way that is fixed once and reused forever. The tokenizer is built from the corpus <b>before</b> the model exists. It is learned by counting, not by gradient descent.</div>
+
+  <div class="steps">
+    <div class="step"><span class="no">1</span><div class="body">
+      <h4>Collect the raw text <span class="badge b-none">nothing learned</span></h4>
+      <p>Load a dataset from the Hub (week 1), then <code>.map()</code> and <code>.filter()</code> to clean it: drop empty rows, fix columns. At this point it is only strings.</p>
+      <div class="ex">the cat sat on the mat
+the cat ran
+the mat sat on the cat</div>
+    </div></div>
+
+    <div class="step"><span class="no">2</span><div class="body">
+      <h4>Clean and cut into words <span class="badge b-none">fixed rules</span></h4>
+      <p>The <b>normalizer</b> tidies the text (for example lower-case). The <b>pre-tokenizer</b> splits it on spaces. In the toy, <code>_</code> marks a word end.</p>
+      <div class="ex">"the cat sat"  &rarr;  the_  cat_  sat_</div>
+    </div></div>
+
+    <div class="step"><span class="no">3</span><div class="body">
+      <h4>Train the algorithm until it has V tokens <span class="badge b-count">learned by counting</span> <span class="badge b-frozen">then frozen</span></h4>
+      <p><b>You choose V.</b> BPE merges the most frequent pair, WordPiece merges the pair with the best score, Unigram starts big and drops tokens. Each stops at V. The corpus decides <i>which</i> tokens; you decide <i>how many</i>.</p>
+      <p>Output: a vocabulary of <b>V</b> entries, each with an id, plus the merge rules (or token probabilities for Unigram).</p>
+      <div class="io"><span class="shp" data-s="V"></span></div>
+      <div class="ex">toy vocabulary: _  a  at_  cat_  m  n  o  r  s  the_      (V = 10)</div>
+    </div></div>
+
+    <div class="step"><span class="no">4</span><div class="body">
+      <h4>Encode: text to pieces to ids <span class="badge b-frozen">frozen tokenizer</span></h4>
+      <p>Replay the merge rules, then look each piece up. The post-processor adds special tokens (BERT: <code>[CLS]</code> at the start, <code>[SEP]</code> at the end). After this line there is no text left in the system.</p>
+      <div class="ex">"the cat sat"  &rarr;  [the_, cat_, s, at_]  &rarr;  [9, 3, 8, 2]</div>
+      <div class="io"><span class="shp" data-s="T"></span><span class="arrow">one input: T integers</span></div>
+    </div></div>
+
+    <div class="step"><span class="no">5</span><div class="body">
+      <h4>Batch: pad, truncate, and record the padding <span class="badge b-frozen">frozen tokenizer</span></h4>
+      <p><code>padding=True</code> pads every input to the longest in the batch. <code>truncation=True</code> cuts at the limit; without it nothing is cut. The <code>attention_mask</code> says 1 for a real token and 0 for padding. The tokenizer <b>writes</b> it; the model's attention <b>reads</b> it later.</p>
+      <div class="io"><span class="shp" data-s="B T"></span><span class="arrow">input_ids</span><span class="shp" data-s="B T"></span><span class="arrow">attention_mask</span></div>
+    </div></div>
+
+    <div class="step"><span class="no">6</span><div class="body">
+      <h4>For pre-training only: pack the whole corpus into blocks <span class="badge b-frozen">frozen tokenizer</span></h4>
+      <p>Tokenize everything, join all the ids into one long stream, cut it into pieces of exactly the context length, and drop the short last piece. No padding is needed. These pieces become the training inputs.</p>
+      <div class="io"><span class="shp" data-s="ctx"></span><span class="arrow">tokens per piece, so T = context</span></div>
+    </div></div>
+  </div>
+
+  <div class="card hot">
+    <span class="lab">The exam hooks</span>
+    <ul>
+      <li>Bigger V: <b>shorter sequences</b> but a <b>bigger embedding table</b>. Never both better.</li>
+      <li>A tokenizer that shatters your text or gives many [UNK]s: <b>retrain it on in-domain text</b>. Nothing in the model can fix it.</li>
+      <li>Special tokens and their ids are <b>model-specific</b>. GPT-2 has no pad token until you set one.</li>
+    </ul>
+  </div>
+  <div class="go"><b>Do it by hand</b><a href="./tokenizers.html" target="_blank" rel="noopener">Tokenizer Lab</a> &mdash; step the merges yourself on the lecture corpus.</div>
+
+  <h3 class="sub">Check yourself</h3>
+  <div class="qa"><button type="button">Does the tokenizer learn with gradients?</button><div class="ans" hidden><b>No.</b> BPE counts pairs, WordPiece scores them, Unigram prunes by likelihood. Gradients and backprop belong to the model.</div></div>
+  <div class="qa"><button type="button">Who chooses V, and when is it frozen?</button><div class="ans" hidden><b>You</b> choose it before training the tokenizer. It is frozen before the model is trained and does not grow during training.</div></div>
+  <div class="qa"><button type="button">Two inputs of 3 and 5 tokens, <code>padding=True</code>. What is the first attention mask, and who wrote it?</button><div class="ans" hidden><b>1 1 1 0 0</b>, so 2 zeros. The <b>tokenizer</b> wrote it. The model's attention uses it later.</div></div>
+  <div class="qa"><button type="button">Is the order Normalizer &rarr; PreTokenizer &rarr; Model &rarr; PostProcessor?</button><div class="ans" hidden><b>Yes.</b> Clean, Cut, Merge, Wrap.</div></div>
+  <div class="nextrow"><button class="btn ghost" type="button" data-to="over">&larr; Overview</button><button class="btn" type="button" data-to="trf">Part 2 &middot; The transformer &rarr;</button></div>
+</section>
+
+<!-- =============================== PART 2 =============================== -->
+<section class="pane" data-pane="trf" hidden>
+  <h2 class="pt">Part 2 &middot; The transformer <small>weeks 3&ndash;4</small></h2>
+  <div class="gist"><b>The job</b>Take ids in, give back a score for every one of the V tokens, and learn from how wrong the scores were. Three stages: <b>build</b> it, <b>train</b> it on the next-token task, then <b>adapt</b> it to your own task.</div>
+
+  <h3 class="sub">Build</h3>
+  <div class="steps">
+    <div class="step"><span class="no">1</span><div class="body">
+      <h4>Choose the shape <span class="badge b-none">you choose</span></h4>
+      <p>You pick V (already set by the tokenizer), d, L, h and the context length. Those fix every parameter count:</p>
+      <div class="eq">embeddings = V&times;d + context&times;d &nbsp;|&nbsp; one block = 4d&sup2; (attention) + 8d&sup2; (FFN) = 12d&sup2;</div>
+      <div class="io"><span class="shp">N = <b data-n="total"></b></span><span class="arrow">learnable numbers</span><span class="shp">training copies = <b data-n="train" data-f="bytes"></b></span></div>
+    </div></div>
+
+    <div class="step"><span class="no">2</span><div class="body">
+      <h4>Embedding tables: ids to vectors <span class="badge b-learn">learned by backprop</span></h4>
+      <p>Two tables, both <b>random at the start</b>. The <b>token table</b> has one row per vocabulary entry: which token is this. The <b>position table</b> has one row per position: where is it. Each token's vector is its token row <b>plus</b> its position row. The result is called <b>X</b>.</p>
+      <div class="io"><span class="shp">token table <b data-n="tokemb"></b></span><span class="shp" data-s="V d"></span><span class="shp">position table <b data-n="posemb"></b></span><span class="shp" data-s="ctx d"></span></div>
+      <div class="io"><span class="shp" data-s="B T"></span><span class="arrow">ids</span><span class="arrow">&rarr;</span><span class="shp" data-s="B T d"></span><span class="arrow">X</span></div>
+      <p>X is a <b>lookup</b>, not something a network computed. T and d are unrelated: T is how long this input is, d is a fixed property of the model.</p>
+    </div></div>
+
+    <div class="step"><span class="no">3</span><div class="body">
+      <h4>The blocks: attention, then feed-forward <span class="badge b-learn">learned by backprop</span></h4>
+      <p>Each block lets tokens look at each other (attention), then processes each token on its own (feed-forward network, FFN). Each part also <b>adds its input back</b> to its output (a residual) and re-scales each vector (layer-norm). Neither changes a shape. <b>The shape going in equals the shape coming out</b>, which is why blocks can be stacked L times.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Inside one block</th><th>Shape</th></tr></thead><tbody>
+        <tr><td>X in</td><td><span class="shp" data-s="B T d"></span></td></tr>
+        <tr><td>Q, K, V, each made by X &times; a d&times;d matrix</td><td><span class="shp" data-s="B T d"></span></td></tr>
+        <tr><td>split into h heads (no new parameters)</td><td><span class="shp" data-s="B h T dh"></span></td></tr>
+        <tr><td>scores Q&middot;K&#7488; (the only T&sup2; part)</td><td><span class="shp" data-s="B h T T"></span></td></tr>
+        <tr><td>mask, softmax, times V</td><td><span class="shp" data-s="B h T dh"></span></td></tr>
+        <tr><td>join the heads, times O</td><td><span class="shp" data-s="B T d"></span></td></tr>
+        <tr><td>FFN widens</td><td><span class="shp" data-s="B T ff"></span></td></tr>
+        <tr><td>FFN narrows again</td><td><span class="shp" data-s="B T d"></span></td></tr>
+      </tbody></table></div>
+      <div class="io"><span class="shp">one block = <b data-n="block"></b></span><span class="arrow">&times; L =</span><span class="shp"><b data-n="blocks"></b></span></div>
+    </div></div>
+
+    <div class="step"><span class="no">4</span><div class="body">
+      <h4>The last layer: a score for every token <span class="badge b-learn">learned by backprop</span></h4>
+      <p>Each token's vector of d numbers becomes <b>V scores</b>, one per vocabulary entry (called logits). GPT-style models usually let this layer <b>reuse the token table</b>, so the course's parameter count has no extra V&times;d for it.</p>
+      <div class="io"><span class="shp" data-s="B T d"></span><span class="arrow">&rarr;</span><span class="shp" data-s="B T V"></span><span class="arrow">logits</span></div>
+    </div></div>
+  </div>
+
+  <h3 class="sub">Train</h3>
+  <div class="steps">
+    <div class="step"><span class="no">5</span><div class="body">
+      <h4>Loss: how wrong was the next-token guess <span class="badge b-none">no new parameters</span></h4>
+      <p>The labels are the <b>same ids shifted left by one</b>: at each position, the token that actually came next. Softmax turns the scores into probabilities; the loss is &minus;ln(probability of the correct token), averaged over all positions.</p>
+      <div class="io"><span class="shp" data-s="B T"></span><span class="arrow">labels</span><span class="arrow">&rarr;</span><span class="shp">one number: the loss</span></div>
+      <p>An untrained model spreads probability evenly, so its loss is about <b>ln V = <span data-n="lnV" data-f="dec2"></span></b>. A good training run starts there and falls.</p>
+    </div></div>
+
+    <div class="step"><span class="no">6</span><div class="body">
+      <h4>Backprop, then the optimizer updates everything <span class="badge b-learn">this is the learning</span></h4>
+      <p>Backpropagation works out a gradient for every learnable number. AdamW then nudges each one. During training every number needs <b>four copies</b>: the weight, its gradient, momentum and variance. That is <b>16 bytes per number</b> in fp32.</p>
+      <p>Repeat steps 2&ndash;6 on block after block of the corpus, millions of times. What is left is a file of N numbers: the <b>pre-trained model</b>.</p>
+      <div class="io"><span class="shp">N &times; 16 = <b data-n="train" data-f="bytes"></b></span></div>
+    </div></div>
+  </div>
+
+  <h3 class="sub">Adapt (week 4)</h3>
+  <div class="steps">
+    <div class="step"><span class="no">7</span><div class="body">
+      <h4>Make the pre-trained model do your job <span class="badge b-frozen">choose one</span></h4>
+      <p>The pre-trained model knows language, not your task. The choices differ in <b>how many numbers you train</b>, and so in memory. Numbers below are for the model you picked.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Method</th><th>What is trained</th><th>Trainable numbers</th><th>Memory</th></tr></thead><tbody>
+        <tr><td><b>Full fine-tuning</b></td><td>everything</td><td class="m" data-n="total"></td><td class="m" data-n="train" data-f="bytes"></td></tr>
+        <tr><td><b>Head-only</b></td><td>one new last layer, d &times; labels (2 labels here)</td><td class="m" data-n="head"></td><td class="m" data-n="headmem" data-f="bytes"></td></tr>
+        <tr><td><b>LoRA</b></td><td>small matrices A (d&times;r) and B (r&times;d) beside each chosen matrix; r = <span data-n="r"></span></td><td class="m"><span data-n="lora"></span> per matrix, <span data-n="lorapct" data-f="pct"></span> of d&times;d</td><td class="m">frozen weights N&times;4, plus 16 bytes per trainable number</td></tr>
+        <tr><td><b>Prompting</b></td><td>nothing: the weights do not change</td><td class="m">0</td><td class="m" data-n="f32" data-f="bytes"></td></tr>
+      </tbody></table></div>
+      <p><b>Continued pre-training</b> (plain domain text) and <b>instruction tuning</b> (instruction&ndash;response pairs) change the <b>data</b>, not the machinery. Their objectives differ. With lots of raw domain text and a few instruction pairs, do continued pre-training first, then instruction tuning.</p>
+      <p>Four ways to cut memory while doing this: <b>mixed precision</b>, <b>gradient accumulation</b>, <b>gradient checkpointing</b> (these three save activations) and <b>quantization</b> (saves weights). LoRA and head-only save gradients and optimizer states.</p>
+    </div></div>
+  </div>
+
+  <div class="card hot">
+    <span class="lab">The exam hooks</span>
+    <ul>
+      <li><b>Heads and T add no parameters.</b> A longer context adds only &Delta;context &times; d.</li>
+      <li>Training one 4B-parameter model in fp32 with AdamW: 4B &times; 16 = <b>64 GB</b>. Loading it: 4B &times; 4 = <b>16 GB</b>.</li>
+      <li>The only T&sup2; thing is the score matrix. The mask hides the future with &minus;&infin;; <code>diagonal=0</code> also hides the token itself, giving NaN.</li>
+      <li>Continued pre-training and instruction tuning do <b>not</b> share the same objective.</li>
+    </ul>
+  </div>
+  <div class="go"><b>Go deeper</b><a href="./transformer.html" target="_blank" rel="noopener">Transformer Workshop</a> for steps 1&ndash;6 with every number, and <a href="./memory.html" target="_blank" rel="noopener">Memory Workshop</a> for step 7.</div>
+
+  <h3 class="sub">Check yourself</h3>
+  <div class="qa"><button type="button">V = 32,000, d = 1,024, context = 2,048. Parameters in the two embedding tables?</button><div class="ans" hidden>32,000&times;1,024 + 2,048&times;1,024 = 32.77M + 2.10M = <b>34.9M</b>.</div></div>
+  <div class="qa"><button type="button">What loss should an untrained model give for V = 50,257?</button><div class="ans" hidden>About <b>ln(50,257) &approx; 10.82</b>.</div></div>
+  <div class="qa"><button type="button">Which shape in a block grows with T&sup2;?</button><div class="ans" hidden>The <b>score matrix</b>, B&times;h&times;T&times;T. Everything else grows with T only.</div></div>
+  <div class="qa"><button type="button">7B model, fp32, AdamW. Memory to fully fine-tune, and to just load?</button><div class="ans" hidden>Train: 7B &times; 16 = <b>112 GB</b>. Load: 7B &times; 4 = <b>28 GB</b>.</div></div>
+  <div class="qa"><button type="button">LoRA, rank 8, on a 4,096&times;4,096 matrix. Trainable numbers, and what share of the matrix?</button><div class="ans" hidden>2&times;4,096&times;8 = <b>65,536</b>. The matrix has 16,777,216, so 2r/d = 16/4,096 = <b>0.39%</b>.</div></div>
+  <div class="qa"><button type="button">Which learns by backprop: the tokenizer, the embedding table, or both?</button><div class="ans" hidden>Only the <b>embedding table</b> (and the blocks and last layer). The tokenizer is learned by counting, before the model.</div></div>
+  <div class="nextrow"><button class="btn ghost" type="button" data-to="tok">&larr; Part 1</button><button class="btn" type="button" data-to="inf">Part 3 &middot; Inference &rarr;</button></div>
+</section>
+
+<!-- =============================== PART 3 =============================== -->
+<section class="pane" data-pane="inf" hidden>
+  <h2 class="pt">Part 3 &middot; Inference <small>using the model</small></h2>
+  <div class="gist"><b>The job</b>Use the finished model. It is the same forward pass as in training, with no labels, no loss, no backprop and no optimizer. A text-generating model repeats the pass once per new token. One input at a time, so B = 1 here.</div>
+
+  <div class="steps">
+    <div class="step"><span class="no">1</span><div class="body">
+      <h4>Load the weights <span class="badge b-frozen">nothing updates</span></h4>
+      <p>Only the <b>weights</b> are needed. No gradients, no momentum, no variance. So it is N &times; bytes per number, instead of N &times; 16.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Stored as</th><th>Bytes each</th><th>Memory for this model</th></tr></thead><tbody>
+        <tr><td>fp32</td><td class="m">4</td><td class="m" data-n="f32" data-f="bytes"></td></tr>
+        <tr><td>fp16 / bf16</td><td class="m">2</td><td class="m" data-n="f16" data-f="bytes"></td></tr>
+        <tr><td>int8</td><td class="m">1</td><td class="m" data-n="i8" data-f="bytes"></td></tr>
+        <tr><td>int4</td><td class="m">0.5</td><td class="m" data-n="i4" data-f="bytes"></td></tr>
+      </tbody></table></div>
+      <p>The model also needs room for activations, which grow with T. Exam questions usually say to ignore them.</p>
+    </div></div>
+
+    <div class="step"><span class="no">2</span><div class="body">
+      <h4>Prompt to ids, with the same frozen tokenizer <span class="badge b-frozen">frozen</span></h4>
+      <div class="ex">"the cat sat"  &rarr;  [9, 3, 8, 2]</div>
+      <div class="io"><span class="shp" data-s="1 T"></span></div>
+    </div></div>
+
+    <div class="step"><span class="no">3</span><div class="body">
+      <h4>Forward pass: embeddings, L blocks, last layer <span class="badge b-frozen">weights fixed</span></h4>
+      <p>Exactly Part 2, steps 2&ndash;4. The causal mask keeps each position from seeing later ones.</p>
+      <div class="io"><span class="shp" data-s="1 T"></span><span class="arrow">&rarr;</span><span class="shp" data-s="1 T d"></span><span class="arrow">&rarr;</span><span class="shp" data-s="1 T V"></span><span class="arrow">logits</span></div>
+    </div></div>
+
+    <div class="step"><span class="no">4</span><div class="body">
+      <h4>Keep only the last position <span class="badge b-none">nothing learned</span></h4>
+      <p>The scores at the last token say what comes <b>next</b>. The scores at earlier positions answered earlier questions, and are not needed now.</p>
+      <div class="io"><span class="shp" data-s="1 T V"></span><span class="arrow">&rarr;</span><span class="shp" data-s="V"></span></div>
+    </div></div>
+
+    <div class="step"><span class="no">5</span><div class="body">
+      <h4>Softmax, then choose a token <span class="badge b-none">no loss, no labels</span></h4>
+      <p>Softmax turns the V scores into V probabilities. Then pick one: <b>greedy</b> takes the highest; <b>sampling</b> draws at random according to the probabilities. (These two decoding choices were not in the past papers or assignments I had, so treat them as background.)</p>
+      <div class="io"><span class="shp" data-s="V"></span><span class="arrow">&rarr; one id</span></div>
+    </div></div>
+
+    <div class="step"><span class="no">6</span><div class="body">
+      <h4>Append it and go round again <span class="badge b-none">the loop</span></h4>
+      <p>Add the chosen id to the input and run the pass again. This is why generating 100 tokens takes <b>100 passes</b>. Stop at the end-of-text token or when T would pass the <b>context length</b>.</p>
+      <div class="io"><span class="shp" data-s="1 T"></span><span class="arrow">&rarr;</span><span class="shp" data-s="1 T1"></span><span class="arrow">&rarr; &hellip;</span></div>
+    </div></div>
+
+    <div class="step"><span class="no">7</span><div class="body">
+      <h4>Decode: ids back to text <span class="badge b-frozen">frozen tokenizer</span></h4>
+      <p><code>tokenizer.decode(ids)</code> joins the pieces back into text. This is the only point where words reappear.</p>
+    </div></div>
+  </div>
+
+  <h3 class="sub">Training and inference, side by side</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Training</th><th>Inference</th></tr></thead><tbody>
+    <tr><td><b>Forward pass</b></td><td>yes</td><td>yes, same one</td></tr>
+    <tr><td><b>Labels and loss</b></td><td>yes (next token)</td><td class="n">no</td></tr>
+    <tr><td><b>Backprop and optimizer</b></td><td>yes</td><td class="n">no</td></tr>
+    <tr><td><b>Copies in memory</b></td><td>4 per number, 16 bytes</td><td>1 per number, 4 bytes</td></tr>
+    <tr><td><b>Weights change</b></td><td>yes</td><td class="n">no</td></tr>
+    <tr><td><b>Passes</b></td><td>one per batch</td><td>decoder-only: one per new token</td></tr>
+  </tbody></table></div>
+  <div class="card key">
+    <span class="lab">An encoder-only model (BERT) does not loop</span>
+    <p>It reads the whole input in <b>one pass</b> and does not generate. For classification, a head on the <span class="shp" style="display:inline-block">[CLS]</span> vector gives d&times;labels scores. There is no append-and-repeat.</p>
+  </div>
+  <div class="go"><b>Memory arithmetic</b>Practise it on the cheatsheet's <a href="./cheatsheet.html" target="_blank" rel="noopener">formula drill</a>.</div>
+
+  <h3 class="sub">Check yourself</h3>
+  <div class="qa"><button type="button">Memory to run a 7B model in fp16, weights only?</button><div class="ans" hidden>7B &times; 2 = <b>14 GB</b>.</div></div>
+  <div class="qa"><button type="button">Why does generating 100 tokens take 100 forward passes?</button><div class="ans" hidden>Each pass gives scores for <b>one</b> next token. The chosen token is appended and the pass is repeated.</div></div>
+  <div class="qa"><button type="button">Does inference use labels, the loss, or an optimizer?</button><div class="ans" hidden><b>None of them.</b> Only the forward pass with fixed weights.</div></div>
+  <div class="qa"><button type="button">What limits the length of the prompt plus the generated text?</button><div class="ans" hidden>The <b>context length</b>: the position table has no row beyond it.</div></div>
+  <div class="qa"><button type="button">Which tokenizer is used at inference?</button><div class="ans" hidden>The <b>same frozen one</b> the model was trained with.</div></div>
+  <div class="nextrow"><button class="btn ghost" type="button" data-to="trf">&larr; Part 2</button><button class="btn ghost" type="button" data-to="over">Overview</button></div>
+</section>
+
+<footer>
+  Part of the Quiz 1 set: this overview, the Cheatsheet, Tokenizer Lab, Transformer Workshop, Memory Workshop and Mock Papers. The toy model is the &ldquo;the cat sat&rdquo; example from the Transformer Workshop (V = 10, d = 4, 2 heads); its context length of 6 is chosen here for illustration.
+</footer>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var P = {
+    toy:  {V:10,    d:4,   ctx:6,    L:1,  h:2,  ff:8,    r:1, labels:2, B:1, T:4},
+    gpt1: {V:40478, d:768, ctx:512,  L:12, h:12, ff:3072, r:8, labels:2, B:8, T:512},
+    gpt2: {V:50257, d:768, ctx:1024, L:12, h:12, ff:3072, r:8, labels:2, B:8, T:1024}
+  };
+  var S = {};
+  var C = {
+    B:function(){return S.B}, T:function(){return S.T}, ctx:function(){return S.ctx}, V:function(){return S.V},
+    d:function(){return S.d}, L:function(){return S.L}, h:function(){return S.h}, ff:function(){return S.ff}, r:function(){return S.r},
+    dh:function(){return S.d / S.h},
+    tokemb:function(){return S.V * S.d},
+    posemb:function(){return S.ctx * S.d},
+    block:function(){return 4*S.d*S.d + 2*S.d*S.ff},
+    blocks:function(){return S.L * C.block()},
+    total:function(){return C.tokemb() + C.posemb() + C.blocks()},
+    train:function(){return C.total() * 16},
+    f32:function(){return C.total() * 4},
+    f16:function(){return C.total() * 2},
+    i8:function(){return C.total()},
+    i4:function(){return C.total() * 0.5},
+    head:function(){return S.d * S.labels},
+    headmem:function(){return C.total()*4 + C.head()*16},
+    lora:function(){return 2 * S.d * S.r},
+    lorapct:function(){return 200 * S.r / S.d},
+    lnV:function(){return Math.log(S.V)}
+  };
+  function int(n){ return Math.round(n).toLocaleString('en-US'); }
+  function fmt(n, f){
+    if (f === 'bytes'){
+      if (n < 1e3) return int(n) + ' bytes';
+      if (n < 1e6) return (n/1e3).toFixed(2) + ' KB';
+      if (n < 1e9) return (n/1e6).toFixed(1) + ' MB';
+      return (n/1e9).toFixed(2) + ' GB';
+    }
+    if (f === 'pct') return n.toFixed(2) + '%';
+    if (f === 'dec2') return n.toFixed(2);
+    return Number.isInteger(n) ? int(n) : String(Math.round(n*100)/100);
+  }
+  function sv(sym){
+    if (sym === '1') return 1;
+    if (sym === 'T1') return S.T + 1;
+    return C[sym]();
+  }
+  var LABEL = {dh:'d/h', T1:'T+1'};
+  function render(){
+    document.querySelectorAll('[data-n]').forEach(function(e){
+      e.textContent = fmt(C[e.getAttribute('data-n')](), e.getAttribute('data-f'));
+    });
+    document.querySelectorAll('.shp[data-s]').forEach(function(e){
+      var syms = e.getAttribute('data-s').split(' ');
+      var sym = syms.map(function(s){ return LABEL[s] || s; }).join('×');
+      var num = syms.map(function(s){ return int(sv(s)); }).join('×');
+      e.innerHTML = '<span class="sym">' + sym + '</span> = <b>' + num + '</b>';
+    });
+    var w = $('warn');
+    if (S.T > S.ctx){ w.hidden = false; w.textContent = 'T is above the context length (' + int(S.ctx) + '): the model cannot take it. Truncate.'; }
+    else { w.hidden = true; w.textContent = ''; }
+  }
+  function setPreset(k){
+    S = Object.assign({}, P[k]);
+    $('inB').value = S.B; $('inT').value = S.T;
+    document.querySelectorAll('#presets button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.p === k ? 'true' : 'false'); });
+    render();
+  }
+  document.querySelectorAll('#presets button').forEach(function(b){ b.addEventListener('click', function(){ setPreset(b.dataset.p); }); });
+  function num(el, key){
+    el.addEventListener('input', function(){
+      var v = parseInt(el.value, 10);
+      if (!isNaN(v) && v >= 1){ S[key] = v; render(); }
+    });
+  }
+  num($('inB'), 'B'); num($('inT'), 'T');
+
+  function show(p){
+    document.querySelectorAll('.pane').forEach(function(e){ e.hidden = e.dataset.pane !== p; });
+    document.querySelectorAll('.tab').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.pane === p ? 'true' : 'false'); });
+    var m = document.querySelector('.mast'); if (m) m.scrollIntoView({ block: 'start' });
+  }
+  document.querySelectorAll('.tab').forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.pane); }); });
+  document.querySelectorAll('[data-to]').forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.to); }); });
+
+  document.querySelectorAll('.qa > button').forEach(function(b){
+    b.addEventListener('click', function(){ var a = b.nextElementSibling; a.hidden = !a.hidden; });
+  });
+
+  setPreset('toy');
+})();
+</script>
+
+<a href="./index.html" style="position:fixed;left:max(14px,env(safe-area-inset-left,0px));
+ bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:9999;font:600 12px/1 Archivo,system-ui,sans-serif;
+ letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 13px;border-radius:2px;
+ background:#16202E;color:#F6F7F9;border:1px solid #16202E;box-shadow:0 2px 10px rgba(0,0,0,.18)">&larr; Index</a>
+</body>
+</html>

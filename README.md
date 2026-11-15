@@ -8,6 +8,7 @@ Study material for weeks 1–4 of the IIT Madras BS course **Deep Learning Pract
 
 | Page | Covers | What it is |
 |---|---|---|
+| [The Whole Cycle](https://michaeldatascience.github.io/DLP/cycle.html) | Weeks 1–4 | Raw text to a usable model in three parts, with shapes and numbers for a toy, GPT-1 or GPT-2 |
 | [Quiz 1 Cheatsheet](https://michaeldatascience.github.io/DLP/cheatsheet.html) | Weeks 1–4 | The one notes page: every definition, formula and trap, a randomised formula drill, 52 rapid-fire questions |
 | [Tokenizer Lab](https://michaeldatascience.github.io/DLP/tokenizers.html) | Week 2 | Step through BPE, WordPiece and Unigram on the lecture corpus |
 | [Transformer Workshop](https://michaeldatascience.github.io/DLP/transformer.html) | Week 3 | Corpus to loss · one block with every number · parameter counter · three architectures and the causal mask |
